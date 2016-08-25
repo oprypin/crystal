@@ -1039,8 +1039,9 @@ module Crystal
     property obj : ASTNode
     property const : ASTNode
     property? nil_check : Bool
+    property name_column_number : Int32
 
-    def initialize(@obj, @const, @nil_check = false)
+    def initialize(@obj, @const, @nil_check = false, @name_column_number = 0)
     end
 
     def accept_children(visitor)
@@ -1049,7 +1050,7 @@ module Crystal
     end
 
     def clone_without_location
-      IsA.new(@obj.clone, @const.clone, @nil_check)
+      IsA.new(@obj.clone, @const.clone, @nil_check, @name_column_number)
     end
 
     def_equals_and_hash @obj, @const, @nil_check
@@ -1058,8 +1059,9 @@ module Crystal
   class RespondsTo < ASTNode
     property obj : ASTNode
     property name : String
+    property name_column_number : Int32
 
-    def initialize(@obj, @name)
+    def initialize(@obj, @name, @name_column_number = 0)
     end
 
     def accept_children(visitor)
@@ -1067,7 +1069,7 @@ module Crystal
     end
 
     def clone_without_location
-      RespondsTo.new(@obj.clone, @name)
+      RespondsTo.new(@obj.clone, @name, @name_column_number)
     end
 
     def_equals_and_hash @obj, @name
@@ -1794,8 +1796,9 @@ module Crystal
   class Cast < ASTNode
     property obj : ASTNode
     property to : ASTNode
+    property name_column_number : Int32
 
-    def initialize(@obj : ASTNode, @to : ASTNode)
+    def initialize(@obj : ASTNode, @to : ASTNode, @name_column_number = 0)
     end
 
     def accept_children(visitor)
@@ -1804,7 +1807,7 @@ module Crystal
     end
 
     def clone_without_location
-      Cast.new(@obj.clone, @to.clone)
+      Cast.new(@obj.clone, @to.clone, @name_column_number)
     end
 
     def end_location
@@ -1818,8 +1821,9 @@ module Crystal
   class NilableCast < ASTNode
     property obj
     property to
+    property name_column_number : Int32
 
-    def initialize(@obj : ASTNode, @to : ASTNode)
+    def initialize(@obj : ASTNode, @to : ASTNode, @name_column_number = 0)
     end
 
     def accept_children(visitor)
@@ -1828,7 +1832,7 @@ module Crystal
     end
 
     def clone_without_location
-      NilableCast.new(@obj.clone, @to.clone)
+      NilableCast.new(@obj.clone, @to.clone, @name_column_number)
     end
 
     def end_location

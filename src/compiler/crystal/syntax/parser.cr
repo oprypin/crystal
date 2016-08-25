@@ -817,6 +817,7 @@ module Crystal
     end
 
     def parse_is_a(atomic)
+      name_column_number = @token.column_number
       next_token_skip_space
 
       if @token.type == :"("
@@ -829,10 +830,11 @@ module Crystal
         type = parse_single_type
       end
 
-      IsA.new(atomic, type)
+      IsA.new(atomic, type, name_column_number: name_column_number)
     end
 
     def parse_as(atomic, klass = Cast)
+      name_column_number = @token.column_number
       next_token_skip_space
 
       if @token.type == :"("
@@ -847,7 +849,7 @@ module Crystal
         end_location = token_end_location
       end
 
-      klass.new(atomic, type).at_end(end_location)
+      klass.new(atomic, type, name_column_number: name_column_number).at_end(end_location)
     end
 
     def parse_as?(atomic)
@@ -855,6 +857,7 @@ module Crystal
     end
 
     def parse_responds_to(atomic)
+      name_column_number = @token.column_number
       next_token
 
       if @token.type == :"("
@@ -871,7 +874,7 @@ module Crystal
         unexpected_token msg: "expected space or '('"
       end
 
-      RespondsTo.new(atomic, name)
+      RespondsTo.new(atomic, name, name_column_number: name_column_number)
     end
 
     def parse_responds_to_name
@@ -883,6 +886,7 @@ module Crystal
     end
 
     def parse_nil?(atomic)
+      name_column_number = @token.column_number
       next_token
 
       if @token.type == :"("
@@ -891,7 +895,7 @@ module Crystal
         next_token_skip_space
       end
 
-      IsA.new(atomic, Path.global("Nil"), nil_check: true)
+      IsA.new(atomic, Path.global("Nil"), nil_check: true, name_column_number: name_column_number)
     end
 
     def parse_atomic
