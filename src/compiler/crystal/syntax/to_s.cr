@@ -1282,6 +1282,13 @@ module Crystal
       false
     end
 
+    def visit(node : Assert)
+      @str << keyword("assert")
+      @str << " "
+      node.exp.accept self
+      false
+    end
+
     def visit(node : ImplicitObj)
       false
     end

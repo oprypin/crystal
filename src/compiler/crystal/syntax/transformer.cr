@@ -232,6 +232,11 @@ module Crystal
       node
     end
 
+    def transform(node : Assert)
+      node.exp = node.exp.transform(self)
+      node
+    end
+
     def transform(node : ImplicitObj)
       node
     end

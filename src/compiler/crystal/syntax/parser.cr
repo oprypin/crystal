@@ -1036,6 +1036,8 @@ module Crystal
           check_type_declaration { parse_case }
         when :select
           check_type_declaration { parse_select }
+        when :assert
+          check_type_declaration { parse_assert }
         when :if
           check_type_declaration { parse_if }
         when :ifdef
@@ -2557,6 +2559,28 @@ module Crystal
       else
         false
       end
+    end
+
+    def parse_assert
+      pos = end_pos = current_pos
+      loc = @token.location
+
+      next_token_skip_statement_end
+      arg = parse_op_assign_no_control
+
+      # Find out which lines contain the assert statement
+      while pos > 0 && string.unsafe_byte_at(pos - 1) != '\n'.ord
+        pos -= 1
+      end
+
+      end_loc = arg.end_location || arg.location || loc
+      (loc.line_number..end_loc.line_number).each do
+        while end_pos < string.bytesize && string.unsafe_byte_at(end_pos) != '\n'.ord
+          end_pos += 1
+        end
+      end
+
+      Assert.new(arg, string.byte_slice(pos, end_pos - pos)).at(loc).at_end(arg)
     end
 
     def parse_include

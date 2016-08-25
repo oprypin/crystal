@@ -1152,6 +1152,24 @@ module Crystal
     def_equals_and_hash @whens, @else
   end
 
+  class Assert < ASTNode
+    property exp : ASTNode
+    property source : String
+
+    def initialize(@exp, @source)
+    end
+
+    def accept_children(visitor)
+      exp.accept visitor
+    end
+
+    def clone_without_location
+      Assert.new(@exp, @source)
+    end
+
+    def_equals_and_hash @exp
+  end
+
   # Node that represents an implicit obj in:
   #
   #     case foo

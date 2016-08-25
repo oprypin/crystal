@@ -2662,6 +2662,11 @@ module Crystal
       false
     end
 
+    def visit(node : Assert)
+      expand(node)
+      false
+    end
+
     def visit(node : MultiAssign)
       expand(node)
       false

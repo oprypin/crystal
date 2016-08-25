@@ -700,6 +700,11 @@ module Crystal
           when 'm'
             next_char
             return check_ident_or_keyword(:asm, start)
+          when 's'
+            next_char
+            if next_char == 'e' && next_char == 'r' && next_char == 't'
+              return check_ident_or_keyword(:assert, start)
+            end
           when '?'
             next_char
             next_char

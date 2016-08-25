@@ -870,6 +870,10 @@ module Crystal
       types ? Type.merge!(types) : nil
     end
 
+    def guess_type(node : Assert)
+      guess_type(node.exp)
+    end
+
     def guess_type(node : Path)
       type = lookup_type?(node)
       return nil unless type

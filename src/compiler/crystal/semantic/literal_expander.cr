@@ -528,6 +528,93 @@ module Crystal
       end
     end
 
+    def expand(node : Assert)
+      transformer = AssertExprTransformer.new(@program)
+      expr = node.exp.clone.transform(transformer)
+
+      result = [StringLiteral.new(node.source)] of ASTNode
+
+      vars = transformer.vars
+      unless vars.empty?
+        vars.sort_by! &.[0]
+
+        line = String.build do |io|
+          io << "\n"
+          vars.each do |(loc, var)|
+            begin
+              io << " " * (loc - io.bytesize)
+              io << "|"
+            rescue
+            end
+          end
+        end
+        result << StringLiteral.new(line)
+
+        until vars.empty?
+          loc, var = vars.pop
+
+          result << StringLiteral.new(line.byte_slice(0, loc))
+          result << Call.new(var.clone_without_location, "inspect")
+          result << StringLiteral.new(" : ")
+          result << Call.new(var.clone_without_location, "class")
+        end
+      end
+
+      Or.new(expr,
+        Call.new(nil, "raise",
+          Call.new(Path.global("AssertionFailed"), "new", [
+            StringInterpolation.new(result).at(node),
+            MagicConstant.expand_file_node(node.location),
+            MagicConstant.expand_line_node(node.location),
+          ]).at(node)
+        ).at(node)
+      ).at(node)
+    end
+
+    class AssertExprTransformer < Transformer
+      getter vars = [] of {Int32, Var}
+
+      def initialize(@program : Program)
+      end
+
+      {% for cls in %w(Attribute BinaryOp Call Cast ClassVar Global If InstanceVar
+                      IsA MagicConstant NilableCast ReadInstanceVar RespondsTo
+                      Self StringInterpolation TypeOf UnaryExpression Unless Var) %}
+        def transform(node : {{cls.id}})
+          {% unless cls == "TypeOf" %}
+            super(node)
+          {% end %}
+
+          if (loc = node.location)
+            {% if %w(Call IsA RespondsTo Cast NilableCast).includes? cls %}
+              location = node.name_column_number
+            {% else %}
+              location = loc.column_number
+            {% end %}
+
+            {% if cls == "Var" %}
+              var = node
+            {% else %}
+              var = @program.new_temp_var
+              node = Assign.new(var, node)
+            {% end %}
+
+            vars << {location, var}
+          end
+
+          node
+        end
+      {% end %}
+
+      {% for cls in %w(Alias Asm Attribute Block ClassDef Def EnumDef Generic IfDef
+                      ImplicitObj LibDef Macro MacroExpression ModuleDef ProcLiteral
+                      ProcNotation ProcPointer TypeDeclaration Until While) %}
+        def transform(node : {{cls.id}})
+          node
+        end
+      {% end %}
+    end
+
     # Transform a multi assign into many assigns.
     def expand(node : MultiAssign)
       # From:

@@ -3328,6 +3328,15 @@ module Crystal
       false
     end
 
+    def visit(node : Assert)
+      write_keyword :assert
+      write " "
+      next_token_skip_space_or_newline
+      accept node.exp
+
+      false
+    end
+
     def visit(node : Attribute)
       write_token :"@["
       skip_space_or_newline
