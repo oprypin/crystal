@@ -229,3 +229,12 @@ class DivisionByZero < Exception
     super(message)
   end
 end
+
+class AssertionFailed < Exception
+  getter file : String
+  getter line : Int32
+
+  def initialize(message, @file, @line)
+    super(message)
+  end
+end

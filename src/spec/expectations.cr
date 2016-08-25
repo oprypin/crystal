@@ -255,8 +255,8 @@ module Spec
         %failed = true
         fail "expected {{klass.id}} but nothing was raised", {{file}}, {{line}}
       rescue %ex : {{klass.id}}
-        # We usually bubble Spec::AssertaionFailed, unless this is the expected exception
-        if %ex.class == Spec::AssertionFailed && {{klass}} != Spec::AssertionFailed
+        # We usually bubble AssertionFailed, unless this is the expected exception
+        if %ex.class == AssertionFailed && {{klass}} != AssertionFailed
           raise %ex
         end
 

@@ -17,7 +17,7 @@ module Spec::DSL
       Spec.run_before_each_hooks
       block.call
       Spec::RootContext.report(:success, description, file, line, Time.now - start)
-    rescue ex : Spec::AssertionFailed
+    rescue ex : AssertionFailed
       Spec::RootContext.report(:fail, description, file, line, Time.now - start, ex)
       Spec.abort! if Spec.fail_fast?
     rescue ex
@@ -41,7 +41,7 @@ module Spec::DSL
   end
 
   def fail(msg, file = __FILE__, line = __LINE__)
-    raise Spec::AssertionFailed.new(msg, file, line)
+    raise AssertionFailed.new(msg, file, line)
   end
 end
 

@@ -102,16 +102,6 @@ module Spec
   def self.use_colors=(@@use_colors)
   end
 
-  # :nodoc:
-  class AssertionFailed < Exception
-    getter file : String
-    getter line : Int32
-
-    def initialize(message, @file, @line)
-      super(message)
-    end
-  end
-
   @@aborted = false
 
   # :nodoc:
