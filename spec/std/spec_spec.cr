@@ -1,5 +1,7 @@
 require "spec"
 
+{% if true %} # prevent formatter from changing this
+
 describe "Spec matchers" do
   describe "should be_truthy" do
     it "passes for true" do
@@ -99,3 +101,5 @@ describe "Spec" do
     end
   end
 end
+
+{% end %}
