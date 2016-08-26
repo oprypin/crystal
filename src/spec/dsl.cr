@@ -7,7 +7,7 @@ module Spec::DSL
     describe(description.to_s, file, line, &block)
   end
 
-  def it(description, file = __FILE__, line = __LINE__, &block)
+  def it(description = "assert", file = __FILE__, line = __LINE__, &block)
     return unless Spec.matches?(description, file, line)
 
     Spec.formatters.each(&.before_example(description))
@@ -37,6 +37,7 @@ module Spec::DSL
   end
 
   def assert(file = __FILE__, line = __LINE__, &block)
+    # TODO: Remove after 0.19
     it("assert", file, line, &block)
   end
 
