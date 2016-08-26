@@ -5,7 +5,7 @@ describe Symbol do
     assert :foo.inspect == %(:foo)
     assert :"{".inspect == %(:"{")
     assert :"hi there".inspect == %(:"hi there")
-    # :かたな.inspect.should eq(%(:かたな))
+    # assert :かたな.inspect == %(:かたな)
   end
   it "can be compared with another symbol" do
     assert (:foo > :bar) == true

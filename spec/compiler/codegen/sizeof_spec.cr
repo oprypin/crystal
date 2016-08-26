@@ -49,9 +49,9 @@ describe "Code gen: sizeof" do
     #
     # In 32 bits structs are aligned to 4 bytes, so it remains the same.
     {% if flag?(:x86_64) %}
-      size.should eq(16)
+      assert size == 16
     {% else %}
-      size.should eq(12)
+      assert size == 12
     {% end %}
   end
 

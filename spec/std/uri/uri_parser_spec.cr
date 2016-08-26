@@ -28,10 +28,10 @@ require "uri"
 # private macro test(parser_meth, url, start_ptr, end_ptr, next_meth, uri_meth = nil, expected = nil, file = __FILE__, line = __LINE__)
 #   it "{{parser_meth}} on \"#{{{url}}}\"", {{file}}, {{line}} do
 #     par = test_parser(url: {{url}}, ptr: {{start_ptr}})
-#     par.{{parser_meth}}.should eq({{next_meth}})
-#     par.ptr.should eq({{end_ptr}})
+#     assert par.{{parser_meth}} == {{next_meth}}
+#     assert par.ptr == {{end_ptr}}
 #     {% if uri_meth %}
-#       par.uri.{{uri_meth}}.should eq({{expected}})
+#       assert par.uri.{{uri_meth}} === {{expected}}
 #     {% end %}
 #   end
 # end

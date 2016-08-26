@@ -177,8 +177,8 @@ describe "YAML mapping" do
 
       # There's no "null" in YAML? Maybe we should support this eventually
       # json = YAMLWithDefaults.from_yaml(%({"a":null,"b":null}))
-      # json.a.should eq 11
-      # json.b.should eq "Haha"
+      # assert json.a == 11
+      # assert json.b == "Haha"
     end
 
     it "bool" do

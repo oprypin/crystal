@@ -17,8 +17,8 @@ require "../../../spec_helper"
         LibFoo.foo(s)
         )).first_value
       str = mod.to_s
-      str.should contain("call void @foo({ i64 }")
-      str.should contain("declare void @foo({ i64 })")
+      assert str.includes?("call void @foo({ i64 }")
+      assert str.includes?("declare void @foo({ i64 })")
     end
 
     it "passes struct less than 64 bits (for real)" do
@@ -45,7 +45,7 @@ require "../../../spec_helper"
 
           s = LibFoo::Struct.new x: 1_i8, y: 2_i16
           LibFoo.foo(s)
-        ), &.to_i.should eq(3))
+        )) { |o| assert o.to_i == 3 }
     end
 
     it "passes struct less than 64 bits as { i64 } in varargs" do
@@ -63,7 +63,7 @@ require "../../../spec_helper"
         LibFoo.foo(s)
         )).first_value
       str = mod.to_s
-      str.should contain("call void (...)")
+      assert str.includes?("call void (...)")
     end
 
     it "passes struct between 64 and 128 bits as { i64, i64 }" do
@@ -81,8 +81,8 @@ require "../../../spec_helper"
         LibFoo.foo(s)
         )).first_value
       str = mod.to_s
-      str.should contain("call void @foo({ i64, i64 }")
-      str.should contain("declare void @foo({ i64, i64 })")
+      assert str.includes?("call void @foo({ i64, i64 }")
+      assert str.includes?("declare void @foo({ i64, i64 })")
     end
 
     it "passes struct between 64 and 128 bits (for real)" do
@@ -109,7 +109,7 @@ require "../../../spec_helper"
 
           s = LibFoo::Struct.new x: 1_i64, y: 2_i16
           LibFoo.foo(s)
-        ), &.to_i.should eq(3))
+        )) { |o| assert o.to_i == 3 }
     end
 
     it "passes struct bigger than128 bits with byval" do
@@ -128,7 +128,7 @@ require "../../../spec_helper"
         LibFoo.foo(s)
         )).first_value
       str = mod.to_s
-      str.scan(/byval/).size.should eq(2)
+      assert str.scan(/byval/).size == 2
     end
 
     it "passes struct bigger than128 bits (for real)" do
@@ -157,7 +157,7 @@ require "../../../spec_helper"
 
           s = LibFoo::Struct.new x: 1_i64, y: 2_i64, z: 3_i8
           LibFoo.foo(s)
-        ), &.to_i.should eq(6))
+        )) { |o| assert o.to_i == 6 }
     end
 
     it "returns struct less than 64 bits as { i64 }" do
@@ -174,8 +174,8 @@ require "../../../spec_helper"
         str = LibFoo.foo
         )).first_value
       str = mod.to_s
-      str.should contain("call { i64 } @foo()")
-      str.should contain("declare { i64 } @foo()")
+      assert str.includes?("call { i64 } @foo()")
+      assert str.includes?("declare { i64 } @foo()")
     end
 
     it "returns struct less than 64 bits (for real)" do
@@ -203,7 +203,7 @@ require "../../../spec_helper"
 
           str = LibFoo.foo
           str.x.to_i + str.y.to_i
-        ), &.to_i.should eq(3))
+        )) { |o| assert o.to_i == 3 }
     end
 
     it "returns struct between 64 and 128 bits as { i64, i64 }" do
@@ -220,8 +220,8 @@ require "../../../spec_helper"
         str = LibFoo.foo
         )).first_value
       str = mod.to_s
-      str.should contain("call { i64, i64 } @foo()")
-      str.should contain("declare { i64, i64 } @foo()")
+      assert str.includes?("call { i64, i64 } @foo()")
+      assert str.includes?("declare { i64, i64 } @foo()")
     end
 
     it "returns struct between 64 and 128 bits (for real)" do
@@ -249,7 +249,7 @@ require "../../../spec_helper"
 
           str = LibFoo.foo
           (str.x + str.y).to_i32
-        ), &.to_i.should eq(3))
+        )) { |o| assert o.to_i == 3 }
     end
 
     it "returns struct bigger than 128 bits with sret" do
@@ -267,8 +267,8 @@ require "../../../spec_helper"
         str = LibFoo.foo(1)
         )).first_value
       str = mod.to_s
-      str.scan(/sret/).size.should eq(2)
-      str.should contain("sret, i32") # sret goes as first argument
+      assert str.scan(/sret/).size == 2
+      assert str.includes?("sret, i32") # sret goes as first argument
     end
 
     it "returns struct bigger than 128 bits with sret" do
@@ -298,7 +298,8 @@ require "../../../spec_helper"
 
           str = LibFoo.foo(3)
           (str.x + str.y + str.z).to_i32
-        ), &.to_i.should eq(6))
+        )
+      ) { |o| assert o.to_i == 6 }
     end
   end
 {% end %}

@@ -122,7 +122,7 @@ describe "JSON serialization" do
 
     {% for type in %w(Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64).map(&.id) %}
         it "deserializes union with {{type}} (fast path)" do
-          Union({{type}}, Array(Int32)).from_json(%(#{ {{type}}::MAX })).should eq({{type}}::MAX)
+          assert Union({{type}}, Array(Int32)).from_json(%(#{ {{type}}::MAX })) == {{type}}::MAX
         end
       {% end %}
 

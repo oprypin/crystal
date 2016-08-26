@@ -58,14 +58,14 @@ module HTTP
       {% if !flag?(:without_openssl) %}
         it "detects HTTPS" do
           cl = Client.new(URI.parse("https://example.com"))
-          cl.tls?.should be_truthy
-          cl.port.should eq(443)
+          assert cl.tls?
+          assert cl.port == 443
         end
 
         it "keeps context" do
           ctx = OpenSSL::SSL::Context::Client.new
           cl = Client.new(URI.parse("https://example.com"), ctx)
-          cl.tls.should be(ctx)
+          assert cl.tls.same?(ctx)
         end
 
         it "doesn't take context for HTTP" do
@@ -77,8 +77,8 @@ module HTTP
 
         it "allows for specified ports" do
           cl = Client.new(URI.parse("https://example.com:9999"))
-          cl.tls?.should be_truthy
-          cl.port.should eq(9999)
+          assert cl.tls?
+          assert cl.port == 9999
         end
       {% else %}
         it "raises when trying to activate TLS" do

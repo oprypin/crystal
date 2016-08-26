@@ -582,13 +582,13 @@ describe Time do
   it "asks for day name" do
     7.times do |i|
       time = Time.new(2015, 2, 15 + i)
-      assert time.sunday? == i == 0
-      assert time.monday? == i == 1
-      assert time.tuesday? == i == 2
-      assert time.wednesday? == i == 3
-      assert time.thursday? == i == 4
-      assert time.friday? == i == 5
-      assert time.saturday? == i == 6
+      assert time.sunday? == (i == 0)
+      assert time.monday? == (i == 1)
+      assert time.tuesday? == (i == 2)
+      assert time.wednesday? == (i == 3)
+      assert time.thursday? == (i == 4)
+      assert time.friday? == (i == 5)
+      assert time.saturday? == (i == 6)
     end
   end
 

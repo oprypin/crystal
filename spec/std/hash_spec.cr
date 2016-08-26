@@ -94,7 +94,7 @@ describe "Hash" do
     it "gets" do
       a = {1 => 2}
       assert a[1] == 2
-      # a[2].should raise_exception
+      # TODO a[2] should raise exception
       assert a == {1 => 2}
     end
   end

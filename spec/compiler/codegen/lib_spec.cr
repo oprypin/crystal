@@ -119,7 +119,7 @@ describe "Code gen: lib" do
 
         tuple = LibFoo.foo
         tuple[0] + tuple[1]
-      ), &.assert to_i == 3)
+      )) { |o| assert o.to_i == 3 }
   end
 
   it "get fun field from struct (#672)" do

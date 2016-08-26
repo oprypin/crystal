@@ -151,13 +151,13 @@ describe "Range" do
 
       assert (0.0..inf).bsearch { |x| Math.log(x) >= 0 }.not_nil!.close?(1.0, 0.0001)
 
-      assert (0.0..10).bsearch { |x| x >= 3.5 }.not_nil!.close?(3.5, 0.0001)
-      assert (0..10.0).bsearch { |x| x >= 3.5 }.not_nil!.close?(3.5, 0.0001)
+      assert (0.0..10).bsearch { |x| x >= 3.5 }.not_nil!.to_f.close?(3.5, 0.0001)
+      assert (0..10.0).bsearch { |x| x >= 3.5 }.not_nil!.to_f.close?(3.5, 0.0001)
 
       assert (0_f32..5_f32).bsearch { |x| x >= 5_f32 }.not_nil!.close?(5_f32, 0.0001_f32)
       assert (0_f32...5_f32).bsearch { |x| x >= 5_f32 }.nil?
       assert (0_f32..5.0).bsearch { |x| x >= 5.0 }.not_nil!.close?(5.0, 0.0001)
-      assert (0..5.0_f32).bsearch { |x| x >= 5.0 }.not_nil!.close?(5.0, 0.0001)
+      assert (0..5.0_f32).bsearch { |x| x >= 5.0 }.not_nil!.to_f.close?(5.0, 0.0001)
 
       inf32 = Float32::INFINITY
       assert (0..inf32).bsearch { |x| x == inf32 } == inf32

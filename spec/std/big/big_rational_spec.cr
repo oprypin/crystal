@@ -82,7 +82,7 @@ describe BigRational do
     g = br(12, 3)
 
     # sanity check things aren't swapped
-    [l, e, g].each { |o| assert (a <=> o) == a.to_f <=> o.to_f }
+    [l, e, g].each { |o| assert (a <=> o) == (a.to_f <=> o.to_f) }
 
     test_comp(a, l, e, g)
   end

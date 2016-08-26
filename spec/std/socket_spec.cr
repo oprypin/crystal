@@ -12,7 +12,7 @@ describe Socket do
     assert Socket.ip?("255.255.255.255") == true
 
     # numbers-and-dots notation, but not dotted-decimal
-    # Socket.ip?("1.2.03.4").should be_false # fails on darwin
+    # assert Socket.ip?("1.2.03.4") == false # fails on darwin
     assert Socket.ip?("1.2.0x33.4") == false
     assert Socket.ip?("1.2.0XAB.4") == false
     assert Socket.ip?("1.2.0xabcd") == false
@@ -39,13 +39,13 @@ describe Socket do
     assert Socket.ip?("::192.168.1.1") == true
     assert Socket.ip?("0:0:0:0:0:0:192.168.1.1") == true
     assert Socket.ip?("0:0::0:0:0:192.168.1.1") == true
-    # Socket.ip?("::012.34.56.78").should be_false # fails on darwin
+    # assert Socket.ip?("::012.34.56.78") == false # fails on darwin
     assert Socket.ip?(":ffff:192.168.1.1") == false
     assert Socket.ip?("::ffff:192.168.1.1") == true
     assert Socket.ip?(".192.168.1.1") == false
     assert Socket.ip?(":.192.168.1.1") == false
     assert Socket.ip?("a:0b:00c:000d:E:F::") == true
-    # Socket.ip?("a:0b:00c:000d:0000e:f::").should be_false # fails on GNU libc
+    # assert Socket.ip?("a:0b:00c:000d:0000e:f::") == false # fails on GNU libc
     assert Socket.ip?("1:2:3:4:5:6::") == true
     assert Socket.ip?("1:2:3:4:5:6:7::") == true
     assert Socket.ip?("1:2:3:4:5:6:7:8::") == false
@@ -325,18 +325,18 @@ describe TCPSocket do
         # so for now we keep it commented. Once we can force the family
         # we can uncomment them.
 
-        # client.local_address.family.should eq(Socket::Family::INET)
-        # client.local_address.address.should eq("127.0.0.1")
+        # assert client.local_address.family == Socket::Family::INET
+        # assert client.local_address.address == "127.0.0.1"
 
         sock = server.accept
         assert sock.sync? == server.sync?
 
-        # sock.local_address.family.should eq(Socket::Family::INET6)
-        # sock.local_address.port.should eq(12345)
-        # sock.local_address.address.should eq("::ffff:127.0.0.1")
+        # assert sock.local_address.family == Socket::Family::INET6
+        # assert sock.local_address.port == 12345
+        # assert sock.local_address.address == "::ffff:127.0.0.1"
 
-        # sock.remote_address.family.should eq(Socket::Family::INET6)
-        # sock.remote_address.address.should eq("::ffff:127.0.0.1")
+        # assert sock.remote_address.family == Socket::Family::INET6
+        # assert sock.remote_address.address == "::ffff:127.0.0.1"
 
         # test protocol specific socket options
         assert (client.tcp_nodelay = true) == true

@@ -229,7 +229,7 @@ describe "BigInt" do
   {% if flag?(:x86_64) %}
     # For 32 bits libgmp can't seem to be able to do it
     it "can cast UInt64::MAX to UInt64 (#2264)" do
-      BigInt.new(UInt64::MAX).to_u64.should eq(UInt64::MAX)
+      assert BigInt.new(UInt64::MAX).to_u64 == UInt64::MAX
     end
   {% end %}
 

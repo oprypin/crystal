@@ -134,12 +134,12 @@ describe "Float" do
       assert 1.23_f32.to_s == "1.23"
       assert 1.234_f32.to_s == "1.234"
       assert 0.65000000000000002_f32.to_s == "0.65"
-      # 1.234001_f32.to_s.should eq("1.234001")
+      # assert 1.234001_f32.to_s == "1.234001"
       assert 1.23499_f32.to_s == "1.23499"
       assert 1.23499999999999_f32.to_s == "1.235"
       assert 1.2345_f32.to_s == "1.2345"
       assert 1.23456_f32.to_s == "1.23456"
-      # 9525365.25_f32.to_s.should eq("9525365.25")
+      # assert 9525365.25_f32.to_s == "9525365.25"
       assert (1.0_f32/0.0_f32).to_s == "Infinity"
       assert (-1.0_f32/0.0_f32).to_s == "-Infinity"
     end

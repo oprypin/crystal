@@ -165,7 +165,7 @@ describe "Code gen: class" do
 
   # it "gets object_id of class" do
   #   program = Program.new
-  #   program.run("Reference.object_id").to_i.should eq(program.reference.metaclass.type_id)
+  #   assert program.run("Reference.object_id").to_i == program.reference.metaclass.type_id
   # end
 
   it "calls method on Class class" do

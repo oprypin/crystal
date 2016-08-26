@@ -62,13 +62,13 @@ describe "NamedTuple" do
 
     key = :a
     val = tup[key]
-    assert val == 1
     assert typeof(val) == Int32 | Char
+    assert val == 1
 
     key = :b
     val = tup[key]
-    assert val == 'a'
     assert typeof(val) == Int32 | Char
+    assert val == 'a'
 
     expect_raises(KeyError) do
       key = :c
@@ -81,18 +81,18 @@ describe "NamedTuple" do
 
     key = :a
     val = tup[key]?
-    assert val == 1
     assert typeof(val) == Int32 | Char | Nil
+    assert val == 1
 
     key = :b
     val = tup[key]?
-    assert val == 'a'
     assert typeof(val) == Int32 | Char | Nil
+    assert val == 'a'
 
     key = :c
     val = tup[key]?
-    assert val.nil?
     assert typeof(val) == Int32 | Char | Nil
+    assert val.nil?
   end
 
   it "does [] with string" do
@@ -100,13 +100,13 @@ describe "NamedTuple" do
 
     key = "a"
     val = tup[key]
-    assert val == 1
     assert typeof(val) == Int32 | Char
+    assert val == 1
 
     key = "b"
     val = tup[key]
-    assert val == 'a'
     assert typeof(val) == Int32 | Char
+    assert val == 'a'
 
     expect_raises(KeyError) do
       key = "c"
@@ -119,18 +119,18 @@ describe "NamedTuple" do
 
     key = "a"
     val = tup[key]?
-    assert val == 1
     assert typeof(val) == Int32 | Char | Nil
+    assert val == 1
 
     key = "b"
     val = tup[key]?
-    assert val == 'a'
     assert typeof(val) == Int32 | Char | Nil
+    assert val == 'a'
 
     key = "c"
     val = tup[key]?
-    assert val.nil?
     assert typeof(val) == Int32 | Char | Nil
+    assert val.nil?
   end
 
   it "computes a hash value" do
