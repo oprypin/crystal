@@ -555,8 +555,8 @@ module Crystal
 
           result << StringLiteral.new(line.byte_slice(0, loc))
           result << Call.new(var.clone_without_location, "inspect")
-          result << StringLiteral.new(" : ")
-          result << Call.new(var.clone_without_location, "class")
+          # result << StringLiteral.new(" : ")
+          # result << Call.new(var.clone_without_location, "class")  # Causes an LLVM error for some reason
         end
       end
 
