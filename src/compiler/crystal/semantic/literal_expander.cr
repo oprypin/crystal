@@ -608,7 +608,7 @@ module Crystal
 
       {% for cls in %w(Alias Asm Attribute Block ClassDef Def EnumDef Generic IfDef
                       ImplicitObj LibDef Macro MacroExpression ModuleDef ProcLiteral
-                      ProcNotation ProcPointer TypeDeclaration Until While) %}
+                      ProcNotation ProcPointer TypeDeclaration Until While ArrayLiteral) %}
         def transform(node : {{cls.id}})
           node
         end
