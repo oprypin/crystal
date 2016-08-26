@@ -1037,7 +1037,23 @@ module Crystal
         when :select
           check_type_declaration { parse_select }
         when :assert
-          check_type_declaration { parse_assert }
+          # TODO: remove this workaround so assert is always a keyword after 0.19
+          old_pos, old_line, old_column, old_token = current_pos, @line_number, @column_number, @token.dup
+          next_token_skip_space
+          is_block = begin
+            if parse_block(nil)
+              skip_space
+              @token.type == :NEWLINE || @token.type == :";"
+            end
+          rescue
+          end
+          self.current_pos, @line_number, @column_number, @token = old_pos, old_line, old_column, old_token
+
+          if is_block
+            set_visibility parse_var_or_call
+          else
+            check_type_declaration { parse_assert }
+          end
         when :if
           check_type_declaration { parse_if }
         when :ifdef

@@ -2075,6 +2075,13 @@ module Crystal
 
     # Replace specs with assert
     def convert_specs(node : Call)
+      if node.name == "assert" && !node.obj && (block = node.block)
+        write "it"
+        next_token_skip_space
+        format_block block, false
+        return true
+      end
+
       bool = case node.name
              when "should"
                true
