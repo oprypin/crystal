@@ -2,66 +2,66 @@ require "spec"
 require "json"
 
 class JSON::PullParser
-  def assert(event_kind : Symbol)
+  def check(event_kind : Symbol)
     kind.should eq(event_kind)
     read_next
   end
 
-  def assert(value : Nil)
+  def check(value : Nil)
     kind.should eq(:null)
     read_next
   end
 
-  def assert(value : Int)
+  def check(value : Int)
     kind.should eq(:int)
     int_value.should eq(value)
     read_next
   end
 
-  def assert(value : Float)
+  def check(value : Float)
     kind.should eq(:float)
     float_value.should eq(value)
     read_next
   end
 
-  def assert(value : Bool)
+  def check(value : Bool)
     kind.should eq(:bool)
     bool_value.should eq(value)
     read_next
   end
 
-  def assert(value : String)
+  def check(value : String)
     kind.should eq(:string)
     string_value.should eq(value)
     read_next
   end
 
-  def assert(value : String)
+  def check(value : String)
     kind.should eq(:string)
     string_value.should eq(value)
     read_next
     yield
   end
 
-  def assert(array : Array)
-    assert_array do
+  def check(array : Array)
+    check_array do
       array.each do |x|
-        assert x
+        check x
       end
     end
   end
 
-  def assert(hash : Hash)
-    assert_object do
+  def check(hash : Hash)
+    check_object do
       hash.each do |key, value|
-        assert(key.as(String)) do
-          assert value
+        check(key.as(String)) do
+          check value
         end
       end
     end
   end
 
-  def assert_array
+  def check_array
     kind.should eq(:begin_array)
     read_next
     yield
@@ -69,11 +69,11 @@ class JSON::PullParser
     read_next
   end
 
-  def assert_array
-    assert_array { }
+  def check_array
+    check_array { }
   end
 
-  def assert_object
+  def check_object
     kind.should eq(:begin_object)
     read_next
     yield
@@ -81,26 +81,26 @@ class JSON::PullParser
     read_next
   end
 
-  def assert_object
-    assert_object { }
+  def check_object
+    check_object { }
   end
 
-  def assert_error
+  def check_error
     expect_raises JSON::ParseException do
       read_next
     end
   end
 end
 
-private def assert_pull_parse(string)
+private def check_pull_parse(string)
   it "parses #{string}" do
     parser = JSON::PullParser.new string
-    parser.assert JSON.parse(string).raw
+    parser.check JSON.parse(string).raw
     parser.kind.should eq(:EOF)
   end
 end
 
-private def assert_pull_parse_error(string)
+private def check_pull_parse_error(string)
   it "errors on #{string}" do
     expect_raises JSON::ParseException do
       parser = JSON::PullParser.new string
@@ -111,7 +111,7 @@ private def assert_pull_parse_error(string)
   end
 end
 
-private def assert_raw(string, file = __FILE__, line = __LINE__)
+private def check_raw(string, file = __FILE__, line = __LINE__)
   it "parses raw #{string.inspect}", file, line do
     pull = JSON::PullParser.new(string)
     pull.read_raw.should eq(string)
@@ -119,48 +119,48 @@ private def assert_raw(string, file = __FILE__, line = __LINE__)
 end
 
 describe JSON::PullParser do
-  assert_pull_parse "null"
-  assert_pull_parse "false"
-  assert_pull_parse "true"
-  assert_pull_parse "1"
-  assert_pull_parse "1.5"
-  assert_pull_parse %("hello")
-  assert_pull_parse "[]"
-  assert_pull_parse "[[]]"
-  assert_pull_parse "[1]"
-  assert_pull_parse "[1.5]"
-  assert_pull_parse "[null]"
-  assert_pull_parse "[true]"
-  assert_pull_parse "[false]"
-  assert_pull_parse %(["hello"])
-  assert_pull_parse "[1, 2]"
-  assert_pull_parse "{}"
-  assert_pull_parse %({"foo": 1})
-  assert_pull_parse %({"foo": "bar"})
-  assert_pull_parse %({"foo": [1, 2]})
-  assert_pull_parse %({"foo": 1, "bar": 2})
-  assert_pull_parse %({"foo": "foo1", "bar": "bar1"})
+  check_pull_parse "null"
+  check_pull_parse "false"
+  check_pull_parse "true"
+  check_pull_parse "1"
+  check_pull_parse "1.5"
+  check_pull_parse %("hello")
+  check_pull_parse "[]"
+  check_pull_parse "[[]]"
+  check_pull_parse "[1]"
+  check_pull_parse "[1.5]"
+  check_pull_parse "[null]"
+  check_pull_parse "[true]"
+  check_pull_parse "[false]"
+  check_pull_parse %(["hello"])
+  check_pull_parse "[1, 2]"
+  check_pull_parse "{}"
+  check_pull_parse %({"foo": 1})
+  check_pull_parse %({"foo": "bar"})
+  check_pull_parse %({"foo": [1, 2]})
+  check_pull_parse %({"foo": 1, "bar": 2})
+  check_pull_parse %({"foo": "foo1", "bar": "bar1"})
 
-  assert_pull_parse_error "[null 2]"
-  assert_pull_parse_error "[false 2]"
-  assert_pull_parse_error "[true 2]"
-  assert_pull_parse_error "[1 2]"
-  assert_pull_parse_error "[1.5 2]"
-  assert_pull_parse_error %(["hello" 2])
-  assert_pull_parse_error "[,1]"
-  assert_pull_parse_error "[}]"
-  assert_pull_parse_error "["
-  assert_pull_parse_error %({,"foo": 1})
-  assert_pull_parse_error "[]]"
-  assert_pull_parse_error "{}}"
-  assert_pull_parse_error %({"foo",1})
-  assert_pull_parse_error %({"foo"::1})
-  assert_pull_parse_error %(["foo":1])
-  assert_pull_parse_error %({"foo": []:1})
-  assert_pull_parse_error "[[]"
-  assert_pull_parse_error %({"foo": {})
-  assert_pull_parse_error %({"name": "John", "age", 1})
-  assert_pull_parse_error %({"name": "John", "age": "foo", "bar"})
+  check_pull_parse_error "[null 2]"
+  check_pull_parse_error "[false 2]"
+  check_pull_parse_error "[true 2]"
+  check_pull_parse_error "[1 2]"
+  check_pull_parse_error "[1.5 2]"
+  check_pull_parse_error %(["hello" 2])
+  check_pull_parse_error "[,1]"
+  check_pull_parse_error "[}]"
+  check_pull_parse_error "["
+  check_pull_parse_error %({,"foo": 1})
+  check_pull_parse_error "[]]"
+  check_pull_parse_error "{}}"
+  check_pull_parse_error %({"foo",1})
+  check_pull_parse_error %({"foo"::1})
+  check_pull_parse_error %(["foo":1])
+  check_pull_parse_error %({"foo": []:1})
+  check_pull_parse_error "[[]"
+  check_pull_parse_error %({"foo": {})
+  check_pull_parse_error %({"name": "John", "age", 1})
+  check_pull_parse_error %({"name": "John", "age": "foo", "bar"})
 
   describe "skip" do
     [
@@ -295,14 +295,14 @@ describe JSON::PullParser do
   end
 
   describe "raw" do
-    assert_raw "null"
-    assert_raw "true"
-    assert_raw "false"
-    assert_raw "1234"
-    assert_raw "1234.5678"
-    assert_raw %("hello")
-    assert_raw %([1,"hello",true,false,null,[1,2,3]])
-    assert_raw %({"foo":[1,2,{"bar":[1,"hello",true,false,1.5]}]})
-    assert_raw %({"foo":"bar"})
+    check_raw "null"
+    check_raw "true"
+    check_raw "false"
+    check_raw "1234"
+    check_raw "1234.5678"
+    check_raw %("hello")
+    check_raw %([1,"hello",true,false,null,[1,2,3]])
+    check_raw %({"foo":[1,2,{"bar":[1,"hello",true,false,1.5]}]})
+    check_raw %({"foo":"bar"})
   end
 end
