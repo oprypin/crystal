@@ -85,6 +85,10 @@ struct Float
     end
   end
 
+  def close?(expected_value, delta)
+    (self - expected_value).abs <= delta
+  end
+
   # Writes this float to the given *io* in the given *format*.
   # See `IO#write_bytes`.
   def to_io(io : IO, format : IO::ByteFormat)

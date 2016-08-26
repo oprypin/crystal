@@ -212,6 +212,10 @@ struct Complex
     Complex.new(@real / other, @imag / other)
   end
 
+  def close?(expected_value, delta)
+    (self - expected_value).abs <= delta
+  end
+
   def clone
     self
   end
