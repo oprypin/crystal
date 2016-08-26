@@ -9,22 +9,22 @@ end
 describe Time::Span do
   it "initializes" do
     t1 = Time::Span.new 1234567890
-    t1.to_s.should eq("00:02:03.4567890")
+    assert t1.to_s == "00:02:03.4567890"
 
     t1 = Time::Span.new 1, 2, 3
-    t1.to_s.should eq("01:02:03")
+    assert t1.to_s == "01:02:03"
 
     t1 = Time::Span.new 1, 2, 3, 4
-    t1.to_s.should eq("1.02:03:04")
+    assert t1.to_s == "1.02:03:04"
 
     t1 = Time::Span.new 1, 2, 3, 4, 5
-    t1.to_s.should eq("1.02:03:04.0050000")
+    assert t1.to_s == "1.02:03:04.0050000"
 
     t1 = Time::Span.new -1, 2, -3, 4, -5
-    t1.to_s.should eq("-22:02:56.0050000")
+    assert t1.to_s == "-22:02:56.0050000"
 
     t1 = Time::Span.new 0, 25, 0, 0, 0
-    t1.to_s.should eq("1.01:00:00")
+    assert t1.to_s == "1.01:00:00"
   end
 
   it "days overflows" do
@@ -48,69 +48,69 @@ describe Time::Span do
 
   it "max seconds" do
     ts = Int32::MAX.seconds
-    ts.days.should eq(24855)
-    ts.hours.should eq(3)
-    ts.minutes.should eq(14)
-    ts.seconds.should eq(7)
-    ts.milliseconds.should eq(0)
-    ts.ticks.should eq(21474836470000000)
+    assert ts.days == 24855
+    assert ts.hours == 3
+    assert ts.minutes == 14
+    assert ts.seconds == 7
+    assert ts.milliseconds == 0
+    assert ts.ticks == 21474836470000000
   end
 
   it "min seconds" do
     ts = Int32::MIN.seconds
-    ts.days.should eq(-24855)
-    ts.hours.should eq(-3)
-    ts.minutes.should eq(-14)
-    ts.seconds.should eq(-8)
-    ts.milliseconds.should eq(0)
-    ts.ticks.should eq(-21474836480000000)
+    assert ts.days == -24855
+    assert ts.hours == -3
+    assert ts.minutes == -14
+    assert ts.seconds == -8
+    assert ts.milliseconds == 0
+    assert ts.ticks == -21474836480000000
   end
 
   it "max milliseconds" do
     ts = Int32::MAX.milliseconds
-    ts.days.should eq(24)
-    ts.hours.should eq(20)
-    ts.minutes.should eq(31)
-    ts.seconds.should eq(23)
-    ts.milliseconds.should eq(647)
-    ts.ticks.should eq(21474836470000)
+    assert ts.days == 24
+    assert ts.hours == 20
+    assert ts.minutes == 31
+    assert ts.seconds == 23
+    assert ts.milliseconds == 647
+    assert ts.ticks == 21474836470000
   end
 
   it "min milliseconds" do
     ts = Int32::MIN.milliseconds
-    ts.days.should eq(-24)
-    ts.hours.should eq(-20)
-    ts.minutes.should eq(-31)
-    ts.seconds.should eq(-23)
-    ts.milliseconds.should eq(-648)
-    ts.ticks.should eq(-21474836480000)
+    assert ts.days == -24
+    assert ts.hours == -20
+    assert ts.minutes == -31
+    assert ts.seconds == -23
+    assert ts.milliseconds == -648
+    assert ts.ticks == -21474836480000
   end
 
   it "negative timespan" do
     ts = Time::Span.new -23, -59, -59
-    ts.days.should eq(0)
-    ts.hours.should eq(-23)
-    ts.minutes.should eq(-59)
-    ts.seconds.should eq(-59)
-    ts.milliseconds.should eq(0)
-    ts.ticks.should eq(-863990000000)
+    assert ts.days == 0
+    assert ts.hours == -23
+    assert ts.minutes == -59
+    assert ts.seconds == -59
+    assert ts.milliseconds == 0
+    assert ts.ticks == -863990000000
   end
 
   it "test properties" do
     t1 = Time::Span.new 1, 2, 3, 4, 5
     t2 = -t1
 
-    t1.days.should eq(1)
-    t1.hours.should eq(2)
-    t1.minutes.should eq(3)
-    t1.seconds.should eq(4)
-    t1.milliseconds.should eq(5)
+    assert t1.days == 1
+    assert t1.hours == 2
+    assert t1.minutes == 3
+    assert t1.seconds == 4
+    assert t1.milliseconds == 5
 
-    t2.days.should eq(-1)
-    t2.hours.should eq(-2)
-    t2.minutes.should eq(-3)
-    t2.seconds.should eq(-4)
-    t2.milliseconds.should eq(-5)
+    assert t2.days == -1
+    assert t2.hours == -2
+    assert t2.minutes == -3
+    assert t2.seconds == -4
+    assert t2.milliseconds == -5
   end
 
   it "test add" do
@@ -118,12 +118,12 @@ describe Time::Span do
     t2 = Time::Span.new 1, 2, 3, 4, 5
     t3 = t1 + t2
 
-    t3.days.should eq(3)
-    t3.hours.should eq(5)
-    t3.minutes.should eq(7)
-    t3.seconds.should eq(9)
-    t3.milliseconds.should eq(11)
-    t3.to_s.should eq("3.05:07:09.0110000")
+    assert t3.days == 3
+    assert t3.hours == 5
+    assert t3.minutes == 7
+    assert t3.seconds == 9
+    assert t3.milliseconds == 11
+    assert t3.to_s == "3.05:07:09.0110000"
 
     # TODO check overflow
   end
@@ -132,51 +132,51 @@ describe Time::Span do
     t1 = Time::Span.new -1
     t2 = Time::Span.new 1
 
-    (t1 <=> t2).should eq(-1)
-    (t2 <=> t1).should eq(1)
-    (t2 <=> t2).should eq(0)
-    (Time::Span::MinValue <=> Time::Span::MaxValue).should eq(-1)
+    assert (t1 <=> t2) == -1
+    assert (t2 <=> t1) == 1
+    assert (t2 <=> t2) == 0
+    assert (Time::Span::MinValue <=> Time::Span::MaxValue) == -1
 
-    (t1 == t2).should be_false
-    (t1 > t2).should be_false
-    (t1 >= t2).should be_false
-    (t1 != t2).should be_true
-    (t1 < t2).should be_true
-    (t1 <= t2).should be_true
+    assert (t1 == t2) == false
+    assert (t1 > t2) == false
+    assert (t1 >= t2) == false
+    assert (t1 != t2) == true
+    assert (t1 < t2) == true
+    assert (t1 <= t2) == true
   end
 
   it "test equals" do
     t1 = Time::Span.new 1
     t2 = Time::Span.new 2
 
-    (t1 == t1).should be_true
-    (t1 == t2).should be_false
-    (t1 == "hello").should be_false
+    assert (t1 == t1) == true
+    assert (t1 == t2) == false
+    assert (t1 == "hello") == false
   end
 
   it "test float extension methods" do
-    12.345.days.to_s.should eq("12.08:16:48")
-    12.345.hours.to_s.should eq("12:20:42")
-    12.345.minutes.to_s.should eq("00:12:20.7000000")
-    12.345.seconds.to_s.should eq("00:00:12.3450000")
-    12.345.milliseconds.to_s.should eq("00:00:00.0120000")
-    -0.5.milliseconds.to_s.should eq("-00:00:00.0010000")
-    0.5.milliseconds.to_s.should eq("00:00:00.0010000")
-    -2.5.milliseconds.to_s.should eq("-00:00:00.0030000")
-    2.5.milliseconds.to_s.should eq("00:00:00.0030000")
-    0.0005.seconds.to_s.should eq("00:00:00.0010000")
+    assert 12.345.days.to_s == "12.08:16:48"
+    assert 12.345.hours.to_s == "12:20:42"
+    assert 12.345.minutes.to_s == "00:12:20.7000000"
+    assert 12.345.seconds.to_s == "00:00:12.3450000"
+    assert 12.345.milliseconds.to_s == "00:00:00.0120000"
+    assert -0.5.milliseconds.to_s == "-00:00:00.0010000"
+    assert 0.5.milliseconds.to_s == "00:00:00.0010000"
+    assert -2.5.milliseconds.to_s == "-00:00:00.0030000"
+    assert 2.5.milliseconds.to_s == "00:00:00.0030000"
+    assert 0.0005.seconds.to_s == "00:00:00.0010000"
   end
 
   it "test negate and duration" do
-    (-Time::Span.new(12345)).to_s.should eq("-00:00:00.0012345")
-    Time::Span.new(-12345).duration.to_s.should eq("00:00:00.0012345")
-    Time::Span.new(-12345).abs.to_s.should eq("00:00:00.0012345")
-    (-Time::Span.new(77)).to_s.should eq("-00:00:00.0000077")
-    (+Time::Span.new(77)).to_s.should eq("00:00:00.0000077")
+    assert (-Time::Span.new(12345)).to_s == "-00:00:00.0012345"
+    assert Time::Span.new(-12345).duration.to_s == "00:00:00.0012345"
+    assert Time::Span.new(-12345).abs.to_s == "00:00:00.0012345"
+    assert (-Time::Span.new(77)).to_s == "-00:00:00.0000077"
+    assert (+Time::Span.new(77)).to_s == "00:00:00.0000077"
   end
 
   it "test hash code" do
-    Time::Span.new(77).hash.should eq(77)
+    assert Time::Span.new(77).hash == 77
   end
 
   it "test subtract" do
@@ -184,7 +184,7 @@ describe Time::Span do
     t2 = Time::Span.new 1, 2, 3, 4, 5
     t3 = t1 - t2
 
-    t3.to_s.should eq("1.01:01:01.0010000")
+    assert t3.to_s == "1.01:01:01.0010000"
 
     # TODO check overflow
   end
@@ -193,7 +193,7 @@ describe Time::Span do
     t1 = Time::Span.new 5, 4, 3, 2, 1
     t2 = t1 * 61
 
-    t2.should eq(Time::Span.new 315, 7, 5, 2, 61)
+    assert t2 == Time::Span.new 315, 7, 5, 2, 61
 
     # TODO check overflow
   end
@@ -202,7 +202,7 @@ describe Time::Span do
     t1 = Time::Span.new 3, 3, 3, 3, 3
     t2 = t1 / 2
 
-    t2.should eq(Time::Span.new(1, 13, 31, 31, 501) + Time::Span.new(5000))
+    assert t2 == Time::Span.new(1, 13, 31, 31, 501) + Time::Span.new(5000)
 
     # TODO check overflow
   end
@@ -211,21 +211,21 @@ describe Time::Span do
     t1 = Time::Span.new 1, 2, 3, 4, 5
     t2 = -t1
 
-    t1.to_s.should eq("1.02:03:04.0050000")
-    t2.to_s.should eq("-1.02:03:04.0050000")
-    Time::Span::MaxValue.to_s.should eq("10675199.02:48:05.4775807")
-    Time::Span::MinValue.to_s.should eq("-10675199.02:48:05.4775808")
-    Time::Span::Zero.to_s.should eq("00:00:00")
+    assert t1.to_s == "1.02:03:04.0050000"
+    assert t2.to_s == "-1.02:03:04.0050000"
+    assert Time::Span::MaxValue.to_s == "10675199.02:48:05.4775807"
+    assert Time::Span::MinValue.to_s == "-10675199.02:48:05.4775808"
+    assert Time::Span::Zero.to_s == "00:00:00"
   end
 
   it "test totals" do
     t1 = Time::Span.new 1, 2, 3, 4, 5
-    t1.total_days.should be_close(1.08546, 1e-05)
-    t1.total_hours.should be_close(26.0511, 1e-04)
-    t1.total_minutes.should be_close(1563.07, 1e-02)
-    t1.total_seconds.should be_close(93784, 1e-01)
-    t1.total_milliseconds.should be_close(9.3784e+07, 1e+01)
-    t1.to_f.should be_close(93784, 1e-01)
-    t1.to_i.should eq(93784)
+    assert t1.total_days.close?(1.08546, 1e-05)
+    assert t1.total_hours.close?(26.0511, 1e-04)
+    assert t1.total_minutes.close?(1563.07, 1e-02)
+    assert t1.total_seconds.close?(93784, 1e-01)
+    assert t1.total_milliseconds.close?(9.3784e+07, 1e+01)
+    assert t1.to_f.close?(93784, 1e-01)
+    assert t1.to_i == 93784
   end
 end

@@ -10,7 +10,7 @@ describe OpenSSL::Digest do
     it "should be able to calculate #{algorithm}" do
       digest = OpenSSL::Digest.new(algorithm)
       digest << "foo"
-      digest.hexdigest.should eq(expected)
+      assert digest.hexdigest == expected
     end
   end
 
@@ -21,13 +21,13 @@ describe OpenSSL::Digest do
   end
 
   it "returns the digest size" do
-    OpenSSL::Digest.new("SHA1").digest_size.should eq 20
-    OpenSSL::Digest.new("SHA256").digest_size.should eq 32
+    assert OpenSSL::Digest.new("SHA1").digest_size == 20
+    assert OpenSSL::Digest.new("SHA256").digest_size == 32
   end
 
   it "returns the block size" do
-    OpenSSL::Digest.new("SHA1").block_size.should eq 64
-    OpenSSL::Digest.new("SHA256").block_size.should eq 64
+    assert OpenSSL::Digest.new("SHA1").block_size == 64
+    assert OpenSSL::Digest.new("SHA256").block_size == 64
   end
 
   it "correctly reads from IO" do
@@ -39,6 +39,6 @@ describe OpenSSL::Digest do
     digest << r
     r.close
 
-    digest.hexdigest.should eq("2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")
+    assert digest.hexdigest == "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
   end
 end

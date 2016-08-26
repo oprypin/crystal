@@ -60,7 +60,7 @@ describe "Semantic: exception" do
     mod = result.program
     a_def = mod.lookup_first_def("foo", false)
     def_instance = mod.lookup_def_instance DefInstanceKey.new(a_def.object_id, [] of Type, nil, nil)
-    def_instance.not_nil!.raises?.should be_true
+    assert def_instance.not_nil!.raises? == true
   end
 
   it "marks method calling lib fun that raises as raises" do
@@ -77,7 +77,7 @@ describe "Semantic: exception" do
     mod = result.program
     a_def = mod.lookup_first_def("foo", false)
     def_instance = mod.lookup_def_instance DefInstanceKey.new(a_def.object_id, [] of Type, nil, nil)
-    def_instance.not_nil!.raises?.should be_true
+    assert def_instance.not_nil!.raises? == true
   end
 
   it "types exception var with no types" do
@@ -219,7 +219,7 @@ describe "Semantic: exception" do
     mod = result.program
     eh = result.node.as(Expressions).expressions[-2]
     call_p_n = eh.as(ExceptionHandler).ensure.not_nil!.as(Call)
-    call_p_n.args.first.type.should eq(mod.nilable(mod.int32))
+    assert call_p_n.args.first.type == mod.nilable(mod.int32)
   end
 
   it "types var as nilable inside ensure (2)" do
@@ -237,7 +237,7 @@ describe "Semantic: exception" do
     mod = result.program
     eh = result.node.as(Expressions).expressions[-2]
     call_p_n = eh.as(ExceptionHandler).ensure.not_nil!.as(Call)
-    call_p_n.args.first.type.should eq(mod.nilable(mod.int32))
+    assert call_p_n.args.first.type == mod.nilable(mod.int32)
   end
 
   it "marks fun as raises" do
@@ -248,7 +248,7 @@ describe "Semantic: exception" do
       )) { int32 }
     mod = result.program
     a_def = mod.lookup_first_def("foo", false)
-    a_def.not_nil!.raises?.should be_true
+    assert a_def.not_nil!.raises? == true
   end
 
   it "marks def as raises" do
@@ -262,13 +262,13 @@ describe "Semantic: exception" do
       )) { int32 }
     mod = result.program
     a_def = mod.lookup_first_def("foo", false)
-    a_def.not_nil!.raises?.should be_true
+    assert a_def.not_nil!.raises? == true
   end
 
   it "marks proc literal as raises" do
     result = assert_type("->{ 1 }.call", inject_primitives: true) { int32 }
     call = result.node.as(Expressions).last.as(Call)
-    call.target_def.raises?.should be_true
+    assert call.target_def.raises? == true
   end
 
   it "shadows local variable (1)" do

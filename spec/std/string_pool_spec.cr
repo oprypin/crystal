@@ -4,8 +4,8 @@ require "string_pool"
 describe StringPool do
   it "is empty" do
     pool = StringPool.new
-    pool.empty?.should be_true
-    pool.size.should eq(0)
+    assert pool.empty? == true
+    assert pool.size == 0
   end
 
   it "gets string" do
@@ -13,10 +13,10 @@ describe StringPool do
     s1 = pool.get "foo"
     s2 = pool.get "foo"
 
-    s1.should eq("foo")
-    s2.should eq("foo")
-    s1.should be(s2)
-    pool.size.should eq(1)
+    assert s1 == "foo"
+    assert s2 == "foo"
+    assert s1.same?(s2)
+    assert pool.size == 1
   end
 
   it "gets string IO" do
@@ -26,10 +26,10 @@ describe StringPool do
     s1 = pool.get io
     s2 = pool.get "foo"
 
-    s1.should eq("foo")
-    s2.should eq("foo")
-    s1.should be(s2)
-    pool.size.should eq(1)
+    assert s1 == "foo"
+    assert s2 == "foo"
+    assert s1.same?(s2)
+    assert pool.size == 1
   end
 
   it "gets slice" do
@@ -39,10 +39,10 @@ describe StringPool do
     s1 = pool.get(slice)
     s2 = pool.get(slice)
 
-    s1.should eq("aaa")
-    s2.should eq("aaa")
-    s1.should be(s2)
-    pool.size.should eq(1)
+    assert s1 == "aaa"
+    assert s2 == "aaa"
+    assert s1.same?(s2)
+    assert pool.size == 1
   end
 
   it "gets pointer with size" do
@@ -52,10 +52,10 @@ describe StringPool do
     s1 = pool.get(slice.pointer(slice.size), slice.size)
     s2 = pool.get(slice.pointer(slice.size), slice.size)
 
-    s1.should eq("aaa")
-    s2.should eq("aaa")
-    s1.should be(s2)
-    pool.size.should eq(1)
+    assert s1 == "aaa"
+    assert s2 == "aaa"
+    assert s1.same?(s2)
+    assert pool.size == 1
   end
 
   it "puts many" do
@@ -63,6 +63,6 @@ describe StringPool do
     10_000.times do |i|
       pool.get(i.to_s)
     end
-    pool.size.should eq(10_000)
+    assert pool.size == 10_000
   end
 end

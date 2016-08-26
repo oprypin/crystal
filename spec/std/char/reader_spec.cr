@@ -4,9 +4,9 @@ require "char/reader"
 describe "Char::Reader" do
   it "iterates through empty string" do
     reader = Char::Reader.new("")
-    reader.pos.should eq(0)
-    reader.current_char.ord.should eq(0)
-    reader.has_next?.should be_false
+    assert reader.pos == 0
+    assert reader.current_char.ord == 0
+    assert reader.has_next? == false
 
     expect_raises IndexError do
       reader.next_char
@@ -15,11 +15,11 @@ describe "Char::Reader" do
 
   it "iterates through string of size one" do
     reader = Char::Reader.new("a")
-    reader.pos.should eq(0)
-    reader.current_char.should eq('a')
-    reader.has_next?.should be_true
-    reader.next_char.ord.should eq(0)
-    reader.has_next?.should be_false
+    assert reader.pos == 0
+    assert reader.current_char == 'a'
+    assert reader.has_next? == true
+    assert reader.next_char.ord == 0
+    assert reader.has_next? == false
 
     expect_raises IndexError do
       reader.next_char
@@ -28,22 +28,22 @@ describe "Char::Reader" do
 
   it "iterates through chars" do
     reader = Char::Reader.new("há日本語")
-    reader.pos.should eq(0)
-    reader.current_char.ord.should eq(104)
-    reader.has_next?.should be_true
+    assert reader.pos == 0
+    assert reader.current_char.ord == 104
+    assert reader.has_next? == true
 
-    reader.next_char.ord.should eq(225)
+    assert reader.next_char.ord == 225
 
-    reader.pos.should eq(1)
-    reader.current_char.ord.should eq(225)
+    assert reader.pos == 1
+    assert reader.current_char.ord == 225
 
-    reader.next_char.ord.should eq(26085)
-    reader.next_char.ord.should eq(26412)
-    reader.next_char.ord.should eq(35486)
-    reader.has_next?.should be_true
+    assert reader.next_char.ord == 26085
+    assert reader.next_char.ord == 26412
+    assert reader.next_char.ord == 35486
+    assert reader.has_next? == true
 
-    reader.next_char.ord.should eq(0)
-    reader.has_next?.should be_false
+    assert reader.next_char.ord == 0
+    assert reader.has_next? == false
 
     expect_raises IndexError do
       reader.next_char
@@ -52,14 +52,14 @@ describe "Char::Reader" do
 
   it "peeks next char" do
     reader = Char::Reader.new("há日本語")
-    reader.peek_next_char.ord.should eq(225)
+    assert reader.peek_next_char.ord == 225
   end
 
   it "sets pos" do
     reader = Char::Reader.new("há日本語")
     reader.pos = 1
-    reader.pos.should eq(1)
-    reader.current_char.ord.should eq(225)
+    assert reader.pos == 1
+    assert reader.current_char.ord == 225
   end
 
   it "is an Enumerable(Char)" do
@@ -68,7 +68,7 @@ describe "Char::Reader" do
     reader.each do |char|
       sum += char.ord
     end
-    sum.should eq(294)
+    assert sum == 294
   end
 
   it "is an Enumerable(Char) but doesn't yield if empty" do

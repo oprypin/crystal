@@ -266,7 +266,7 @@ describe "Semantic: enum" do
       SomeFacts::AppleLover
       ))
     enum_type = result.program.types["SomeFacts"].as(EnumType)
-    enum_type.has_attribute?("Flags").should be_true
+    assert enum_type.has_attribute?("Flags") == true
   end
 
   it "can use macro expression inside enum" do

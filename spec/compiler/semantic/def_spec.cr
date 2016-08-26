@@ -22,8 +22,8 @@ describe "Semantic: def" do
     result = semantic input
     mod, input = result.program, result.node.as(Expressions)
 
-    input[1].type.should eq(mod.int32)
-    input[2].type.should eq(mod.float64)
+    assert input[1].type == mod.int32
+    assert input[2].type == mod.float64
   end
 
   it "types a call with an argument uses a new scope" do
@@ -34,7 +34,7 @@ describe "Semantic: def" do
     input = parse "struct Int; def foo; 2.5; end; end; 1.foo"
     result = semantic input
     mod, input = result.program, result.node.as(Expressions)
-    input.last.as(Call).target_def.owner.should eq(mod.int32)
+    assert input.last.as(Call).target_def.owner == mod.int32
   end
 
   it "types putchar with Char" do
@@ -105,8 +105,8 @@ describe "Semantic: def" do
     mod, input = result.program, result.node.as(Expressions)
 
     call = input.last.as(Call)
-    call.type.should eq(mod.nilable(mod.int32))
-    call.target_def.body.type.should eq(mod.nil)
+    assert call.type == mod.nilable(mod.int32)
+    assert call.target_def.body.type == mod.nil
   end
 
   it "reports undefined method" do

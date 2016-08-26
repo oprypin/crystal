@@ -36,7 +36,7 @@ def assert_implementations(code)
 
     result_location = result.implementations.not_nil!.map { |e| Location.new(e.filename.not_nil!, e.line.not_nil!, e.column.not_nil!).to_s }.sort
 
-    result_location.should eq(expected_locations.map(&.to_s))
+    assert result_location == expected_locations.map(&.to_s)
   else
     raise "no cursor found in spec"
   end
@@ -191,27 +191,27 @@ describe "implementations" do
       bar
     ), Location.new(".", 12, 9))
 
-    result.implementations.should_not be_nil
+    assert result.implementations
     impls = result.implementations.not_nil!
-    impls.size.should eq(1)
+    assert impls.size == 1
 
-    impls[0].line.should eq(11) # location of baz
-    impls[0].column.should eq(7)
-    impls[0].filename.should eq(".")
+    assert impls[0].line == 11 # location of baz
+    assert impls[0].column == 7
+    assert impls[0].filename == "."
 
-    impls[0].expands.should_not be_nil
+    assert impls[0].expands
     exp = impls[0].expands.not_nil!
-    exp.line.should eq(8) # location of foo call in macro baz
-    exp.column.should eq(9)
-    exp.macro.should eq("baz")
-    exp.filename.should eq(".")
+    assert exp.line == 8 # location of foo call in macro baz
+    assert exp.column == 9
+    assert exp.macro == "baz"
+    assert exp.filename == "."
 
-    exp.expands.should_not be_nil
+    assert exp.expands
     exp = exp.expands.not_nil!
-    exp.line.should eq(3) # location of def bar in macro foo
-    exp.column.should eq(9)
-    exp.macro.should eq("foo")
-    exp.filename.should eq(".")
+    assert exp.line == 3 # location of def bar in macro foo
+    assert exp.column == 9
+    assert exp.macro == "foo"
+    assert exp.filename == "."
   end
 
   it "can display text output" do
@@ -229,9 +229,9 @@ describe "implementations" do
       bar
     ), Location.new(".", 12, 9))
 
-    String::Builder.build do |io|
+    assert String::Builder.build do |io|
       result.to_text(io)
-    end.should eq %(1 implementation found
+    end == %(1 implementation found
 .:11:7
  ~> macro baz: .:8:9
  ~> macro foo: .:3:9
@@ -253,9 +253,9 @@ describe "implementations" do
       bar
     ), Location.new(".", 12, 9))
 
-    String::Builder.build do |io|
+    assert String::Builder.build do |io|
       result.to_json(io)
-    end.should eq %({"status":"ok","message":"1 implementation found","implementations":[{"line":11,"column":7,"filename":".","expands":{"line":8,"column":9,"filename":".","macro":"baz","expands":{"line":3,"column":9,"filename":".","macro":"foo"}}}]})
+    end == %({"status":"ok","message":"1 implementation found","implementations":[{"line":11,"column":7,"filename":".","expands":{"line":8,"column":9,"filename":".","macro":"baz","expands":{"line":3,"column":9,"filename":".","macro":"foo"}}}]})
   end
 
   it "find implementation in class methods" do

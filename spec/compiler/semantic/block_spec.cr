@@ -19,7 +19,7 @@ describe "Block inference" do
       end
     ").as(Expressions)
     result = semantic input
-    input.last.as(Call).block.not_nil!.body.type.should eq(result.program.int32)
+    assert input.last.as(Call).block.not_nil!.body.type == result.program.int32
   end
 
   it "infer type of block argument" do
@@ -34,7 +34,7 @@ describe "Block inference" do
     ").as(Expressions)
     result = semantic input
     mod = result.program
-    input.last.as(Call).block.not_nil!.args[0].type.should eq(mod.int32)
+    assert input.last.as(Call).block.not_nil!.args[0].type == mod.int32
   end
 
   it "infer type of local variable" do
@@ -138,8 +138,8 @@ describe "Block inference" do
       ") { generic_class "Foo", float64 }
     mod = result.program
     type = result.node.type.as(GenericClassInstanceType)
-    type.type_vars["T"].type.should eq(mod.float64)
-    type.instance_vars["@x"].type.should eq(mod.float64)
+    assert type.type_vars["T"].type == mod.float64
+    assert type.instance_vars["@x"].type == mod.float64
   end
 
   it "infers type of block before call taking other args free vars into account" do
@@ -1272,7 +1272,7 @@ describe "Block inference" do
   end
 
   it "doesn't crash on #2531" do
-    run(%(
+    assert run(%(
       def foo
         yield
       end
@@ -1282,7 +1282,7 @@ describe "Block inference" do
         value ? nil : nil
       end
       value ? 10 : 20
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "yields in overload, matches type" do

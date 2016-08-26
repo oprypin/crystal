@@ -2,57 +2,57 @@ require "../../spec_helper"
 
 describe "Codegen: responds_to?" do
   it "codegens responds_to? true for simple type" do
-    run("1.responds_to?(:\"+\")").to_b.should be_true
+    assert run("1.responds_to?(:\"+\")").to_b == true
   end
 
   it "codegens responds_to? false for simple type" do
-    run("1.responds_to?(:foo)").to_b.should be_false
+    assert run("1.responds_to?(:foo)").to_b == false
   end
 
   it "codegens responds_to? with union gives true" do
-    run("(1 == 1 ? 1 : 'a').responds_to?(:\"+\")").to_b.should be_true
+    assert run("(1 == 1 ? 1 : 'a').responds_to?(:\"+\")").to_b == true
   end
 
   it "codegens responds_to? with union gives false" do
-    run("(1 == 1 ? 1 : 'a').responds_to?(:\"foo\")").to_b.should be_false
+    assert run("(1 == 1 ? 1 : 'a').responds_to?(:\"foo\")").to_b == false
   end
 
   it "codegens responds_to? with nilable gives true" do
-    run("struct Nil; def foo; end; end; (1 == 1 ? nil : Reference.new).responds_to?(:foo)").to_b.should be_true
+    assert run("struct Nil; def foo; end; end; (1 == 1 ? nil : Reference.new).responds_to?(:foo)").to_b == true
   end
 
   it "codegens responds_to? with nilable gives false because other type 1" do
-    run("(1 == 1 ? nil : Reference.new).responds_to?(:foo)").to_b.should be_false
+    assert run("(1 == 1 ? nil : Reference.new).responds_to?(:foo)").to_b == false
   end
 
   it "codegens responds_to? with nilable gives false because other type 2" do
-    run("class Reference; def foo; end; end; (1 == 2 ? nil : Reference.new).responds_to?(:foo)").to_b.should be_true
+    assert run("class Reference; def foo; end; end; (1 == 2 ? nil : Reference.new).responds_to?(:foo)").to_b == true
   end
 
   it "codegends responds_to? with generic class (1)" do
-    run(%(
+    assert run(%(
       class Foo(T)
         def foo
         end
       end
 
       Foo(Int32).new.responds_to?(:foo)
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "codegends responds_to? with generic class (2)" do
-    run(%(
+    assert run(%(
       class Foo(T)
         def foo
         end
       end
 
       Foo(Int32).new.responds_to?(:bar)
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "works with virtual type" do
-    run(%(
+    assert run(%(
       class Foo
       end
 
@@ -64,11 +64,11 @@ describe "Codegen: responds_to?" do
 
       foo = Bar.new || Foo.new
       foo.responds_to?(:foo)
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "works with two virtual types" do
-    run(%(
+    assert run(%(
       class Foo
       end
 
@@ -98,11 +98,11 @@ describe "Codegen: responds_to?" do
 
       foo = Sub2.new || Bar.new || Bar2.new || Sub.new || Sub2.new
       foo.responds_to?(:foo)
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "works with virtual class type (1) (#1926)" do
-    run(%(
+    assert run(%(
       class Foo
       end
 
@@ -114,11 +114,11 @@ describe "Codegen: responds_to?" do
 
       foo = Bar || Foo
       foo.responds_to?(:foo)
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "works with virtual class type (2) (#1926)" do
-    run(%(
+    assert run(%(
       class Foo
       end
 
@@ -130,11 +130,11 @@ describe "Codegen: responds_to?" do
 
       foo = Foo || Bar
       foo.responds_to?(:foo)
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "works with module" do
-    run(%(
+    assert run(%(
       module Moo
       end
 
@@ -160,6 +160,6 @@ describe "Codegen: responds_to?" do
 
       moo = ptr.value
       moo.responds_to?(:foo)
-      )).to_b.should be_true
+      )).to_b == true
   end
 end

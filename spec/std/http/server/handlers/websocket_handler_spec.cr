@@ -15,7 +15,7 @@ describe HTTP::WebSocketHandler do
 
     response.close
 
-    io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello")
+    assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello"
   end
 
   {% for connection in ["Upgrade", "keep-alive, Upgrade"] %}

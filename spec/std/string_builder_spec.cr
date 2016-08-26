@@ -6,15 +6,15 @@ describe String::Builder do
       builder << 123
       builder << 456
     end
-    str.should eq("123456")
-    str.size.should eq(6)
-    str.bytesize.should eq(6)
+    assert str == "123456"
+    assert str.size == 6
+    assert str.bytesize == 6
   end
 
   it "raises if invokes to_s twice" do
     builder = String::Builder.new
     builder << 123
-    builder.to_s.should eq("123")
+    assert builder.to_s == "123"
 
     expect_raises { builder.to_s }
   end

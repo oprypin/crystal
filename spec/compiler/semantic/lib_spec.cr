@@ -212,7 +212,7 @@ describe "Semantic: lib" do
     mod = result.program
     lib_type = mod.types["LibC"].as(LibType)
     foo = lib_type.lookup_first_def("foo", false).as(External)
-    foo.real_name.should eq("bar")
+    assert foo.real_name == "bar"
   end
 
   it "error if passing type to LibC with to_unsafe but type doesn't match" do
@@ -437,9 +437,9 @@ describe "Semantic: lib" do
       ))
     sdl = result.program.types["LibSDL"].as(LibType)
     attrs = sdl.link_attributes.not_nil!
-    attrs.size.should eq(2)
-    attrs[0].lib.should eq("SDL")
-    attrs[1].lib.should eq("SDLMain")
+    assert attrs.size == 2
+    assert attrs[0].lib == "SDL"
+    assert attrs[1].lib == "SDLMain"
   end
 
   it "supports forward references (#399)" do
@@ -498,9 +498,9 @@ describe "Semantic: lib" do
       ))
     sdl = result.program.types["LibSDL"].as(LibType)
     attrs = sdl.link_attributes.not_nil!
-    attrs.size.should eq(2)
-    attrs[0].lib.should eq("SDL")
-    attrs[1].lib.should eq("SDLMain")
+    assert attrs.size == 2
+    assert attrs[0].lib == "SDL"
+    assert attrs[1].lib == "SDLMain"
   end
 
   it "reopens lib and adds same link attributes" do
@@ -518,8 +518,8 @@ describe "Semantic: lib" do
       ))
     sdl = result.program.types["LibSDL"].as(LibType)
     attrs = sdl.link_attributes.not_nil!
-    attrs.size.should eq(1)
-    attrs[0].lib.should eq("SDL")
+    assert attrs.size == 1
+    assert attrs[0].lib == "SDL"
   end
 
   it "gathers link attributes from macro expression" do
@@ -535,8 +535,8 @@ describe "Semantic: lib" do
       ))
     sdl = result.program.types["LibSDL"].as(LibType)
     attrs = sdl.link_attributes.not_nil!
-    attrs.size.should eq(1)
-    attrs[0].lib.should eq("SDL")
+    assert attrs.size == 1
+    assert attrs[0].lib == "SDL"
   end
 
   it "errors if using void as argument (related to #508)" do

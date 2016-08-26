@@ -9,21 +9,21 @@ describe "Pointer" do
   it "does malloc with value" do
     p1 = Pointer.malloc(4, 1)
     4.times do |i|
-      p1[i].should eq(1)
+      assert p1[i] == 1
     end
   end
 
   it "does malloc with value from block" do
     p1 = Pointer.malloc(4) { |i| i }
     4.times do |i|
-      p1[i].should eq(i)
+      assert p1[i] == i
     end
   end
 
   it "does index with count" do
     p1 = Pointer.malloc(4) { |i| i ** 2 }
-    p1.to_slice(4).index(4).should eq(2)
-    p1.to_slice(4).index(5).should be_nil
+    assert p1.to_slice(4).index(4) == 2
+    assert p1.to_slice(4).index(5).nil?
   end
 
   describe "copy_from" do
@@ -32,7 +32,7 @@ describe "Pointer" do
       p2 = Pointer.malloc(4) { 0 }
       p2.copy_from(p1, 4)
       4.times do |i|
-        p2[0].should eq(p1[0])
+        assert p2[0] == p1[0]
       end
     end
 
@@ -50,7 +50,7 @@ describe "Pointer" do
       p2 = Pointer.malloc(4) { 0 }
       p1.copy_to(p2, 4)
       4.times do |i|
-        p2[0].should eq(p1[0])
+        assert p2[0] == p1[0]
       end
     end
 
@@ -66,19 +66,19 @@ describe "Pointer" do
     it "performs with overlap right to left" do
       p1 = Pointer.malloc(4) { |i| i }
       (p1 + 1).move_from(p1 + 2, 2)
-      p1[0].should eq(0)
-      p1[1].should eq(2)
-      p1[2].should eq(3)
-      p1[3].should eq(3)
+      assert p1[0] == 0
+      assert p1[1] == 2
+      assert p1[2] == 3
+      assert p1[3] == 3
     end
 
     it "performs with overlap left to right" do
       p1 = Pointer.malloc(4) { |i| i }
       (p1 + 2).move_from(p1 + 1, 2)
-      p1[0].should eq(0)
-      p1[1].should eq(1)
-      p1[2].should eq(1)
-      p1[3].should eq(2)
+      assert p1[0] == 0
+      assert p1[1] == 1
+      assert p1[2] == 1
+      assert p1[3] == 2
     end
 
     it "raises on negative count" do
@@ -93,19 +93,19 @@ describe "Pointer" do
     it "performs with overlap right to left" do
       p1 = Pointer.malloc(4) { |i| i }
       (p1 + 2).move_to(p1 + 1, 2)
-      p1[0].should eq(0)
-      p1[1].should eq(2)
-      p1[2].should eq(3)
-      p1[3].should eq(3)
+      assert p1[0] == 0
+      assert p1[1] == 2
+      assert p1[2] == 3
+      assert p1[3] == 3
     end
 
     it "performs with overlap left to right" do
       p1 = Pointer.malloc(4) { |i| i }
       (p1 + 1).move_to(p1 + 2, 2)
-      p1[0].should eq(0)
-      p1[1].should eq(1)
-      p1[2].should eq(1)
-      p1[3].should eq(2)
+      assert p1[0] == 0
+      assert p1[1] == 1
+      assert p1[2] == 1
+      assert p1[3] == 2
     end
 
     it "raises on negative count" do
@@ -117,51 +117,51 @@ describe "Pointer" do
   end
 
   describe "memcmp" do
-    assert do
+    it do
       p1 = Pointer.malloc(4) { |i| i }
       p2 = Pointer.malloc(4) { |i| i }
       p3 = Pointer.malloc(4) { |i| i + 1 }
 
-      p1.memcmp(p2, 4).should eq(0)
-      p1.memcmp(p3, 4).should be < 0
-      p3.memcmp(p1, 4).should be > 0
+      assert p1.memcmp(p2, 4) == 0
+      assert p1.memcmp(p3, 4) < 0
+      assert p3.memcmp(p1, 4) > 0
     end
   end
 
   it "compares two pointers by address" do
     p1 = Pointer(Int32).malloc(1)
     p2 = Pointer(Int32).malloc(1)
-    p1.should eq(p1)
-    p1.should_not eq(p2)
-    p1.should_not eq(1)
+    assert p1 == p1
+    assert p1 != p2
+    assert p1 != 1
   end
 
   it "does to_s" do
-    Pointer(Int32).null.to_s.should eq("Pointer(Int32).null")
-    Pointer(Int32).new(1234_u64).to_s.should eq("Pointer(Int32)@0x4d2")
+    assert Pointer(Int32).null.to_s == "Pointer(Int32).null"
+    assert Pointer(Int32).new(1234_u64).to_s == "Pointer(Int32)@0x4d2"
   end
 
   it "creates from int" do
-    Pointer(Int32).new(1234).address.should eq(1234)
+    assert Pointer(Int32).new(1234).address == 1234
   end
 
   it "shuffles!" do
     a = Pointer(Int32).malloc(3) { |i| i + 1 }
     a.shuffle!(3)
 
-    (a[0] + a[1] + a[2]).should eq(6)
+    assert (a[0] + a[1] + a[2]) == 6
 
     3.times do |i|
-      a.to_slice(3).includes?(i + 1).should be_true
+      assert a.to_slice(3).includes?(i + 1) == true
     end
   end
 
   it "maps!" do
     a = Pointer(Int32).malloc(3) { |i| i + 1 }
     a.map!(3) { |i| i + 1 }
-    a[0].should eq(2)
-    a[1].should eq(3)
-    a[2].should eq(4)
+    assert a[0] == 2
+    assert a[1] == 3
+    assert a[2] == 4
   end
 
   it "raises if mallocs negative size" do
@@ -174,61 +174,61 @@ describe "Pointer" do
 
     reset p1, p2
     p1.copy_from(p1, 1)
-    p1.value.should eq(10)
+    assert p1.value == 10
 
     # p1.copy_from(p2, 10) # invalid
 
     reset p1, p2
     p2.copy_from(p1, 1)
-    p2.value.should eq(10)
+    assert p2.value == 10
 
     reset p1, p2
     p2.copy_from(p2, 1)
-    p2.value.should eq(20)
+    assert p2.value == 20
 
     reset p1, p2
     p1.move_from(p1, 1)
-    p1.value.should eq(10)
+    assert p1.value == 10
 
     # p1.move_from(p2, 10) # invalid
 
     reset p1, p2
     p2.move_from(p1, 1)
-    p2.value.should eq(10)
+    assert p2.value == 10
 
     reset p1, p2
     p2.move_from(p2, 1)
-    p2.value.should eq(20)
+    assert p2.value == 20
 
     # ---
 
     reset p1, p2
     p1.copy_to(p1, 1)
-    p1.value.should eq(10)
+    assert p1.value == 10
 
     reset p1, p2
     p1.copy_to(p2, 1)
-    p2.value.should eq(10)
+    assert p2.value == 10
 
     # p2.copy_to(p1, 10) # invalid
 
     reset p1, p2
     p2.copy_to(p2, 1)
-    p2.value.should eq(20)
+    assert p2.value == 20
 
     reset p1, p2
     p1.move_to(p1, 1)
-    p1.value.should eq(10)
+    assert p1.value == 10
 
     reset p1, p2
     p1.move_to(p2, 1)
-    p2.value.should eq(10)
+    assert p2.value == 10
 
     # p2.move_to(p1, 10) # invalid
 
     reset p1, p2
     p2.move_to(p2, 1)
-    p2.value.should eq(20)
+    assert p2.value == 20
   end
 
   describe "clear" do
@@ -237,8 +237,8 @@ describe "Pointer" do
       ptr[0] = 10
       ptr[1] = 20
       ptr.clear
-      ptr[0].should eq(0)
-      ptr[1].should eq(20)
+      assert ptr[0] == 0
+      assert ptr[1] == 20
     end
 
     it "clears many" do
@@ -248,10 +248,10 @@ describe "Pointer" do
       ptr[2] = 30
       ptr[3] = 40
       ptr.clear(2)
-      ptr[0].should eq(0)
-      ptr[1].should eq(0)
-      ptr[2].should eq(30)
-      ptr[3].should eq(40)
+      assert ptr[0] == 0
+      assert ptr[1] == 0
+      assert ptr[2] == 30
+      assert ptr[3] == 40
     end
 
     it "clears with union" do
@@ -261,21 +261,21 @@ describe "Pointer" do
       ptr[2] = 30
       ptr[3] = 0
       ptr.clear(2)
-      ptr[0].should be_nil
-      ptr[1].should be_nil
-      ptr[2].should eq(30)
-      ptr[3].should eq(0)
-      ptr[3].should_not be_nil
+      assert ptr[0].nil?
+      assert ptr[1].nil?
+      assert ptr[2] == 30
+      assert ptr[3] == 0
+      assert ptr[3]
     end
   end
 
   it "does !" do
-    (!Pointer(Int32).null).should be_true
-    (!Pointer(Int32).new(123)).should be_false
+    assert (!Pointer(Int32).null) == true
+    assert (!Pointer(Int32).new(123)) == false
   end
 
   it "clones" do
     ptr = Pointer(Int32).new(123)
-    ptr.clone.should eq(ptr)
+    assert ptr.clone == ptr
   end
 end

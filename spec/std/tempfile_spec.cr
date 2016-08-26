@@ -7,8 +7,8 @@ describe Tempfile do
     tempfile.print "Hello!"
     tempfile.close
 
-    File.exists?(tempfile.path).should be_true
-    File.read(tempfile.path).should eq("Hello!")
+    assert File.exists?(tempfile.path) == true
+    assert File.read(tempfile.path) == "Hello!"
   end
 
   it "creates and deletes" do
@@ -16,14 +16,14 @@ describe Tempfile do
     tempfile.close
     tempfile.delete
 
-    File.exists?(tempfile.path).should be_false
+    assert File.exists?(tempfile.path) == false
   end
 
   it "doesn't delete on open with block" do
     tempfile = Tempfile.open("foo") do |f|
       f.print "Hello!"
     end
-    File.exists?(tempfile.path).should be_true
+    assert File.exists?(tempfile.path) == true
   end
 
   it "creates and writes with TMPDIR environment variable" do
@@ -35,8 +35,8 @@ describe Tempfile do
       tempfile.print "Hello!"
       tempfile.close
 
-      File.exists?(tempfile.path).should be_true
-      File.read(tempfile.path).should eq("Hello!")
+      assert File.exists?(tempfile.path) == true
+      assert File.read(tempfile.path) == "Hello!"
     ensure
       ENV["TMPDIR"] = old_tmpdir if old_tmpdir
     end
@@ -46,25 +46,25 @@ describe Tempfile do
     tempfile = Tempfile.new "foo"
     tempfile.puts "Hello!"
     tempfile.seek(0, IO::Seek::Set)
-    tempfile.tell.should eq(0)
-    tempfile.pos.should eq(0)
-    tempfile.gets.should eq("Hello!\n")
+    assert tempfile.tell == 0
+    assert tempfile.pos == 0
+    assert tempfile.gets == "Hello!\n"
     tempfile.pos = 0
-    tempfile.gets.should eq("Hello!\n")
+    assert tempfile.gets == "Hello!\n"
     tempfile.close
   end
 
   it "returns default directory for tempfiles" do
     old_tmpdir = ENV["TMPDIR"]?
     ENV.delete("TMPDIR")
-    Tempfile.dirname.should eq("/tmp")
+    assert Tempfile.dirname == "/tmp"
     ENV["TMPDIR"] = old_tmpdir if old_tmpdir
   end
 
   it "returns configure directory for tempfiles" do
     old_tmpdir = ENV["TMPDIR"]?
     ENV["TMPDIR"] = "/my/tmp"
-    Tempfile.dirname.should eq("/my/tmp")
+    assert Tempfile.dirname == "/my/tmp"
     ENV["TMPDIR"] = old_tmpdir if old_tmpdir
   end
 end

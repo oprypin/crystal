@@ -6,19 +6,19 @@ describe "Crypto::Bcrypt::Password" do
     password = Crypto::Bcrypt::Password.new("$2a$08$K8y0i4Wyqyei3SiGHLEd.OweXJt7sno2HdPVrMvVf06kGgAZvPkga")
 
     it "parses version" do
-      password.version.should eq("2a")
+      assert password.version == "2a"
     end
 
     it "parses cost" do
-      password.cost.should eq(8)
+      assert password.cost == 8
     end
 
     it "parses salt" do
-      password.salt.should eq("K8y0i4Wyqyei3SiGHLEd.O")
+      assert password.salt == "K8y0i4Wyqyei3SiGHLEd.O"
     end
 
     it "parses digest" do
-      password.digest.should eq("weXJt7sno2HdPVrMvVf06kGgAZvPkga")
+      assert password.digest == "weXJt7sno2HdPVrMvVf06kGgAZvPkga"
     end
   end
 
@@ -26,15 +26,15 @@ describe "Crypto::Bcrypt::Password" do
     password = Crypto::Bcrypt::Password.create("super secret", 5)
 
     it "uses cost" do
-      password.cost.should eq(5)
+      assert password.cost == 5
     end
 
     it "generates salt" do
-      password.salt.should_not be_nil
+      assert password.salt
     end
 
     it "generates digest" do
-      password.digest.should_not be_nil
+      assert password.digest
     end
   end
 
@@ -42,11 +42,11 @@ describe "Crypto::Bcrypt::Password" do
     password = Crypto::Bcrypt::Password.create("secret", 4)
 
     it "verifies password is incorrect" do
-      (password == "wrong").should be_false
+      assert (password == "wrong") == false
     end
 
     it "verifies password is correct" do
-      (password == "secret").should be_true
+      assert (password == "secret") == true
     end
   end
 end

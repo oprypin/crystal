@@ -542,7 +542,7 @@ describe "Semantic: splat" do
         end
         i += 1
       end
-      i.should eq(2)
+      assert i == 2
 
       Splat.at(a_def, objs) do
         fail "expected at_splat not to invoke the block"
@@ -563,7 +563,7 @@ describe "Semantic: splat" do
         end
         i += 1
       end
-      i.should eq(2)
+      assert i == 2
 
       i = 0
       Splat.at(a_def, objs) do |arg, arg_index, obj, obj_index|
@@ -579,7 +579,7 @@ describe "Semantic: splat" do
         end
         i += 1
       end
-      i.should eq(4)
+      assert i == 4
     end
   end
 end

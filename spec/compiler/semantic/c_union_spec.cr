@@ -5,10 +5,10 @@ describe "Semantic: c union" do
     result = assert_type("lib LibFoo; union Bar; x : Int32; y : Float64; end; end; LibFoo::Bar") { types["LibFoo"].types["Bar"].metaclass }
     mod = result.program
     bar = mod.types["LibFoo"].types["Bar"].as(NonGenericClassType)
-    bar.extern?.should be_true
-    bar.extern_union?.should be_true
-    bar.instance_vars["@x"].type.should eq(mod.int32)
-    bar.instance_vars["@y"].type.should eq(mod.float64)
+    assert bar.extern? == true
+    assert bar.extern_union? == true
+    assert bar.instance_vars["@x"].type == mod.int32
+    assert bar.instance_vars["@y"].type == mod.float64
   end
 
   it "types Union#new" do

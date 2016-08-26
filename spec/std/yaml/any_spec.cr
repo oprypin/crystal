@@ -4,51 +4,51 @@ require "yaml"
 describe YAML::Any do
   describe "casts" do
     it "gets nil" do
-      YAML.parse("").as_nil.should be_nil
+      assert YAML.parse("").as_nil.nil?
     end
 
     it "gets string" do
-      YAML.parse("hello").as_s.should eq("hello")
+      assert YAML.parse("hello").as_s == "hello"
     end
 
     it "gets array" do
-      YAML.parse("- foo\n- bar\n").as_a.should eq(["foo", "bar"])
+      assert YAML.parse("- foo\n- bar\n").as_a == ["foo", "bar"]
     end
 
     it "gets hash" do
-      YAML.parse("foo: bar").as_h.should eq({"foo" => "bar"})
+      assert YAML.parse("foo: bar").as_h == {"foo" => "bar"}
     end
   end
 
   describe "#size" do
     it "of array" do
-      YAML.parse("- foo\n- bar\n").size.should eq(2)
+      assert YAML.parse("- foo\n- bar\n").size == 2
     end
 
     it "of hash" do
-      YAML.parse("foo: bar").size.should eq(1)
+      assert YAML.parse("foo: bar").size == 1
     end
   end
 
   describe "#[]" do
     it "of array" do
-      YAML.parse("- foo\n- bar\n")[1].raw.should eq("bar")
+      assert YAML.parse("- foo\n- bar\n")[1].raw == "bar"
     end
 
     it "of hash" do
-      YAML.parse("foo: bar")["foo"].raw.should eq("bar")
+      assert YAML.parse("foo: bar")["foo"].raw == "bar"
     end
   end
 
   describe "#[]?" do
     it "of array" do
-      YAML.parse("- foo\n- bar\n")[1]?.not_nil!.raw.should eq("bar")
-      YAML.parse("- foo\n- bar\n")[3]?.should be_nil
+      assert YAML.parse("- foo\n- bar\n")[1]?.not_nil!.raw == "bar"
+      assert YAML.parse("- foo\n- bar\n")[3]?.nil?
     end
 
     it "of hash" do
-      YAML.parse("foo: bar")["foo"]?.not_nil!.raw.should eq("bar")
-      YAML.parse("foo: bar")["fox"]?.should be_nil
+      assert YAML.parse("foo: bar")["foo"]?.not_nil!.raw == "bar"
+      assert YAML.parse("foo: bar")["fox"]?.nil?
     end
   end
 
@@ -58,7 +58,7 @@ describe YAML::Any do
       YAML.parse("- foo\n- bar\n").each do |any|
         elems << any.as_s
       end
-      elems.should eq(%w(foo bar))
+      assert elems == %w(foo bar)
     end
 
     it "of hash" do
@@ -66,41 +66,41 @@ describe YAML::Any do
       YAML.parse("foo: bar").each do |key, value|
         elems << key.to_s << value.to_s
       end
-      elems.should eq(%w(foo bar))
+      assert elems == %w(foo bar)
     end
   end
 
   it "traverses big structure" do
     obj = YAML.parse("--- \nfoo: \n  bar: \n    baz: \n      - qux\n      - fox")
-    obj["foo"]["bar"]["baz"][1].as_s.should eq("fox")
+    assert obj["foo"]["bar"]["baz"][1].as_s == "fox"
   end
 
   it "compares to other objects" do
     obj = YAML.parse("- foo\n- bar \n")
-    obj.should eq(%w(foo bar))
-    obj[0].should eq("foo")
+    assert obj == %w(foo bar)
+    assert obj[0] == "foo"
   end
 
   it "returns array of any when doing parse all" do
     docs = YAML.parse_all("---\nfoo\n---\nbar\n")
-    docs[0].as_s.should eq("foo")
-    docs[1].as_s.should eq("bar")
+    assert docs[0].as_s == "foo"
+    assert docs[1].as_s == "bar"
   end
 
   it "can compare with ===" do
-    ("1" === YAML.parse("1")).should be_truthy
+    assert "1" === YAML.parse("1")
   end
 
   it "exposes $~ when doing Regex#===" do
-    (/o+/ === YAML.parse(%("foo"))).should be_truthy
-    $~[0].should eq("oo")
+    assert /o+/ === YAML.parse(%("foo"))
+    assert $~[0] == "oo"
   end
 
   it "is enumerable" do
     nums = YAML.parse("[1, 2, 3]")
     nums.each_with_index do |x, i|
-      x.should be_a(YAML::Any)
-      x.raw.should eq((i + 1).to_s)
+      assert x.is_a?(YAML::Any)
+      assert x.raw == (i + 1).to_s
     end
   end
 end

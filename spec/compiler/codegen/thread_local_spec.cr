@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Codegen: thread local" do
   it "works with class variables" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class Foo
@@ -20,11 +20,11 @@ describe "Codegen: thread local" do
       Thread.new { Foo.var = 456 }.join
 
       Foo.var
-    )).to_i.should eq(123)
+    )).to_i == 123
   end
 
   it "works with class variable in main thread" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class Foo
@@ -37,7 +37,7 @@ describe "Codegen: thread local" do
       end
 
       Foo.a
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "compiles with class variable referenced from initializer" do

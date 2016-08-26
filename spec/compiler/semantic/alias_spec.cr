@@ -57,8 +57,8 @@ describe "Semantic: alias" do
 
     aliased_type = a.aliased_type.as(UnionType)
     union_types = aliased_type.union_types.sort_by &.to_s
-    union_types[0].should eq(foo_alias)
-    union_types[1].should eq(mod.int32)
+    assert union_types[0] == foo_alias
+    assert union_types[1] == mod.int32
   end
 
   it "allows defining recursive fun aliases" do
@@ -72,7 +72,7 @@ describe "Semantic: alias" do
     a = mod.types["Alias"].as(AliasType)
     aliased_type = a.aliased_type.as(ProcInstanceType)
 
-    aliased_type.should eq(mod.proc_of(a, a))
+    assert aliased_type == mod.proc_of(a, a)
   end
 
   it "allows recursive array with alias" do

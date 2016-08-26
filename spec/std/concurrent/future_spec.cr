@@ -6,20 +6,20 @@ describe Concurrent::Future do
       chan = Channel(Int32).new(1)
 
       d = delay(0.05) { chan.receive }
-      d.delayed?.should be_true
+      assert d.delayed? == true
 
       chan.send 3
 
-      d.get.should eq(3)
-      d.completed?.should be_true
+      assert d.get == 3
+      assert d.completed? == true
     end
 
     it "cancels" do
       d = delay(1) { 42 }
-      d.delayed?.should be_true
+      assert d.delayed? == true
 
       d.cancel
-      d.canceled?.should be_true
+      assert d.canceled? == true
 
       expect_raises(Concurrent::CanceledError) { d.get }
     end
@@ -28,7 +28,7 @@ describe Concurrent::Future do
       d = delay(0.001) { raise IndexError.new("test error") }
 
       expect_raises(IndexError) { d.get }
-      d.completed?.should be_true
+      assert d.completed? == true
     end
   end
 
@@ -37,36 +37,36 @@ describe Concurrent::Future do
       chan = Channel(Int32).new(1)
 
       f = future { chan.receive }
-      f.running?.should be_true
+      assert f.running? == true
 
       chan.send 42
       Fiber.yield
-      f.completed?.should be_true
+      assert f.completed? == true
 
-      f.get.should eq(42)
-      f.completed?.should be_true
+      assert f.get == 42
+      assert f.completed? == true
     end
 
     it "can't cancel a completed computation" do
       f = future { 42 }
-      f.running?.should be_true
+      assert f.running? == true
 
-      f.get.should eq(42)
-      f.completed?.should be_true
+      assert f.get == 42
+      assert f.completed? == true
 
       f.cancel
-      f.canceled?.should be_false
+      assert f.canceled? == false
     end
 
     it "raises" do
       f = future { raise IndexError.new("test error") }
-      f.running?.should be_true
+      assert f.running? == true
 
       Fiber.yield
-      f.completed?.should be_true
+      assert f.completed? == true
 
       expect_raises(IndexError) { f.get }
-      f.completed?.should be_true
+      assert f.completed? == true
     end
   end
 
@@ -75,35 +75,35 @@ describe Concurrent::Future do
       chan = Channel(Int32).new(1)
 
       f = lazy { chan.receive }
-      f.idle?.should be_true
+      assert f.idle? == true
 
       chan.send 42
       Fiber.yield
-      f.idle?.should be_true
+      assert f.idle? == true
 
-      f.get.should eq(42)
-      f.completed?.should be_true
+      assert f.get == 42
+      assert f.completed? == true
     end
 
     it "cancels" do
       l = lazy { 42 }
-      l.idle?.should be_true
+      assert l.idle? == true
 
       l.cancel
-      l.canceled?.should be_true
+      assert l.canceled? == true
 
       expect_raises(Concurrent::CanceledError) { l.get }
     end
 
     it "raises" do
       f = lazy { raise IndexError.new("test error") }
-      f.idle?.should be_true
+      assert f.idle? == true
 
       Fiber.yield
-      f.idle?.should be_true
+      assert f.idle? == true
 
       expect_raises(IndexError) { f.get }
-      f.completed?.should be_true
+      assert f.completed? == true
     end
   end
 end

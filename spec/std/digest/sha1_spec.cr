@@ -12,15 +12,15 @@ describe Digest::SHA1 do
   ].each do |(string, hexdigest, base64digest)|
     it "does digest for #{string.inspect}" do
       bytes = Digest::SHA1.digest(string)
-      bytes.to_slice.hexstring.should eq(hexdigest)
+      assert bytes.to_slice.hexstring == hexdigest
     end
 
     it "does hexdigest for #{string.inspect}" do
-      Digest::SHA1.hexdigest(string).should eq(hexdigest)
+      assert Digest::SHA1.hexdigest(string) == hexdigest
     end
 
     it "does base64digest for #{string.inspect}" do
-      Digest::SHA1.base64digest(string).should eq(base64digest)
+      assert Digest::SHA1.base64digest(string) == base64digest
     end
   end
 end

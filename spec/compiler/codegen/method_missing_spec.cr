@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: method_missing" do
   it "does method_missing macro without args" do
-    run("
+    assert run("
       class Foo
         def foo_something
           1
@@ -14,11 +14,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.foo
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does method_missing macro with args" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           {{call.args.join(" + ").id}}
@@ -26,11 +26,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.foo(1, 2, 3)
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "does method_missing macro with block" do
-    run(%(
+    assert run(%(
       class Foo
         def foo_something
           yield 1
@@ -48,11 +48,11 @@ describe "Code gen: method_missing" do
         a += x
       end
       a
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "does method_missing macro with block but not using it" do
-    run(%(
+    assert run(%(
       class Foo
         def foo_something
           1 + 2
@@ -64,11 +64,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.foo
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "does method_missing macro with virtual type (1)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           "{{@type.name.id}}{{call.name.id}}"
@@ -80,11 +80,11 @@ describe "Code gen: method_missing" do
 
       foo = Foo.new || Bar.new
       foo.coco
-      )).to_string.should eq("Foococo")
+      )).to_string == "Foococo"
   end
 
   it "does method_missing macro with virtual type (2)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           "{{@type.name.id}}{{call.name.id}}"
@@ -96,11 +96,11 @@ describe "Code gen: method_missing" do
 
       foo = Bar.new || Foo.new
       foo.coco
-      )).to_string.should eq("Barcoco")
+      )).to_string == "Barcoco"
   end
 
   it "does method_missing macro with virtual type (3)" do
-    run(%(
+    assert run(%(
       class Foo
         def lala
           1
@@ -116,11 +116,11 @@ describe "Code gen: method_missing" do
 
       foo = Bar.new || Foo.new
       foo.lala
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "does method_missing macro with virtual type (4)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           1
@@ -135,11 +135,11 @@ describe "Code gen: method_missing" do
 
       foo = Bar.new || Foo.new
       foo.lala
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "does method_missing macro with virtual type (5)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           1
@@ -160,11 +160,11 @@ describe "Code gen: method_missing" do
 
       foo = Baz.new || Bar.new || Foo.new
       foo.lala
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "does method_missing macro with virtual type (6)" do
-    run(%(
+    assert run(%(
       abstract class Foo
       end
 
@@ -182,11 +182,11 @@ describe "Code gen: method_missing" do
 
       foo = Bar.new || Baz.new
       foo.lala
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "does method_missing macro with virtual type (7)" do
-    run(%(
+    assert run(%(
       abstract class Foo
       end
 
@@ -204,11 +204,11 @@ describe "Code gen: method_missing" do
 
       foo = Baz.new || Bar.new
       foo.lala
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "does method_missing macro with virtual type (8)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           {{@type.name.stringify}}
@@ -223,11 +223,11 @@ describe "Code gen: method_missing" do
 
       bar = Bar.new
       bar.coco
-      )).to_string.should eq("Bar")
+      )).to_string == "Bar"
   end
 
   it "does method_missing macro with module involved" do
-    run("
+    assert run("
       module Moo
         def lala
           1
@@ -243,11 +243,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.lala
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does method_missing macro with top level method involved" do
-    run("
+    assert run("
       def lala
         1
       end
@@ -264,11 +264,11 @@ describe "Code gen: method_missing" do
 
       foo = Foo.new
       foo.bar
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does method_missing macro with included module" do
-    run("
+    assert run("
       module Moo
         macro method_missing(call)
           {{@type.name.stringify}}
@@ -280,11 +280,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.coco
-      ").to_string.should eq("Foo")
+      ").to_string == "Foo"
   end
 
   it "does method_missing with assignment (bug)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           x = {{call.args[0]}}
@@ -294,11 +294,11 @@ describe "Code gen: method_missing" do
 
       foo = Foo.new
       foo.bar(1)
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "does method_missing with assignment (2) (bug)" do
-    run(%(
+    assert run(%(
       struct Nil
         def to_i
           0
@@ -316,11 +316,11 @@ describe "Code gen: method_missing" do
 
       foo = Foo.new
       foo.bar(1).to_i
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "does method_missing macro without args (with call)" do
-    run("
+    assert run("
       class Foo
         def foo_something
           1
@@ -332,11 +332,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.foo
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does method_missing macro with args (with call)" do
-    run(%(
+    assert run(%(
       class Foo
         macro method_missing(call)
           {{call.args.join(" + ").id}}
@@ -344,11 +344,11 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new.foo(1, 2, 3)
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "forwards" do
-    run(%(
+    assert run(%(
       class Wrapped
         def foo(x, y, z)
           x + y + z
@@ -365,6 +365,6 @@ describe "Code gen: method_missing" do
       end
 
       Foo.new(Wrapped.new).foo(1, 2, 3)
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 end

@@ -14,7 +14,7 @@ describe "Semantic: is_a?" do
       "
     result = semantic nodes
     mod, nodes = result.program, result.node.as(Expressions)
-    nodes.last.as(If).then.type.should eq(mod.int32)
+    assert nodes.last.as(If).then.type == mod.int32
   end
 
   it "restricts type inside if scope 2" do
@@ -36,7 +36,7 @@ describe "Semantic: is_a?" do
     mod, nodes = result.program, result.node.as(Expressions)
 
     foo = mod.types["Foo"].as(GenericClassType)
-    nodes.last.as(If).then.type.should eq(foo.instantiate([mod.int32] of TypeVar))
+    assert nodes.last.as(If).then.type == foo.instantiate([mod.int32] of TypeVar)
   end
 
   it "restricts type inside if scope 3" do
@@ -54,7 +54,7 @@ describe "Semantic: is_a?" do
 
     result = semantic nodes
     mod, nodes = result.program, result.node.as(Expressions)
-    nodes.last.as(If).then.type.should eq(mod.types["Foo"])
+    assert nodes.last.as(If).then.type == mod.types["Foo"]
   end
 
   it "restricts other types inside if else" do

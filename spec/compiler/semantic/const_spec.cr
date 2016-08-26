@@ -5,7 +5,7 @@ describe "Semantic: const" do
     input = parse("A = 1").as(Assign)
     result = semantic input
     mod = result.program
-    input.target.type?.should be_nil # Don't type value until needed
+    assert input.target.type?.nil? # Don't type value until needed
   end
 
   it "types a constant reference" do

@@ -28,101 +28,101 @@ module Crystal
     run_init_project("lib", "example", "tmp/other-example-directory", "John Smith", "john@smith.com", "jsmith")
 
     describe_file "example-lib/src/example-lib.cr" do |file|
-      file.should contain("Example::Lib")
+      assert file.includes?("Example::Lib")
     end
 
     describe_file "camel_example-camel_lib/src/camel_example-camel_lib.cr" do |file|
-      file.should contain("CamelExample::CamelLib")
+      assert file.includes?("CamelExample::CamelLib")
     end
 
     describe_file "example/.gitignore" do |gitignore|
-      gitignore.should contain("/.shards/")
-      gitignore.should contain("/shard.lock")
-      gitignore.should contain("/libs/")
-      gitignore.should contain("/.crystal/")
+      assert gitignore.includes?("/.shards/")
+      assert gitignore.includes?("/shard.lock")
+      assert gitignore.includes?("/libs/")
+      assert gitignore.includes?("/.crystal/")
     end
 
     describe_file "example_app/.gitignore" do |gitignore|
-      gitignore.should contain("/.shards/")
-      gitignore.should_not contain("/shard.lock")
-      gitignore.should contain("/libs/")
-      gitignore.should contain("/.crystal/")
+      assert gitignore.includes?("/.shards/")
+      assert !gitignore.includes?("/shard.lock")
+      assert gitignore.includes?("/libs/")
+      assert gitignore.includes?("/.crystal/")
     end
 
     describe_file "example/LICENSE" do |license|
-      license.should match %r{Copyright \(c\) \d+ John Smith}
+      assert license =~ %r{Copyright \(c\) \d+ John Smith}
     end
 
     describe_file "example/README.md" do |readme|
-      readme.should contain("# example")
+      assert readme.includes?("# example")
 
-      readme.should contain(%{```yaml
+      assert readme.includes?(%{```yaml
 dependencies:
   example:
     github: jsmith/example
 ```})
 
-      readme.should contain(%{TODO: Write a description here})
-      readme.should_not contain(%{TODO: Write installation instructions here})
-      readme.should contain(%{require "example"})
-      readme.should contain(%{1. Fork it ( https://github.com/jsmith/example/fork )})
-      readme.should contain(%{[jsmith](https://github.com/jsmith) John Smith - creator, maintainer})
+      assert readme.includes?(%{TODO: Write a description here})
+      assert !readme.includes?(%{TODO: Write installation instructions here})
+      assert readme.includes?(%{require "example"})
+      assert readme.includes?(%{1. Fork it ( https://github.com/jsmith/example/fork )})
+      assert readme.includes?(%{[jsmith](https://github.com/jsmith) John Smith - creator, maintainer})
     end
 
     describe_file "example_app/README.md" do |readme|
-      readme.should contain("# example")
+      assert readme.includes?("# example")
 
-      readme.should_not contain(%{```yaml
+      assert !readme.includes?(%{```yaml
 dependencies:
   example:
     github: jsmith/example
 ```})
 
-      readme.should contain(%{TODO: Write a description here})
-      readme.should contain(%{TODO: Write installation instructions here})
-      readme.should_not contain(%{require "example"})
-      readme.should contain(%{1. Fork it ( https://github.com/jsmith/example_app/fork )})
-      readme.should contain(%{[jsmith](https://github.com/jsmith) John Smith - creator, maintainer})
+      assert readme.includes?(%{TODO: Write a description here})
+      assert readme.includes?(%{TODO: Write installation instructions here})
+      assert !readme.includes?(%{require "example"})
+      assert readme.includes?(%{1. Fork it ( https://github.com/jsmith/example_app/fork )})
+      assert readme.includes?(%{[jsmith](https://github.com/jsmith) John Smith - creator, maintainer})
     end
 
     describe_file "example/shard.yml" do |shard_yml|
       parsed = YAML.parse(shard_yml)
-      parsed["name"].should eq("example")
-      parsed["version"].should eq("0.1.0")
-      parsed["authors"].should eq(["John Smith <john@smith.com>"])
-      parsed["license"].should eq("MIT")
+      assert parsed["name"] == "example"
+      assert parsed["version"] == "0.1.0"
+      assert parsed["authors"] == ["John Smith <john@smith.com>"]
+      assert parsed["license"] == "MIT"
     end
 
     describe_file "example/.travis.yml" do |travis|
       parsed = YAML.parse(travis)
 
-      parsed["language"].should eq("crystal")
+      assert parsed["language"] == "crystal"
     end
 
     describe_file "example/src/example.cr" do |example|
-      example.should eq(%{require "./example/*"
+      assert example == %{require "./example/*"
 
 module Example
   # TODO Put your code here
 end
-})
+}
     end
 
     describe_file "example/src/example/version.cr" do |version|
-      version.should eq(%{module Example
+      assert version == %{module Example
   VERSION = "0.1.0"
 end
-})
+}
     end
 
     describe_file "example/spec/spec_helper.cr" do |example|
-      example.should eq(%{require "spec"
+      assert example == %{require "spec"
 require "../src/example"
-})
+}
     end
 
     describe_file "example/spec/example_spec.cr" do |example|
-      example.should eq(%{require "./spec_helper"
+      assert example == %{require "./spec_helper"
 
 describe Example do
   # TODO: Write tests
@@ -131,7 +131,7 @@ describe Example do
     false.should eq(true)
   end
 end
-})
+}
     end
 
     describe_file "example/.git/config" { }
@@ -143,7 +143,7 @@ end
     it "prints error if a directory already present" do
       Dir.mkdir_p("#{__DIR__}/tmp")
 
-      `bin/crystal init lib "#{__DIR__}/tmp" 2>/dev/null`.should contain("file or directory #{__DIR__}/tmp already exists")
+      assert `bin/crystal init lib "#{__DIR__}/tmp" 2>/dev/null`.includes?("file or directory #{__DIR__}/tmp already exists")
 
       `rm -rf #{__DIR__}/tmp`
     end
@@ -151,7 +151,7 @@ end
     it "prints error if a file already present" do
       File.open("#{__DIR__}/tmp", "w")
 
-      `bin/crystal init lib "#{__DIR__}/tmp" 2>/dev/null`.should contain("file or directory #{__DIR__}/tmp already exists")
+      assert `bin/crystal init lib "#{__DIR__}/tmp" 2>/dev/null`.includes?("file or directory #{__DIR__}/tmp already exists")
 
       File.delete("#{__DIR__}/tmp")
     end
@@ -159,11 +159,11 @@ end
     it "honors the custom set directory name" do
       Dir.mkdir_p("tmp")
 
-      `bin/crystal init lib tmp 2>/dev/null`.should contain("file or directory tmp already exists")
+      assert `bin/crystal init lib tmp 2>/dev/null`.includes?("file or directory tmp already exists")
 
-      `bin/crystal init lib tmp "#{__DIR__}/fresh-new-tmp" 2>/dev/null`.should_not contain("file or directory tmp already exists")
+      assert !`bin/crystal init lib tmp "#{__DIR__}/fresh-new-tmp" 2>/dev/null`.includes?("file or directory tmp already exists")
 
-      `bin/crystal init lib tmp "#{__DIR__}/fresh-new-tmp" 2>/dev/null`.should contain("file or directory #{__DIR__}/fresh-new-tmp already exists")
+      assert `bin/crystal init lib tmp "#{__DIR__}/fresh-new-tmp" 2>/dev/null`.includes?("file or directory #{__DIR__}/fresh-new-tmp already exists")
 
       `rm -rf tmp #{__DIR__}/fresh-new-tmp`
     end

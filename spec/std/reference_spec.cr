@@ -31,60 +31,60 @@ describe "Reference" do
   it "compares reference to other reference" do
     o1 = Reference.new
     o2 = Reference.new
-    (o1 == o1).should be_true
-    (o1 == o2).should be_false
-    (o1 == 1).should be_false
+    assert (o1 == o1) == true
+    assert (o1 == o2) == false
+    assert (o1 == 1) == false
   end
 
   it "should not be nil" do
-    Reference.new.nil?.should be_false
+    assert Reference.new.nil? == false
   end
 
   it "should be false when negated" do
-    (!Reference.new).should be_false
+    assert (!Reference.new) == false
   end
 
   it "does inspect" do
     r = ReferenceSpec::TestClass.new(1, "hello")
-    r.inspect.should eq(%(#<ReferenceSpec::TestClass:0x#{r.object_id.to_s(16)} @x=1, @y="hello">))
+    assert r.inspect == %(#<ReferenceSpec::TestClass:0x#{r.object_id.to_s(16)} @x=1, @y="hello">)
   end
 
   it "does to_s" do
     r = ReferenceSpec::TestClass.new(1, "hello")
-    r.to_s.should eq(%(#<ReferenceSpec::TestClass:0x#{r.object_id.to_s(16)}>))
+    assert r.to_s == %(#<ReferenceSpec::TestClass:0x#{r.object_id.to_s(16)}>)
   end
 
   it "does inspect for class" do
-    String.inspect.should eq("String")
+    assert String.inspect == "String"
   end
 
   it "does to_s for class" do
-    String.to_s.should eq("String")
+    assert String.to_s == "String"
   end
 
   it "does to_s for class if virtual" do
-    [ReferenceSpec::TestClassBase, ReferenceSpec::TestClassSubclass].to_s.should eq("[ReferenceSpec::TestClassBase, ReferenceSpec::TestClassSubclass]")
+    assert [ReferenceSpec::TestClassBase, ReferenceSpec::TestClassSubclass].to_s == "[ReferenceSpec::TestClassBase, ReferenceSpec::TestClassSubclass]"
   end
 
   it "returns itself" do
     x = "hello"
-    x.itself.should be(x)
+    assert x.itself.same?(x)
   end
 
   it "dups" do
     original = ReferenceSpec::DupCloneClass.new
     duplicate = original.dup
-    duplicate.should_not be(original)
-    duplicate.x.should eq(original.x)
-    duplicate.y.should be(original.y)
+    assert !duplicate.same?(original)
+    assert duplicate.x == original.x
+    assert duplicate.y.same?(original.y)
   end
 
   it "clones with def_clone" do
     original = ReferenceSpec::DupCloneClass.new
     clone = original.clone
-    clone.should_not be(original)
-    clone.x.should eq(original.x)
-    clone.y.should_not be(original.y)
-    clone.y.should eq(original.y)
+    assert !clone.same?(original)
+    assert clone.x == original.x
+    assert !clone.y.same?(original.y)
+    assert clone.y == original.y
   end
 end

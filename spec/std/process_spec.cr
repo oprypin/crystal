@@ -5,66 +5,66 @@ require "tempfile"
 describe Process do
   it "runs true" do
     process = Process.new("true")
-    process.wait.exit_code.should eq(0)
+    assert process.wait.exit_code == 0
   end
 
   it "runs false" do
     process = Process.new("false")
-    process.wait.exit_code.should eq(1)
+    assert process.wait.exit_code == 1
   end
 
   it "returns status 127 if command could not be executed" do
     process = Process.new("foobarbaz")
-    process.wait.exit_code.should eq(127)
+    assert process.wait.exit_code == 127
   end
 
   it "run waits for the process" do
-    Process.run("true").exit_code.should eq(0)
+    assert Process.run("true").exit_code == 0
   end
 
   it "runs true in block" do
     Process.run("true") { }
-    $?.exit_code.should eq(0)
+    assert $?.exit_code == 0
   end
 
   it "receives arguments in array" do
-    Process.run("/bin/sh", ["-c", "exit 123"]).exit_code.should eq(123)
+    assert Process.run("/bin/sh", ["-c", "exit 123"]).exit_code == 123
   end
 
   it "receives arguments in tuple" do
-    Process.run("/bin/sh", {"-c", "exit 123"}).exit_code.should eq(123)
+    assert Process.run("/bin/sh", {"-c", "exit 123"}).exit_code == 123
   end
 
   it "redirects output to /dev/null" do
     # This doesn't test anything but no output should be seen while running tests
-    Process.run("/bin/ls", output: false).exit_code.should eq(0)
+    assert Process.run("/bin/ls", output: false).exit_code == 0
   end
 
   it "gets output" do
     value = Process.run("/bin/sh", {"-c", "echo hello"}) do |proc|
       proc.output.gets_to_end
     end
-    value.should eq("hello\n")
+    assert value == "hello\n"
   end
 
   it "sends input in IO" do
     value = Process.run("/bin/cat", input: MemoryIO.new("hello")) do |proc|
-      proc.input?.should be_nil
+      assert proc.input?.nil?
       proc.output.gets_to_end
     end
-    value.should eq("hello")
+    assert value == "hello"
   end
 
   it "sends output to IO" do
     output = MemoryIO.new
     Process.run("/bin/sh", {"-c", "echo hello"}, output: output)
-    output.to_s.should eq("hello\n")
+    assert output.to_s == "hello\n"
   end
 
   it "sends error to IO" do
     error = MemoryIO.new
     Process.run("/bin/sh", {"-c", "echo hello 1>&2"}, error: error)
-    error.to_s.should eq("hello\n")
+    assert error.to_s == "hello\n"
   end
 
   it "controls process in block" do
@@ -73,12 +73,12 @@ describe Process do
       proc.input.close
       proc.output.gets_to_end
     end
-    value.should eq("hello")
+    assert value == "hello"
   end
 
   it "closes ios after block" do
     Process.run("/bin/cat") { }
-    $?.exit_code.should eq(0)
+    assert $?.exit_code == 0
   end
 
   it "sets working directory" do
@@ -86,7 +86,7 @@ describe Process do
     value = Process.run("pwd", shell: true, chdir: parent, output: nil) do |proc|
       proc.output.gets_to_end
     end
-    value.should eq "#{parent}\n"
+    assert value == "#{parent}\n"
   end
 
   it "disallows passing arguments to nowhere" do
@@ -97,21 +97,21 @@ describe Process do
 
   it "looks up programs in the $PATH with a shell" do
     proc = Process.run("uname", {"-a"}, shell: true, output: false)
-    proc.exit_code.should eq(0)
+    assert proc.exit_code == 0
   end
 
   it "allows passing huge argument lists to a shell" do
     proc = Process.new(%(echo "${@}"), {"a", "b"}, shell: true, output: nil)
     output = proc.output.gets_to_end
     proc.wait
-    output.should eq "a b\n"
+    assert output == "a b\n"
   end
 
   it "does not run shell code in the argument list" do
     proc = Process.new("echo", {"`echo hi`"}, shell: true, output: nil)
     output = proc.output.gets_to_end
     proc.wait
-    output.should eq "`echo hi`\n"
+    assert output == "`echo hi`\n"
   end
 
   describe "environ" do
@@ -119,7 +119,7 @@ describe Process do
       value = Process.run("env", clear_env: true) do |proc|
         proc.output.gets_to_end
       end
-      value.should eq("")
+      assert value == ""
     end
 
     it "sets an environment variable" do
@@ -127,7 +127,7 @@ describe Process do
       value = Process.run("env", clear_env: true, env: env) do |proc|
         proc.output.gets_to_end
       end
-      value.should eq("FOO=bar\n")
+      assert value == "FOO=bar\n"
     end
 
     it "deletes an environment variable" do
@@ -135,29 +135,29 @@ describe Process do
       value = Process.run("env | egrep '^HOME='", env: env, shell: true) do |proc|
         proc.output.gets_to_end
       end
-      value.should eq("")
+      assert value == ""
     end
   end
 
   describe "kill" do
     it "kills a process" do
       process = fork { loop { } }
-      process.kill(Signal::KILL).should be_nil
+      assert process.kill(Signal::KILL).nil?
     end
 
     it "kills many process" do
       process1 = fork { loop { } }
       process2 = fork { loop { } }
-      process1.kill(Signal::KILL).should be_nil
-      process2.kill(Signal::KILL).should be_nil
+      assert process1.kill(Signal::KILL).nil?
+      assert process2.kill(Signal::KILL).nil?
     end
   end
 
   it "gets the pgid of a process id" do
     process = fork { loop { } }
-    Process.pgid(process.pid).should be_a(Int32)
+    assert Process.pgid(process.pid).is_a?(Int32)
     process.kill(Signal::KILL)
-    Process.pgid.should eq(Process.pgid(Process.pid))
+    assert Process.pgid == Process.pgid(Process.pid)
   end
 
   it "can link processes together" do
@@ -168,21 +168,21 @@ describe Process do
         cat.close
       end
     end
-    buffer.to_s.lines.size.should eq(1000)
+    assert buffer.to_s.lines.size == 1000
   end
 
   it "executes the new process with exec" do
     tmpfile = Tempfile.new("crystal-spec-exec")
     tmpfile.close
     tmpfile.unlink
-    File.exists?(tmpfile.path).should be_false
+    assert File.exists?(tmpfile.path) == false
 
     fork = Process.fork do
       Process.exec("/usr/bin/touch", {tmpfile.path})
     end
     fork.wait
 
-    File.exists?(tmpfile.path).should be_true
+    assert File.exists?(tmpfile.path) == true
     tmpfile.unlink
   end
 
@@ -191,20 +191,20 @@ describe Process do
     # how PIDs are used by the system, a new process might be spawned in between
     # reaping the one we would spawn and checking for it, using the now available
     # pid.
-    Process.exists?(Process.ppid).should be_true
+    assert Process.exists?(Process.ppid) == true
 
     process = Process.fork { sleep 5 }
-    process.exists?.should be_true
-    process.terminated?.should be_false
+    assert process.exists? == true
+    assert process.terminated? == false
 
     # Kill, zombie now
     process.kill
-    process.exists?.should be_true
-    process.terminated?.should be_false
+    assert process.exists? == true
+    assert process.terminated? == false
 
     # Reap, gone now
     process.wait
-    process.exists?.should be_false
-    process.terminated?.should be_true
+    assert process.exists? == false
+    assert process.terminated? == true
   end
 end

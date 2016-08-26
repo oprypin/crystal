@@ -2,18 +2,18 @@ require "../../spec_helper"
 
 describe "Code gen: void" do
   it "codegens void assignment" do
-    run("
+    assert run("
       fun foo : Void
       end
 
       a = foo
       a
       1
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens void assignment in case" do
-    run("
+    assert run("
       require \"prelude\"
 
       fun foo : Void
@@ -30,11 +30,11 @@ describe "Code gen: void" do
 
       bar
       1
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens void assignment in case with local variable" do
-    run("
+    assert run("
       require \"prelude\"
 
       fun foo : Void
@@ -52,7 +52,7 @@ describe "Code gen: void" do
 
       bar
       1
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens unreachable code" do
@@ -89,7 +89,7 @@ describe "Code gen: void" do
   end
 
   it "returns void from nil functions, doesn't crash when passing value" do
-    run(%(
+    assert run(%(
       def baz(x)
         1
       end
@@ -106,6 +106,6 @@ describe "Code gen: void" do
       end
 
       foo.bar
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 end

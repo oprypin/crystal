@@ -211,62 +211,62 @@ require "uri"
 describe URI::Parser, "#run" do
   it "runs for normal urls" do
     uri = URI::Parser.new("http://user:pass@bitfission.com:8080/path?a=b#frag").run.uri
-    uri.scheme.should eq("http")
-    uri.user.should eq("user")
-    uri.password.should eq("pass")
-    uri.host.should eq("bitfission.com")
-    uri.port.should eq(8080)
-    uri.path.should eq("/path")
-    uri.query.should eq("a=b")
-    uri.fragment.should eq("frag")
+    assert uri.scheme == "http"
+    assert uri.user == "user"
+    assert uri.password == "pass"
+    assert uri.host == "bitfission.com"
+    assert uri.port == 8080
+    assert uri.path == "/path"
+    assert uri.query == "a=b"
+    assert uri.fragment == "frag"
   end
 
   it "runs for schemelss urls" do
     uri = URI::Parser.new("//user:pass@bitfission.com:8080/path?a=b#frag").run.uri
-    uri.scheme.should eq(nil)
-    uri.user.should eq("user")
-    uri.password.should eq("pass")
-    uri.host.should eq("bitfission.com")
-    uri.port.should eq(8080)
-    uri.path.should eq("/path")
-    uri.query.should eq("a=b")
-    uri.fragment.should eq("frag")
+    assert uri.scheme == nil
+    assert uri.user == "user"
+    assert uri.password == "pass"
+    assert uri.host == "bitfission.com"
+    assert uri.port == 8080
+    assert uri.path == "/path"
+    assert uri.query == "a=b"
+    assert uri.fragment == "frag"
   end
 
   it "runs for path relative urls" do
     uri = URI::Parser.new("/path?a=b#frag").run.uri
-    uri.scheme.should eq(nil)
-    uri.host.should eq(nil)
-    uri.path.should eq("/path")
-    uri.query.should eq("a=b")
-    uri.fragment.should eq("frag")
+    assert uri.scheme == nil
+    assert uri.host == nil
+    assert uri.path == "/path"
+    assert uri.query == "a=b"
+    assert uri.fragment == "frag"
   end
 
   it "runs for path mailto" do
     uri = URI::Parser.new("mailto:user@example.com").run.uri
-    uri.scheme.should eq("mailto")
-    uri.opaque.should eq("user@example.com")
+    assert uri.scheme == "mailto"
+    assert uri.opaque == "user@example.com"
   end
 
   it "runs for file wth and without host" do
     uri = URI::Parser.new("file://localhost/etc/fstab").run.uri
-    uri.scheme.should eq("file")
-    uri.host.should eq("localhost")
-    uri.path.should eq("/etc/fstab")
+    assert uri.scheme == "file"
+    assert uri.host == "localhost"
+    assert uri.path == "/etc/fstab"
 
     uri = URI::Parser.new("file:///etc/fstab").run.uri
-    uri.scheme.should eq("file")
-    uri.host.should eq(nil)
-    uri.path.should eq("/etc/fstab")
+    assert uri.scheme == "file"
+    assert uri.host == nil
+    assert uri.path == "/etc/fstab"
   end
 
   it "runs for scheme and path only urls" do
     uri = URI::Parser.new("test:/test").run.uri
-    uri.scheme.should eq("test")
-    uri.path.should eq("/test")
+    assert uri.scheme == "test"
+    assert uri.path == "/test"
   end
 
   context "bad urls" do
-    assert { expect_raises(URI::Error) { URI::Parser.new("http://some.com:8f80/path").run } }
+    it { expect_raises(URI::Error) { URI::Parser.new("http://some.com:8f80/path").run } }
   end
 end

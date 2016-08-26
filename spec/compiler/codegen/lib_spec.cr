@@ -2,14 +2,14 @@ require "../../spec_helper"
 
 describe "Code gen: lib" do
   pending "codegens lib var set and get" do
-    run("
+    assert run("
       lib LibC
         $errno : Int32
       end
 
       LibC.errno = 1
       LibC.errno
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "call to void function" do
@@ -119,11 +119,11 @@ describe "Code gen: lib" do
 
         tuple = LibFoo.foo
         tuple[0] + tuple[1]
-      ), &.to_i.should eq(3))
+      ), &.assert to_i == 3)
   end
 
   it "get fun field from struct (#672)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       lib M
@@ -135,11 +135,11 @@ describe "Code gen: lib" do
       p = Pointer(M::Type).malloc(1)
       p.value.func = -> (t: M::Type*) { 10 }
       p.value.func.call(p)
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "get fun field from union (#672)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       lib M
@@ -151,7 +151,7 @@ describe "Code gen: lib" do
       p = Pointer(M::Type).malloc(1)
       p.value.func = -> (t: M::Type*) { 10 }
       p.value.func.call(p)
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "refers to lib type (#960)" do

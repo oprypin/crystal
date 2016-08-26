@@ -3,16 +3,16 @@ require "yaml"
 
 describe "YAML" do
   describe "parser" do
-    assert { YAML.parse("foo").should eq("foo") }
-    assert { YAML.parse("- foo\n- bar").should eq(["foo", "bar"]) }
-    assert { YAML.parse_all("---\nfoo\n---\nbar\n").should eq(["foo", "bar"]) }
-    assert { YAML.parse("foo: bar").should eq({"foo" => "bar"}) }
-    assert { YAML.parse("--- []\n").should eq([] of YAML::Type) }
-    assert { YAML.parse("---\n...").should eq("") }
+    it { assert YAML.parse("foo") == "foo" }
+    it { assert YAML.parse("- foo\n- bar") == ["foo", "bar"] }
+    it { assert YAML.parse_all("---\nfoo\n---\nbar\n") == ["foo", "bar"] }
+    it { assert YAML.parse("foo: bar") == {"foo" => "bar"} }
+    it { assert YAML.parse("--- []\n") == [] of YAML::Type }
+    it { assert YAML.parse("---\n...") == "" }
 
     it "parses recursive sequence" do
       doc = YAML.parse("--- &foo\n- *foo\n")
-      doc[0].raw.should be(doc.raw)
+      assert doc[0].raw.same?(doc.raw)
     end
 
     it "parses recursive mapping" do
@@ -20,13 +20,13 @@ describe "YAML" do
         friends:
         - *1
         ))
-      doc["friends"][0].raw.should be(doc.raw)
+      assert doc["friends"][0].raw.same?(doc.raw)
     end
 
     it "parses alias to scalar" do
       doc = YAML.parse("---\n- &x foo\n- *x\n")
-      doc.should eq(["foo", "foo"])
-      doc[0].raw.should be(doc[1].raw)
+      assert doc == ["foo", "foo"]
+      assert doc[0].raw.same?(doc[1].raw)
     end
 
     describe "merging with << key" do
@@ -36,7 +36,7 @@ describe "YAML" do
           <<:
             baz: foobar
           ))
-        doc["baz"]?.should eq("foobar")
+        assert doc["baz"]? == "foobar"
       end
 
       it "raises if merging with missing alias" do
@@ -55,7 +55,7 @@ describe "YAML" do
           bar:
             !!str '<<': *foo
         ))
-        doc.should eq({"foo" => {"hello" => "world"}, "bar" => {"<<" => {"hello" => "world"}}})
+        assert doc == {"foo" => {"hello" => "world"}, "bar" => {"<<" => {"hello" => "world"}}}
       end
 
       it "doesn't merge empty mapping" do
@@ -64,7 +64,7 @@ describe "YAML" do
           bar:
             <<: *foo
         ))
-        doc["bar"].should eq({"<<" => ""})
+        assert doc["bar"] == {"<<" => ""}
       end
 
       it "doesn't merge arrays" do
@@ -74,7 +74,7 @@ describe "YAML" do
           bar:
             <<: *foo
         ))
-        doc["bar"].should eq({"<<" => ["1"]})
+        assert doc["bar"] == {"<<" => ["1"]}
       end
 
       it "has correct line/number info (#2585)" do
@@ -88,8 +88,8 @@ describe "YAML" do
             YAML
           fail "expected YAML.parse to raise"
         rescue ex : YAML::ParseException
-          ex.line_number.should eq(3)
-          ex.column_number.should eq(3)
+          assert ex.line_number == 3
+          assert ex.column_number == 3
         end
       end
 
@@ -107,27 +107,27 @@ describe "YAML" do
             end
           end
         rescue ex : YAML::ParseException
-          ex.line_number.should eq(1)
-          ex.column_number.should eq(2)
+          assert ex.line_number == 1
+          assert ex.column_number == 2
         end
       end
 
       it "parses from IO" do
-        YAML.parse(MemoryIO.new("- foo\n- bar")).should eq(["foo", "bar"])
+        assert YAML.parse(MemoryIO.new("- foo\n- bar")) == ["foo", "bar"]
       end
     end
   end
 
   describe "dump" do
     it "returns YAML as a string" do
-      YAML.dump(%w(1 2 3)).should eq("--- \n- 1\n- 2\n- 3")
+      assert YAML.dump(%w(1 2 3)) == "--- \n- 1\n- 2\n- 3"
     end
 
     it "writes YAML to a stream" do
       string = String.build do |str|
         YAML.dump(%w(1 2 3), str)
       end
-      string.should eq("--- \n- 1\n- 2\n- 3")
+      assert string == "--- \n- 1\n- 2\n- 3"
     end
   end
 end

@@ -33,7 +33,7 @@ describe "OpenSSL::SSL::Context has sane client defaults" do
     it "should connect to #{host} with verification disabled" do
       context = OpenSSL::SSL::Context::Client.new
       context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
-      connect_to(host, context).should be_true
+      assert connect_to(host, context) == true
     end
   end
 
@@ -53,7 +53,7 @@ describe "OpenSSL::SSL::Context has sane client defaults" do
       context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
 
       expect_raises(OpenSSL::SSL::Error) do
-        connect_to(host, context).should be_true
+        assert connect_to(host, context) == true
       end
     end
   end
@@ -82,7 +82,7 @@ describe "OpenSSL::SSL::Context has sane client defaults" do
     "preloaded-hsts.badssl.com",
   }.each do |host|
     it "should connect to #{host} successfully" do
-      connect_to(host).should be_true
+      assert connect_to(host) == true
     end
   end
 end

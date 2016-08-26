@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: splat" do
   it "splats" do
-    run(%(
+    assert run(%(
       struct Tuple
         def size; {{T.size}}; end
       end
@@ -12,11 +12,11 @@ describe "Code gen: splat" do
       end
 
       foo 1, 1, 1
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "splats with another arg" do
-    run(%(
+    assert run(%(
       struct Tuple
         def size; {{T.size}}; end
       end
@@ -26,22 +26,22 @@ describe "Code gen: splat" do
       end
 
       foo 10, 1, 1
-      )).to_i.should eq(12)
+      )).to_i == 12
   end
 
   it "splats on call" do
-    run(%(
+    assert run(%(
       def foo(x, y)
         x + y
       end
 
       tuple = {1, 2}
       foo *tuple
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "splats without args" do
-    run(%(
+    assert run(%(
       struct Tuple
         def size; {{T.size}}; end
       end
@@ -51,11 +51,11 @@ describe "Code gen: splat" do
       end
 
       foo
-      )).to_i.should eq(0)
+      )).to_i == 0
   end
 
   it "splats with default value" do
-    run(%(
+    assert run(%(
       struct Tuple
         def size; {{T.size}}; end
       end
@@ -65,11 +65,11 @@ describe "Code gen: splat" do
       end
 
       foo
-      )).to_i.should eq(100)
+      )).to_i == 100
   end
 
   it "splats with default value (2)" do
-    run(%(
+    assert run(%(
       struct Tuple
         def size; {{T.size}}; end
       end
@@ -79,11 +79,11 @@ describe "Code gen: splat" do
       end
 
       foo 10
-      )).to_i.should eq(110)
+      )).to_i == 110
   end
 
   it "splats with default value (3)" do
-    run(%(
+    assert run(%(
       struct Tuple
         def size; {{T.size}}; end
       end
@@ -93,11 +93,11 @@ describe "Code gen: splat" do
       end
 
       foo 10, 20, 30, 40
-      )).to_i.should eq(32)
+      )).to_i == 32
   end
 
   it "splats in initialize" do
-    run(%(
+    assert run(%(
       class Foo
         @x : Int32
         @y : Int32
@@ -117,7 +117,7 @@ describe "Code gen: splat" do
 
       foo = Foo.new 1, 2
       foo.x + foo.y
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "does #2407" do
@@ -144,7 +144,7 @@ describe "Code gen: splat" do
   end
 
   it "evaluates splat argument just once (#2677)" do
-    run(%(
+    assert run(%(
       class Global
         @@x = 0
 
@@ -168,6 +168,6 @@ describe "Code gen: splat" do
       v = test(*data)
 
       Global.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 end

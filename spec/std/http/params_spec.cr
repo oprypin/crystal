@@ -19,7 +19,7 @@ module HTTP
         {"bar&foo", {"bar" => [""], "foo" => [""]}},
       }.each do |(from, to)|
         it "parses #{from}" do
-          Params.parse(from).should eq(Params.new(to))
+          assert Params.parse(from) == Params.new(to)
         end
       end
     end
@@ -44,7 +44,7 @@ module HTTP
             end
           end
 
-          encoded.should eq(to)
+          assert encoded == to
         end
       end
     end
@@ -52,15 +52,15 @@ module HTTP
     describe "#to_s" do
       it "serializes params to http form" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.to_s.should eq("foo=bar&foo=baz&baz=qux")
+        assert params.to_s == "foo=bar&foo=baz&baz=qux"
       end
     end
 
     describe "#[](name)" do
       it "returns first value for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params["foo"].should eq("bar")
-        params["baz"].should eq("qux")
+        assert params["foo"] == "bar"
+        assert params["baz"] == "qux"
       end
 
       it "raises KeyError when there is no such param" do
@@ -74,26 +74,26 @@ module HTTP
     describe "#[]?(name)" do
       it "returns first value for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params["foo"]?.should eq("bar")
-        params["baz"]?.should eq("qux")
+        assert params["foo"]? == "bar"
+        assert params["baz"]? == "qux"
       end
 
       it "return nil when there is no such param" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params["non_existent_param"]?.should eq(nil)
+        assert params["non_existent_param"]? == nil
       end
     end
 
     describe "#has_key?(name)" do
       it "returns true if param with provided name exists" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.has_key?("foo").should eq(true)
-        params.has_key?("baz").should eq(true)
+        assert params.has_key?("foo") == true
+        assert params.has_key?("baz") == true
       end
 
       it "return false if param with provided name does not exist" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.has_key?("non_existent_param").should eq(false)
+        assert params.has_key?("non_existent_param") == false
       end
     end
 
@@ -101,21 +101,21 @@ module HTTP
       it "sets first value for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
         params["foo"] = "notfoo"
-        params.fetch_all("foo").should eq(["notfoo", "baz"])
+        assert params.fetch_all("foo") == ["notfoo", "baz"]
       end
 
       it "adds new name => value pair if there is no such param" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
         params["non_existent_param"] = "test"
-        params.fetch_all("non_existent_param").should eq(["test"])
+        assert params.fetch_all("non_existent_param") == ["test"]
       end
     end
 
     describe "#fetch(name)" do
       it "returns first value for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.fetch("foo").should eq("bar")
-        params.fetch("baz").should eq("qux")
+        assert params.fetch("foo") == "bar"
+        assert params.fetch("baz") == "qux"
       end
 
       it "raises KeyError when there is no such param" do
@@ -129,36 +129,36 @@ module HTTP
     describe "#fetch(name, default)" do
       it "returns first value for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.fetch("foo", "aDefault").should eq("bar")
-        params.fetch("baz", "aDefault").should eq("qux")
+        assert params.fetch("foo", "aDefault") == "bar"
+        assert params.fetch("baz", "aDefault") == "qux"
       end
 
       it "return default value when there is no such param" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.fetch("non_existent_param", "aDefault").should eq("aDefault")
+        assert params.fetch("non_existent_param", "aDefault") == "aDefault"
       end
     end
 
     describe "#fetch(name, &block)" do
       it "returns first value for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.fetch("foo") { "fromBlock" }.should eq("bar")
-        params.fetch("baz") { "fromBlock" }.should eq("qux")
+        assert params.fetch("foo") { "fromBlock" } == "bar"
+        assert params.fetch("baz") { "fromBlock" } == "qux"
       end
 
       it "return default value when there is no such param" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
-        params.fetch("non_existent_param") { "fromBlock" }.should eq("fromBlock")
+        assert params.fetch("non_existent_param") { "fromBlock" } == "fromBlock"
       end
     end
 
     describe "#fetch_all(name)" do
       it "fetches list of all values for provided param name" do
         params = Params.parse("foo=bar&foo=baz&baz=qux&iamempty")
-        params.fetch_all("foo").should eq(["bar", "baz"])
-        params.fetch_all("baz").should eq(["qux"])
-        params.fetch_all("iamempty").should eq([""])
-        params.fetch_all("non_existent_param").should eq([] of String)
+        assert params.fetch_all("foo") == ["bar", "baz"]
+        assert params.fetch_all("baz") == ["qux"]
+        assert params.fetch_all("iamempty") == [""]
+        assert params.fetch_all("non_existent_param") == [] of String
       end
     end
 
@@ -167,16 +167,16 @@ module HTTP
         params = Params.parse("foo=bar&foo=baz&baz=qux&iamempty")
 
         params.add("foo", "zeit")
-        params.fetch_all("foo").should eq(["bar", "baz", "zeit"])
+        assert params.fetch_all("foo") == ["bar", "baz", "zeit"]
 
         params.add("baz", "exit")
-        params.fetch_all("baz").should eq(["qux", "exit"])
+        assert params.fetch_all("baz") == ["qux", "exit"]
 
         params.add("iamempty", "not_empty_anymore")
-        params.fetch_all("iamempty").should eq(["not_empty_anymore"])
+        assert params.fetch_all("iamempty") == ["not_empty_anymore"]
 
         params.add("non_existent_param", "something")
-        params.fetch_all("non_existent_param").should eq(["something"])
+        assert params.fetch_all("non_existent_param") == ["something"]
       end
     end
 
@@ -185,13 +185,13 @@ module HTTP
         params = Params.parse("foo=bar&foo=baz&baz=qux")
 
         params.set_all("baz", ["hello", "world"])
-        params.fetch_all("baz").should eq(["hello", "world"])
+        assert params.fetch_all("baz") == ["hello", "world"]
 
         params.set_all("foo", ["something"])
-        params.fetch_all("foo").should eq(["something"])
+        assert params.fetch_all("foo") == ["something"]
 
         params.set_all("non_existent_param", ["something", "else"])
-        params.fetch_all("non_existent_param").should eq(["something", "else"])
+        assert params.fetch_all("non_existent_param") == ["something", "else"]
       end
     end
 
@@ -204,11 +204,11 @@ module HTTP
           received << {name, value}
         end
 
-        received.should eq([
+        assert received == [
           {"foo", "bar"},
           {"foo", "baz"},
           {"baz", "qux"},
-        ])
+        ]
       end
     end
 
@@ -216,10 +216,10 @@ module HTTP
       it "deletes first value for provided param name and returns it" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
 
-        params.delete("foo").should eq("bar")
-        params.fetch_all("foo").should eq(["baz"])
+        assert params.delete("foo") == "bar"
+        assert params.fetch_all("foo") == ["baz"]
 
-        params.delete("baz").should eq("qux")
+        assert params.delete("baz") == "qux"
         expect_raises KeyError do
           params.fetch("baz")
         end
@@ -230,7 +230,7 @@ module HTTP
       it "deletes all values for provided param name and returns them" do
         params = Params.parse("foo=bar&foo=baz&baz=qux")
 
-        params.delete_all("foo").should eq(["bar", "baz"])
+        assert params.delete_all("foo") == ["bar", "baz"]
         expect_raises KeyError do
           params.fetch("foo")
         end

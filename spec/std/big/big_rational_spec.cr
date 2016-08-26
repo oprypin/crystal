@@ -24,8 +24,7 @@ end
 
 describe BigRational do
   it "initialize" do
-    BigRational.new(BigInt.new(10), BigInt.new(3))
-               .should eq(BigRational.new(10, 3))
+    assert BigRational.new(BigInt.new(10), BigInt.new(3)) == BigRational.new(10, 3)
 
     expect_raises(DivisionByZero) do
       BigRational.new(BigInt.new(2), BigInt.new(0))
@@ -37,43 +36,43 @@ describe BigRational do
   end
 
   it "#numerator" do
-    br(10, 3).numerator.should eq(BigInt.new(10))
+    assert br(10, 3).numerator == BigInt.new(10)
   end
 
   it "#denominator" do
-    br(10, 3).denominator.should eq(BigInt.new(3))
+    assert br(10, 3).denominator == BigInt.new(3)
   end
 
   it "#to_s" do
-    br(10, 3).to_s.should eq("10/3")
-    br(90, 3).to_s.should eq("30")
-    br(1, 98).to_s.should eq("1/98")
+    assert br(10, 3).to_s == "10/3"
+    assert br(90, 3).to_s == "30"
+    assert br(1, 98).to_s == "1/98"
 
     r = BigRational.new(8243243, 562828882)
-    r.to_s(16).should eq("7dc82b/218c1652")
-    r.to_s(36).should eq("4woiz/9b3djm")
+    assert r.to_s(16) == "7dc82b/218c1652"
+    assert r.to_s(36) == "4woiz/9b3djm"
   end
 
   it "#to_f64" do
     r = br(10, 3)
     f = 10.to_f64 / 3.to_f64
-    r.to_f64.should be_close(f, 0.001)
+    assert r.to_f64.close?(f, 0.001)
   end
 
   it "#to_f" do
     r = br(10, 3)
     f = 10.to_f64 / 3.to_f64
-    r.to_f.should be_close(f, 0.001)
+    assert r.to_f.close?(f, 0.001)
   end
 
   it "#to_f32" do
     r = br(10, 3)
     f = 10.to_f32 / 3.to_f32
-    r.to_f32.should be_close(f, 0.001)
+    assert r.to_f32.close?(f, 0.001)
   end
 
   it "Int#to_big_r" do
-    3.to_big_r.should eq(br(3, 1))
+    assert 3.to_big_r == br(3, 1)
   end
 
   it "#<=>(:BigRational) and Comparable" do
@@ -83,7 +82,7 @@ describe BigRational do
     g = br(12, 3)
 
     # sanity check things aren't swapped
-    [l, e, g].each { |o| (a <=> o).should eq(a.to_f <=> o.to_f) }
+    [l, e, g].each { |o| assert (a <=> o) == a.to_f <=> o.to_f }
 
     test_comp(a, l, e, g)
   end
@@ -103,61 +102,61 @@ describe BigRational do
   end
 
   it "#+" do
-    (br(10, 7) + br(3, 7)).should eq(br(13, 7))
-    (0 + br(10, 7) + 3).should eq(br(31, 7))
+    assert (br(10, 7) + br(3, 7)) == br(13, 7)
+    assert (0 + br(10, 7) + 3) == br(31, 7)
   end
 
   it "#-" do
-    (br(10, 7) - br(3, 7)).should eq(br(7, 7))
-    (br(10, 7) - 3).should eq(br(-11, 7))
-    (0 - br(10, 7)).should eq(br(-10, 7))
+    assert (br(10, 7) - br(3, 7)) == br(7, 7)
+    assert (br(10, 7) - 3) == br(-11, 7)
+    assert (0 - br(10, 7)) == br(-10, 7)
   end
 
   it "#*" do
-    (br(10, 7) * br(3, 7)).should eq(br(30, 49))
-    (1 * br(10, 7) * 3).should eq(br(30, 7))
+    assert (br(10, 7) * br(3, 7)) == br(30, 49)
+    assert (1 * br(10, 7) * 3) == br(30, 7)
   end
 
   it "#/" do
-    (br(10, 7) / br(3, 7)).should eq(br(10, 3))
+    assert (br(10, 7) / br(3, 7)) == br(10, 3)
     expect_raises(DivisionByZero) { br(10, 7) / br(0, 10) }
-    (br(10, 7) / 3).should eq(br(10, 21))
-    (1 / br(10, 7)).should eq(br(7, 10))
+    assert (br(10, 7) / 3) == br(10, 21)
+    assert (1 / br(10, 7)) == br(7, 10)
   end
 
   it "#- (negation)" do
-    (-br(10, 3)).should eq(br(-10, 3))
+    assert (-br(10, 3)) == br(-10, 3)
   end
 
   it "#inv" do
-    (br(10, 3).inv).should eq(br(3, 10))
+    assert (br(10, 3).inv) == br(3, 10)
     expect_raises(DivisionByZero) { br(0, 3).inv }
   end
 
   it "#abs" do
-    (br(-10, 3).abs).should eq(br(10, 3))
+    assert (br(-10, 3).abs) == br(10, 3)
   end
 
   it "#<<" do
-    (br(10, 3) << 2).should eq(br(40, 3))
+    assert (br(10, 3) << 2) == br(40, 3)
   end
 
   it "#>>" do
-    (br(10, 3) >> 2).should eq(br(5, 6))
+    assert (br(10, 3) >> 2) == br(5, 6)
   end
 
   it "#hash" do
     b = br(10, 3)
     hash = b.hash
-    hash.should eq(b.to_f64.hash)
+    assert hash == b.to_f64.hash
   end
 
   it "is a number" do
-    br(10, 3).is_a?(Number).should be_true
+    assert br(10, 3).is_a?(Number) == true
   end
 
   it "clones" do
     x = br(10, 3)
-    x.clone.should eq(x)
+    assert x.clone == x
   end
 end

@@ -8,7 +8,7 @@ describe "Semantic: struct" do
       Foo
       ") do
       str = types["Foo"].as(NonGenericClassType)
-      str.struct?.should be_true
+      assert str.struct? == true
       str.metaclass
     end
   end
@@ -20,10 +20,10 @@ describe "Semantic: struct" do
       Foo(Int32)
       ") do
       str = types["Foo"].as(GenericClassType)
-      str.struct?.should be_true
+      assert str.struct? == true
 
       str_inst = str.instantiate([int32] of TypeVar)
-      str_inst.struct?.should be_true
+      assert str_inst.struct? == true
       str_inst.metaclass
     end
   end
@@ -65,7 +65,7 @@ describe "Semantic: struct" do
       Foo.new || nil
       ") do
       type = nilable types["Foo"]
-      type.should_not be_a(NilableType)
+      assert !type.is_a?(NilableType)
       type
     end
   end

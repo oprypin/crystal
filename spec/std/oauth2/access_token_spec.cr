@@ -19,32 +19,32 @@ class OAuth2::AccessToken
 
       access_token = AccessToken.from_json(json)
       access_token = access_token.as(Bearer)
-      access_token.token_type.should eq("Bearer")
-      access_token.access_token.should eq(token_value)
-      access_token.expires_in.should eq(expires_in)
-      access_token.refresh_token.should eq(refresh_token)
-      access_token.scope.should eq(scope)
+      assert access_token.token_type == "Bearer"
+      assert access_token.access_token == token_value
+      assert access_token.expires_in == expires_in
+      assert access_token.refresh_token == refresh_token
+      assert access_token.scope == scope
 
       access_token = AccessToken::Bearer.from_json(json)
       access_token = access_token.as(Bearer)
-      access_token.token_type.should eq("Bearer")
-      access_token.access_token.should eq(token_value)
-      access_token.expires_in.should eq(expires_in)
-      access_token.refresh_token.should eq(refresh_token)
-      access_token.scope.should eq(scope)
+      assert access_token.token_type == "Bearer"
+      assert access_token.access_token == token_value
+      assert access_token.expires_in == expires_in
+      assert access_token.refresh_token == refresh_token
+      assert access_token.scope == scope
     end
 
     it "dumps to json" do
       token = Bearer.new("access token", 3600, "refresh token")
       token2 = AccessToken.from_json(token.to_json)
-      token2.should eq(token)
+      assert token2 == token
     end
 
     it "authenticates request" do
       token = Bearer.new("access token", 3600, "refresh token")
       request = HTTP::Request.new "GET", "/"
       token.authenticate request, false
-      request.headers["Authorization"].should eq("Bearer access token")
+      assert request.headers["Authorization"] == "Bearer access token"
     end
   end
 
@@ -68,23 +68,23 @@ class OAuth2::AccessToken
 
       access_token = AccessToken.from_json(json)
       access_token = access_token.as(Mac)
-      access_token.token_type.should eq("Mac")
-      access_token.access_token.should eq(token_value)
-      access_token.expires_in.should eq(expires_in)
-      access_token.refresh_token.should eq(refresh_token)
-      access_token.scope.should eq(scope)
-      access_token.mac_algorithm.should eq(mac_algorithm)
-      access_token.mac_key.should eq(mac_key)
+      assert access_token.token_type == "Mac"
+      assert access_token.access_token == token_value
+      assert access_token.expires_in == expires_in
+      assert access_token.refresh_token == refresh_token
+      assert access_token.scope == scope
+      assert access_token.mac_algorithm == mac_algorithm
+      assert access_token.mac_key == mac_key
 
       access_token = AccessToken::Mac.from_json(json)
       access_token = access_token.as(Mac)
-      access_token.token_type.should eq("Mac")
-      access_token.access_token.should eq(token_value)
-      access_token.expires_in.should eq(expires_in)
-      access_token.refresh_token.should eq(refresh_token)
-      access_token.scope.should eq(scope)
-      access_token.mac_algorithm.should eq(mac_algorithm)
-      access_token.mac_key.should eq(mac_key)
+      assert access_token.token_type == "Mac"
+      assert access_token.access_token == token_value
+      assert access_token.expires_in == expires_in
+      assert access_token.refresh_token == refresh_token
+      assert access_token.scope == scope
+      assert access_token.mac_algorithm == mac_algorithm
+      assert access_token.mac_key == mac_key
     end
 
     it "builds with null refresh token" do
@@ -98,13 +98,13 @@ class OAuth2::AccessToken
         })
       access_token = AccessToken.from_json(json)
       access_token = access_token.as(Mac)
-      access_token.refresh_token.should be_nil
+      assert access_token.refresh_token.nil?
     end
 
     it "dumps to json" do
       token = Mac.new("access token", 3600, "mac algorithm", "mac key", "refresh token", "scope")
       token2 = AccessToken.from_json(token.to_json)
-      token2.should eq(token)
+      assert token2 == token
     end
 
     it "authenticates request" do
@@ -115,12 +115,12 @@ class OAuth2::AccessToken
       request = HTTP::Request.new "GET", "/some/resource.json", headers
       token.authenticate request, false
       auth = request.headers["Authorization"]
-      (auth =~ /MAC id=".+?", nonce=".+?", ts=".+?", mac=".+?"/).should be_truthy
+      assert auth =~ /MAC id=".+?", nonce=".+?", ts=".+?", mac=".+?"/
     end
 
     it "computes signature" do
       mac = Mac.signature 1, "0:1234", "GET", "/resource.json", "localhost", "4000", "", "hmac-sha-256", "i-pt1Lir-yAfUdXbt-AXM1gMupK7vDiOK1SZGWkASDc"
-      mac.should eq("21vVRFACz5NrO+zlVfFuxTjTx5Wb0qBMfKelMTtujpE=")
+      assert mac == "21vVRFACz5NrO+zlVfFuxTjTx5Wb0qBMfKelMTtujpE="
     end
   end
 end

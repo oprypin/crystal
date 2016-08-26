@@ -4,31 +4,31 @@ CodeGenUnionString = "lib LibFoo; union Bar; x : Int32; y : Int64; z : Float32; 
 
 describe "Code gen: c union" do
   it "codegens union property default value" do
-    run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.x").to_i.should eq(0)
+    assert run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.x").to_i == 0
   end
 
   it "codegens union property default value 2" do
-    run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.z").to_f32.should eq(0)
+    assert run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.z").to_f32 == 0
   end
 
   it "codegens union property setter 1" do
-    run("#{CodeGenUnionString}; bar = LibFoo::Bar.new; bar.x = 42; bar.x").to_i.should eq(42)
+    assert run("#{CodeGenUnionString}; bar = LibFoo::Bar.new; bar.x = 42; bar.x").to_i == 42
   end
 
   it "codegens union property setter 2" do
-    run("#{CodeGenUnionString}; bar = LibFoo::Bar.new; bar.z = 42.0_f32; bar.z").to_f32.should eq(42.0)
+    assert run("#{CodeGenUnionString}; bar = LibFoo::Bar.new; bar.z = 42.0_f32; bar.z").to_f32 == 42.0
   end
 
   it "codegens union property setter 1 via pointer" do
-    run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.x = 42; bar.value.x").to_i.should eq(42)
+    assert run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.x = 42; bar.value.x").to_i == 42
   end
 
   it "codegens union property setter 2 via pointer" do
-    run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.z = 42.0_f32; bar.value.z").to_f32.should eq(42.0)
+    assert run("#{CodeGenUnionString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.z = 42.0_f32; bar.value.z").to_f32 == 42.0
   end
 
   it "codegens struct inside union" do
-    run("
+    assert run("
       lib LibFoo
         struct Baz
           lele : Int64
@@ -46,11 +46,11 @@ describe "Code gen: c union" do
       a.value.z = LibFoo::Baz.new
       a.value.z.lala = 10
       a.value.z.lala
-      ").to_i.should eq(10)
+      ").to_i == 10
   end
 
   it "codegens assign c union to union" do
-    run("
+    assert run("
       lib LibFoo
         union Bar
           x : Int32
@@ -65,7 +65,7 @@ describe "Code gen: c union" do
       else
         1
       end
-      ").to_i.should eq(10)
+      ").to_i == 10
   end
 
   it "builds union setter with fun type" do
@@ -84,7 +84,7 @@ describe "Code gen: c union" do
   end
 
   it "does to_s" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       lib LibNVG
@@ -95,11 +95,11 @@ describe "Code gen: c union" do
 
       color = LibNVG::Color.new
       color.to_s
-      )).to_string.should eq("LibNVG::Color(@array=0)")
+      )).to_string == "LibNVG::Color(@array=0)"
   end
 
   it "automatically converts numeric type in field assignment" do
-    run(%(
+    assert run(%(
       lib LibFoo
         union Foo
           x : Int8
@@ -111,11 +111,11 @@ describe "Code gen: c union" do
       foo = LibFoo::Foo.new
       foo.x = a
       foo.x
-      )).to_i.should eq(57)
+      )).to_i == 57
   end
 
   it "automatically converts numeric union type in field assignment" do
-    run(%(
+    assert run(%(
       lib LibFoo
         union Foo
           x : Int8
@@ -127,11 +127,11 @@ describe "Code gen: c union" do
       foo = LibFoo::Foo.new
       foo.x = a
       foo.x
-      )).to_i.should eq(57)
+      )).to_i == 57
   end
 
   it "automatically converts by invoking to_unsafe" do
-    run(%(
+    assert run(%(
       lib LibFoo
         union Foo
           x : Int32
@@ -147,11 +147,11 @@ describe "Code gen: c union" do
       foo = LibFoo::Foo.new
       foo.x = Foo.new
       foo.x
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "aligns to the member with biggest align requirements" do
-    run(%(
+    assert run(%(
       lib LibFoo
         union Foo
           bytes : UInt8[4]
@@ -173,11 +173,11 @@ describe "Code gen: c union" do
       str = "00XX0"
       foo = str.to_unsafe.as(LibFoo::Bar*)
       foo.value.b.short.to_i
-      )).to_i.should eq(0x5858)
+      )).to_i == 0x5858
   end
 
   it "fills union type to the max size" do
-    run(%(
+    assert run(%(
       lib LibFoo
         union Foo
           bytes : UInt8[4]
@@ -191,11 +191,11 @@ describe "Code gen: c union" do
       end
 
       sizeof(LibFoo::Bar)
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "reads union instance var" do
-    run(%(
+    assert run(%(
       lib LibFoo
         union Foo
           char : Char
@@ -212,6 +212,6 @@ describe "Code gen: c union" do
       foo = LibFoo::Foo.new
       foo.int = 42
       foo.read_int
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 end

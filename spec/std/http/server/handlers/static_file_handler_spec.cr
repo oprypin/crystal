@@ -17,79 +17,79 @@ describe HTTP::StaticFileHandler do
 
   it "should serve a file" do
     response = handle HTTP::Request.new("GET", "/test.txt")
-    response.status_code.should eq(200)
-    response.body.should eq(File.read("#{__DIR__}/static/test.txt"))
+    assert response.status_code == 200
+    assert response.body == File.read("#{__DIR__}/static/test.txt")
   end
 
   it "should list directory's entries" do
     response = handle HTTP::Request.new("GET", "/")
-    response.status_code.should eq(200)
-    response.body.should match(/test.txt/)
+    assert response.status_code == 200
+    assert response.body =~ /test.txt/
   end
 
   it "should not serve a not found file" do
     response = handle HTTP::Request.new("GET", "/not_found_file.txt")
-    response.status_code.should eq(404)
+    assert response.status_code == 404
   end
 
   it "should not serve a not found directory" do
     response = handle HTTP::Request.new("GET", "/not_found_dir/")
-    response.status_code.should eq(404)
+    assert response.status_code == 404
   end
 
   it "should not serve a file as directory" do
     response = handle HTTP::Request.new("GET", "/test.txt/")
-    response.status_code.should eq(404)
+    assert response.status_code == 404
   end
 
   it "should handle only GET and HEAD method" do
     %w(GET HEAD).each do |method|
       response = handle HTTP::Request.new(method, "/test.txt")
-      response.status_code.should eq(200)
+      assert response.status_code == 200
     end
 
     %w(POST PUT DELETE).each do |method|
       response = handle HTTP::Request.new(method, "/test.txt")
-      response.status_code.should eq(404)
+      assert response.status_code == 404
       response = handle HTTP::Request.new(method, "/test.txt"), false
-      response.status_code.should eq(405)
-      response.headers["Allow"].should eq("GET, HEAD")
+      assert response.status_code == 405
+      assert response.headers["Allow"] == "GET, HEAD"
     end
   end
 
   it "should expand a request path" do
     %w(../test.txt ../../test.txt test.txt/../test.txt a/./b/../c/../../test.txt).each do |path|
       response = handle HTTP::Request.new("GET", "/#{path}")
-      response.status_code.should eq(302)
-      response.headers["Location"].should eq("/test.txt")
+      assert response.status_code == 302
+      assert response.headers["Location"] == "/test.txt"
     end
 
     # directory
     %w(.. ../ ../.. a/.. a/.././b/../).each do |path|
       response = handle HTTP::Request.new("GET", "/#{path}")
-      response.status_code.should eq(302)
-      response.headers["Location"].should eq("/")
+      assert response.status_code == 302
+      assert response.headers["Location"] == "/"
     end
   end
 
   it "should unescape a request path" do
     %w(test%2Etxt %74%65%73%74%2E%74%78%74).each do |path|
       response = handle HTTP::Request.new("GET", "/#{path}")
-      response.status_code.should eq(200)
-      response.body.should eq(file_text)
+      assert response.status_code == 200
+      assert response.body == file_text
     end
 
     %w(%2E%2E/test.txt found%2F%2E%2E%2Ftest%2Etxt).each do |path|
       response = handle HTTP::Request.new("GET", "/#{path}")
-      response.status_code.should eq(302)
-      response.headers["Location"].should eq("/test.txt")
+      assert response.status_code == 302
+      assert response.headers["Location"] == "/test.txt"
     end
   end
 
   it "should return 400" do
     %w(%00 test.txt%00).each do |path|
       response = handle HTTP::Request.new("GET", "/#{path}")
-      response.status_code.should eq(400)
+      assert response.status_code == 400
     end
   end
 end

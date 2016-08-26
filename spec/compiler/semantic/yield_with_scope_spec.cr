@@ -22,7 +22,7 @@ describe "Semantic: yield with scope" do
     mod, input = result.program, result.node.as(Expressions)
     call = input.last.as(Call)
     assign = call.block.not_nil!.body.as(Assign)
-    assign.target.type.should eq(mod.int32)
+    assert assign.target.type == mod.int32
   end
 
   it "infer type of block body with yield scope" do
@@ -37,7 +37,7 @@ describe "Semantic: yield with scope" do
     )
     result = semantic input
     mod, input = result.program, result.node.as(Expressions)
-    input.last.as(Call).block.not_nil!.body.type.should eq(mod.int64)
+    assert input.last.as(Call).block.not_nil!.body.type == mod.int64
   end
 
   it "infer type of block body with yield scope and arguments" do
@@ -52,7 +52,7 @@ describe "Semantic: yield with scope" do
     )
     result = semantic input
     mod, input = result.program, result.node.as(Expressions)
-    input.last.as(Call).block.not_nil!.body.type.should eq(mod.float64)
+    assert input.last.as(Call).block.not_nil!.body.type == mod.float64
   end
 
   it "passes #229" do

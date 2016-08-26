@@ -2,40 +2,40 @@ require "../../spec_helper"
 
 describe "Code gen: alias" do
   it "invokes methods on empty array of recursive alias (1)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       alias X = Array(X)
 
       a = [] of X
       b = a.map(&.to_s).join
-      )).to_string.should eq("")
+      )).to_string == ""
   end
 
   it "invokes methods on empty array of recursive alias (2)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       alias X = Nil | Array(X)
 
       a = [] of X
       b = a.map(&.to_s).join
-      )).to_string.should eq("")
+      )).to_string == ""
   end
 
   it "invokes methods on empty array of recursive alias (3)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       alias X = Nil | Array(X)
 
       a = [] of X
       b = a.map(&.to_s).join
-      )).to_string.should eq("")
+      )).to_string == ""
   end
 
   it "casts to recursive alias" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class Bar(T)
@@ -46,11 +46,11 @@ describe "Code gen: alias" do
       a = 1.as(Foo)
       b = a.as(Int32)
       b
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts to recursive alias" do
-    run(%(
+    assert run(%(
       class Bar(T)
         def self.new(&block : -> T)
         end
@@ -71,7 +71,7 @@ describe "Code gen: alias" do
       end
 
       foo(2).to_i
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "doesn't break with alias for link attributes" do
@@ -125,7 +125,7 @@ describe "Code gen: alias" do
   end
 
   it "codegens cast to alias that includes bool" do
-    run(%(
+    assert run(%(
       alias Foo = Bool | Array(Foo)
 
       a = false.as(Foo)
@@ -134,6 +134,6 @@ describe "Code gen: alias" do
       else
         2
       end
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 end

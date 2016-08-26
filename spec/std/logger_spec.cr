@@ -16,9 +16,9 @@ describe "Logger" do
       logger.info "info:skip"
       logger.error "error:show"
 
-      r.gets.should match(/info:show/)
-      r.gets.should match(/debug:show/)
-      r.gets.should match(/error:show/)
+      assert r.gets =~ /info:show/
+      assert r.gets =~ /debug:show/
+      assert r.gets =~ /error:show/
     end
   end
 
@@ -27,7 +27,7 @@ describe "Logger" do
       logger = Logger.new(w)
       logger.info 12345
 
-      r.gets.should match(/12345/)
+      assert r.gets =~ /12345/
     end
   end
 
@@ -37,7 +37,7 @@ describe "Logger" do
       logger.progname = "crystal"
       logger.warn "message"
 
-      r.gets.should match(/W, \[.+? #\d+\]  WARN -- crystal: message\n/)
+      assert r.gets =~ /W, \[.+? #\d+\]  WARN -- crystal: message\n/
     end
   end
 
@@ -49,7 +49,7 @@ describe "Logger" do
       end
       logger.warn "message", "prog"
 
-      r.gets.should eq("W prog: message\n")
+      assert r.gets == "W prog: message\n"
     end
   end
 
@@ -59,8 +59,8 @@ describe "Logger" do
       logger.error { "message" }
       logger.unknown { "another message" }
 
-      r.gets.should match(/ERROR -- : message\n/)
-      r.gets.should match(/  ANY -- : another message\n/)
+      assert r.gets =~ /ERROR -- : message\n/
+      assert r.gets =~ /  ANY -- : another message\n/
     end
   end
 
@@ -70,8 +70,8 @@ describe "Logger" do
       logger.error("crystal") { "message" }
       logger.unknown("shard") { "another message" }
 
-      r.gets.should match(/ERROR -- crystal: message\n/)
-      r.gets.should match(/  ANY -- shard: another message\n/)
+      assert r.gets =~ /ERROR -- crystal: message\n/
+      assert r.gets =~ /  ANY -- shard: another message\n/
     end
   end
 
@@ -84,13 +84,13 @@ describe "Logger" do
     a = 0
     logger = Logger.new(nil)
     logger.info { a = 1 }
-    a.should eq(0)
+    assert a == 0
   end
 
   it "closes" do
     IO.pipe do |r, w|
       Logger.new(w).close
-      w.closed?.should be_true
+      assert w.closed? == true
     end
   end
 end

@@ -16,7 +16,7 @@ module Zlib
 
       io.rewind
       inflate = Inflate.new(io)
-      inflate.gets_to_end.should eq(expected)
+      assert inflate.gets_to_end == expected
     end
 
     it "inflate deflate should be inverse (utf-8)" do
@@ -30,7 +30,7 @@ module Zlib
 
       io.rewind
       inflate = Inflate.new(io)
-      inflate.gets_to_end.should eq(expected)
+      assert inflate.gets_to_end == expected
     end
   end
 end

@@ -4,49 +4,49 @@ require "csv"
 describe CSV do
   describe "parse" do
     it "parses empty string" do
-      CSV.parse("").should eq([] of String)
+      assert CSV.parse("") == [] of String
     end
 
     it "parses one simple row" do
-      CSV.parse("hello,world").should eq([["hello", "world"]])
+      assert CSV.parse("hello,world") == [["hello", "world"]]
     end
 
     it "parses one row with spaces" do
-      CSV.parse("   hello   ,   world  ").should eq([["   hello   ", "   world  "]])
+      assert CSV.parse("   hello   ,   world  ") == [["   hello   ", "   world  "]]
     end
 
     it "parses two rows" do
-      CSV.parse("hello,world\ngood,bye").should eq([
+      assert CSV.parse("hello,world\ngood,bye") == [
         ["hello", "world"],
         ["good", "bye"],
-      ])
+      ]
     end
 
     it "parses two rows with the last one having a newline" do
-      CSV.parse("hello,world\ngood,bye\n").should eq([
+      assert CSV.parse("hello,world\ngood,bye\n") == [
         ["hello", "world"],
         ["good", "bye"],
-      ])
+      ]
     end
 
     it "parses with quote" do
-      CSV.parse(%("hello","world")).should eq([["hello", "world"]])
+      assert CSV.parse(%("hello","world")) == [["hello", "world"]]
     end
 
     it "parses with quote and newline" do
-      CSV.parse(%("hello","world"\nfoo)).should eq([["hello", "world"], ["foo"]])
+      assert CSV.parse(%("hello","world"\nfoo)) == [["hello", "world"], ["foo"]]
     end
 
     it "parses with double quote" do
-      CSV.parse(%("hel""lo","wor""ld")).should eq([[%(hel"lo), %(wor"ld)]])
+      assert CSV.parse(%("hel""lo","wor""ld")) == [[%(hel"lo), %(wor"ld)]]
     end
 
     it "parses some commas" do
-      CSV.parse(%(,,)).should eq([["", "", ""]])
+      assert CSV.parse(%(,,)) == [["", "", ""]]
     end
 
     it "parses empty quoted string" do
-      CSV.parse(%("","")).should eq([["", ""]])
+      assert CSV.parse(%("","")) == [["", ""]]
     end
 
     it "raises if single quote in the middle" do
@@ -68,23 +68,23 @@ describe CSV do
     end
 
     it "parses from IO" do
-      CSV.parse(MemoryIO.new(%("hel""lo",world))).should eq([[%(hel"lo), %(world)]])
+      assert CSV.parse(MemoryIO.new(%("hel""lo",world))) == [[%(hel"lo), %(world)]]
     end
 
     it "takes an optional separator argument" do
-      CSV.parse("foo;bar", separator: ';').should eq([["foo", "bar"]])
+      assert CSV.parse("foo;bar", separator: ';') == [["foo", "bar"]]
     end
 
     it "takes an optional quote char argument" do
-      CSV.parse("'foo,bar'", quote_char: '\'').should eq([["foo,bar"]])
+      assert CSV.parse("'foo,bar'", quote_char: '\'') == [["foo,bar"]]
     end
   end
 
   it "parses row by row" do
     parser = CSV::Parser.new("hello,world\ngood,bye\n")
-    parser.next_row.should eq(%w(hello world))
-    parser.next_row.should eq(%w(good bye))
-    parser.next_row.should be_nil
+    assert parser.next_row == %w(hello world)
+    assert parser.next_row == %w(good bye)
+    assert parser.next_row.nil?
   end
 
   it "does CSV.each_row" do
@@ -92,16 +92,16 @@ describe CSV do
     CSV.each_row("1,2\n3,4\n") do |row|
       sum += row.map(&.to_i).sum
     end
-    sum.should eq(10)
+    assert sum == 10
   end
 
   it "gets row iterator" do
     iter = CSV.each_row("1,2\n3,4\n")
-    iter.next.should eq(["1", "2"])
-    iter.next.should eq(["3", "4"])
-    iter.next.should be_a(Iterator::Stop)
+    assert iter.next == ["1", "2"]
+    assert iter.next == ["3", "4"]
+    assert iter.next.is_a?(Iterator::Stop)
 
     iter.rewind
-    iter.next.should eq(["1", "2"])
+    assert iter.next == ["1", "2"]
   end
 end

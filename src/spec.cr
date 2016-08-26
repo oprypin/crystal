@@ -12,17 +12,17 @@ require "signal"
 # describe "Array" do
 #   describe "#size" do
 #     it "correctly reports the number of elements in the Array" do
-#       [1, 2, 3].size.should eq 3
+#       assert [1, 2, 3].size == 3
 #     end
 #   end
 #
 #   describe "#empty?" do
 #     it "is empty when no elements are in the array" do
-#       ([] of Int32).empty?.should be_true
+#       assert ([] of Int32).empty? == true
 #     end
 #
 #     it "is not empty if there are elements in the array" do
-#       [1].empty?.should be_false
+#       assert [1].empty? == false
 #     end
 #   end
 #

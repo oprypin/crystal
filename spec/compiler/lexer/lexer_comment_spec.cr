@@ -5,10 +5,10 @@ describe "Lexer comments" do
     lexer = Lexer.new(%(# Hello\n1))
 
     token = lexer.next_token
-    token.type.should eq(:NEWLINE)
+    assert token.type == :NEWLINE
 
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
   end
 
   it "lexes with comments enabled" do
@@ -16,14 +16,14 @@ describe "Lexer comments" do
     lexer.comments_enabled = true
 
     token = lexer.next_token
-    token.type.should eq(:COMMENT)
-    token.value.should eq("# Hello")
+    assert token.type == :COMMENT
+    assert token.value == "# Hello"
 
     token = lexer.next_token
-    token.type.should eq(:NEWLINE)
+    assert token.type == :NEWLINE
 
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
   end
 
   it "lexes with comments enabled (2)" do
@@ -31,17 +31,17 @@ describe "Lexer comments" do
     lexer.comments_enabled = true
 
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
 
     token = lexer.next_token
-    token.type.should eq(:SPACE)
+    assert token.type == :SPACE
 
     token = lexer.next_token
-    token.type.should eq(:COMMENT)
-    token.value.should eq("# Hello")
+    assert token.type == :COMMENT
+    assert token.value == "# Hello"
 
     token = lexer.next_token
-    token.type.should eq(:EOF)
+    assert token.type == :EOF
   end
 
   it "lexes correct number of spaces" do
@@ -49,16 +49,16 @@ describe "Lexer comments" do
     lexer.count_whitespace = true
 
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
 
     token = lexer.next_token
-    token.type.should eq(:SPACE)
-    token.value.should eq("   ")
+    assert token.type == :SPACE
+    assert token.value == "   "
 
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
 
     token = lexer.next_token
-    token.type.should eq(:EOF)
+    assert token.type == :EOF
   end
 end

@@ -18,11 +18,11 @@ describe SemanticVersion do
     versions = sversions.map { |s| SemanticVersion.parse(s) }.to_a
 
     versions.each_with_index do |v, i|
-      v.to_s.should eq(sversions[i])
+      assert v.to_s == sversions[i]
     end
 
     versions.each_cons(2) do |pair|
-      pair[0].should be < pair[1]
+      assert pair[0] < pair[1]
     end
   end
 
@@ -35,11 +35,11 @@ describe SemanticVersion do
     versions = sversions.map { |s| SemanticVersion.parse(s) }.to_a
 
     versions.each_with_index do |v, i|
-      v.to_s.should eq(sversions[i])
+      assert v.to_s == sversions[i]
     end
 
     versions.each_cons(2) do |pair|
-      pair[0].should eq(pair[1])
+      assert pair[0] == pair[1]
     end
   end
 end

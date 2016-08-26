@@ -46,11 +46,11 @@ describe "Crypto::Blowfish" do
 
       # encrypt_pair
       lr = bf.encrypt_pair(text[0], text[1])
-      lr.to_a.should eq(cipher)
+      assert lr.to_a == cipher
 
       # decrypt_pair
       lr = bf.decrypt_pair(lr[0], lr[1])
-      lr.to_a.should eq(text)
+      assert lr.to_a == text
     end
   end
 end

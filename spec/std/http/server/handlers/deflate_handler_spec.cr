@@ -16,7 +16,7 @@ describe HTTP::DeflateHandler do
     response.close
 
     io.rewind
-    io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello")
+    assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello"
   end
 
   it "deflates if has deflate in 'deflate' Accept-Encoding header" do
@@ -44,7 +44,7 @@ describe HTTP::DeflateHandler do
     deflate.close
     io2.rewind
 
-    body.to_slice.should eq(io2.to_slice)
+    assert body.to_slice == io2.to_slice
   end
 
   it "deflates gzip if has deflate in 'deflate' Accept-Encoding header" do
@@ -72,6 +72,6 @@ describe HTTP::DeflateHandler do
     deflate.close
     io2.rewind
 
-    body.to_slice.should eq(io2.to_slice)
+    assert body.to_slice == io2.to_slice
   end
 end

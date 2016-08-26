@@ -2,17 +2,17 @@ require "../../spec_helper"
 
 describe "Code gen: enum" do
   it "codegens enum" do
-    run(%(
+    assert run(%(
       enum Foo
         A = 1
       end
 
       Foo::A
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens enum without explicit value" do
-    run(%(
+    assert run(%(
       enum Foo
         A
         B
@@ -20,43 +20,43 @@ describe "Code gen: enum" do
       end
 
       Foo::C
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "codegens enum value" do
-    run(%(
+    assert run(%(
       enum Foo
         A = 1
       end
 
       Foo::A.value
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "creates enum from value" do
-    run(%(
+    assert run(%(
       enum Foo
         A
         B
       end
 
       Foo.new(1).value
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens enum bitflags (1)" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
       end
 
       Foo::A
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens enum bitflags (2)" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
@@ -64,11 +64,11 @@ describe "Code gen: enum" do
       end
 
       Foo::B
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "codegens enum bitflags (4)" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
@@ -77,22 +77,22 @@ describe "Code gen: enum" do
       end
 
       Foo::C
-      )).to_i.should eq(4)
+      )).to_i == 4
   end
 
   it "codegens enum bitflags None" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
       end
 
       Foo::None
-      )).to_i.should eq(0)
+      )).to_i == 0
   end
 
   it "codegens enum bitflags All" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
@@ -101,11 +101,11 @@ describe "Code gen: enum" do
       end
 
       Foo::All
-      )).to_i.should eq(1 + 2 + 4)
+      )).to_i == 1 + 2 + 4
   end
 
   it "codegens enum None redefined" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
@@ -113,11 +113,11 @@ describe "Code gen: enum" do
       end
 
       Foo::None
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "codegens enum All redefined" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A
@@ -125,11 +125,11 @@ describe "Code gen: enum" do
       end
 
       Foo::All
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "allows class vars in enum" do
-    run(%(
+    assert run(%(
       enum Foo
         A
 
@@ -141,11 +141,11 @@ describe "Code gen: enum" do
       end
 
       Foo.class_var
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "automatically defines question method for each enum member (false case)" do
-    run(%(
+    assert run(%(
       struct Enum
         def ==(other : self)
           value == other.value
@@ -159,11 +159,11 @@ describe "Code gen: enum" do
 
       day = Day::SomeTuesday
       day.some_monday?
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "automatically defines question method for each enum member (true case)" do
-    run(%(
+    assert run(%(
       struct Enum
         def ==(other : self)
           value == other.value
@@ -177,11 +177,11 @@ describe "Code gen: enum" do
 
       day = Day::SomeTuesday
       day.some_tuesday?
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "automatically defines question method for each enum member (flags, false case)" do
-    run(%(
+    assert run(%(
       struct Enum
         def includes?(other : self)
           (value & other.value) != 0
@@ -197,11 +197,11 @@ describe "Code gen: enum" do
 
       day = Day.new(3)
       day.some_wednesday?
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "automatically defines question method for each enum member (flags, true case)" do
-    run(%(
+    assert run(%(
       struct Enum
         def includes?(other : self)
           (value & other.value) != 0
@@ -217,21 +217,21 @@ describe "Code gen: enum" do
 
       day = Day.new(3)
       day.some_tuesday?
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "does ~ at compile time for enum member" do
-    run(%(
+    assert run(%(
       enum Foo
         Bar = ~1
       end
 
       Foo::Bar.value
-      )).to_i.should eq(~1)
+      )).to_i == ~1
   end
 
   it "uses enum value before declaration (hoisting)" do
-    run(%(
+    assert run(%(
       x = Bar.bar
 
       enum Foo
@@ -245,11 +245,11 @@ describe "Code gen: enum" do
       end
 
       x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts All value to base type" do
-    run(%(
+    assert run(%(
       @[Flags]
       enum Foo
         A = 1 << 30
@@ -257,11 +257,11 @@ describe "Code gen: enum" do
       end
 
       Foo::All.value
-      )).to_i.should eq(-1073741824)
+      )).to_i == -1073741824
   end
 
   it "can use macro calls inside enum value (#424)" do
-    run(%(
+    assert run(%(
       enum Foo
         macro bar
           10 + 20
@@ -271,11 +271,11 @@ describe "Code gen: enum" do
       end
 
       Foo::A.value
-      )).to_i.should eq(30)
+      )).to_i == 30
   end
 
   it "can use macro calls inside enum value, macro defined outside enum (#424)" do
-    run(%(
+    assert run(%(
       macro bar
         10 + 20
       end
@@ -285,11 +285,11 @@ describe "Code gen: enum" do
       end
 
       Foo::A.value
-      )).to_i.should eq(30)
+      )).to_i == 30
   end
 
   it "can use macro calls inside enum value, with receiver (#424)" do
-    run(%(
+    assert run(%(
       module Moo
         macro bar
           10 + 20
@@ -301,6 +301,6 @@ describe "Code gen: enum" do
       end
 
       Foo::A.value
-      )).to_i.should eq(30)
+      )).to_i == 30
   end
 end

@@ -5,110 +5,110 @@ describe Iterator do
   describe "Iterator.of" do
     it "creates singleton" do
       iter = Iterator.of(42)
-      iter.first(3).to_a.should eq([42, 42, 42])
+      assert iter.first(3).to_a == [42, 42, 42]
     end
 
     it "creates singleton from block" do
       a = 0
       iter = Iterator.of { a += 1 }
-      iter.first(3).to_a.should eq([1, 2, 3])
+      assert iter.first(3).to_a == [1, 2, 3]
     end
   end
 
   describe "compact_map" do
     it "applies the function and removes nil values" do
       iter = (1..3).each.compact_map { |e| e.odd? ? e : nil }
-      iter.next.should eq(1)
-      iter.next.should eq(3)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 3
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
 
     it "sums after compact_map to_a" do
-      (1..3).each.compact_map { |e| e.odd? ? e : nil }.to_a.sum.should eq(4)
+      assert (1..3).each.compact_map { |e| e.odd? ? e : nil }.to_a.sum == 4
     end
   end
 
   describe "chain" do
     it "chains" do
       iter = (1..2).each.chain(('a'..'b').each)
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should eq('a')
-      iter.next.should eq('b')
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next == 'a'
+      assert iter.next == 'b'
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
 
       iter.rewind
-      iter.to_a.should eq([1, 2, 'a', 'b'])
+      assert iter.to_a == [1, 2, 'a', 'b']
     end
   end
 
   describe "compact_map" do
     it "does not return nil values" do
       iter = [1, nil, 2, nil].each.compact_map { |e| e.try &.*(2) }
-      iter.next.should eq 2
-      iter.next.should eq 4
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 2
+      assert iter.next == 4
+      assert iter.next.is_a?(Iterator::Stop)
     end
   end
 
   describe "cons" do
     it "conses" do
       iter = (1..5).each.cons(3)
-      iter.next.should eq([1, 2, 3])
-      iter.next.should eq([2, 3, 4])
-      iter.next.should eq([3, 4, 5])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1, 2, 3]
+      assert iter.next == [2, 3, 4]
+      assert iter.next == [3, 4, 5]
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq([1, 2, 3])
+      assert iter.next == [1, 2, 3]
     end
   end
 
   describe "cycle" do
     it "does cycle from range" do
       iter = (1..3).each.cycle
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should eq(3)
-      iter.next.should eq(1)
-      iter.next.should eq(2)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next == 3
+      assert iter.next == 1
+      assert iter.next == 2
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
 
     it "cycles an empty array" do
       ary = [] of Int32
       values = ary.each.cycle.to_a
-      values.empty?.should be_true
+      assert values.empty? == true
     end
 
     it "cycles N times" do
       iter = (1..2).each.cycle(2)
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
 
     it "does not cycle provided 0" do
       iter = (1..2).each.cycle(0)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next.is_a?(Iterator::Stop)
     end
 
     it "does not cycle provided a negative size" do
       iter = (1..2).each.cycle(-1)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next.is_a?(Iterator::Stop)
     end
   end
 
@@ -117,57 +117,57 @@ describe Iterator do
       iter = ["a", "b", "c"].each
       concatinated = ""
       iter.each { |e| concatinated += e }
-      concatinated.should eq "abc"
+      assert concatinated == "abc"
     end
   end
 
   describe "each_slice" do
     it "gets all the slices of the size n" do
       iter = (1..9).each.each_slice(3)
-      iter.next.should eq [1, 2, 3]
-      iter.next.should eq [4, 5, 6]
-      iter.next.should eq [7, 8, 9]
-      iter.next.should be_a Iterator::Stop
+      assert iter.next == [1, 2, 3]
+      assert iter.next == [4, 5, 6]
+      assert iter.next == [7, 8, 9]
+      assert iter.next.is_a? Iterator::Stop
     end
 
     it "also works if it does not add up" do
       iter = (1..4).each.each_slice(3)
-      iter.next.should eq [1, 2, 3]
-      iter.next.should eq [4]
-      iter.next.should be_a Iterator::Stop
+      assert iter.next == [1, 2, 3]
+      assert iter.next == [4]
+      assert iter.next.is_a? Iterator::Stop
     end
   end
 
   describe "in_groups_of" do
     it "creats groups of one" do
       iter = (1..3).each.in_groups_of(1)
-      iter.next.should eq([1])
-      iter.next.should eq([2])
-      iter.next.should eq([3])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1]
+      assert iter.next == [2]
+      assert iter.next == [3]
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq [1]
+      assert iter.next == [1]
     end
 
     it "creats a group of two" do
       iter = (1..3).each.in_groups_of(2)
-      iter.next.should eq([1, 2])
-      iter.next.should eq([3, nil])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1, 2]
+      assert iter.next == [3, nil]
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq [1, 2]
+      assert iter.next == [1, 2]
     end
 
     it "fills up with the fill up argument" do
       iter = (1..3).each.in_groups_of(2, 'z')
-      iter.next.should eq([1, 2])
-      iter.next.should eq([3, 'z'])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1, 2]
+      assert iter.next == [3, 'z']
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq [1, 2]
+      assert iter.next == [1, 2]
     end
 
     it "raises argument error if size is less than 0" do
@@ -178,58 +178,58 @@ describe Iterator do
 
     it "still works with other iterator methods like to_a" do
       iter = (1..3).each.in_groups_of(2, 'z')
-      iter.to_a.should eq [[1, 2], [3, 'z']]
+      assert iter.to_a == [[1, 2], [3, 'z']]
     end
   end
 
   describe "map" do
     it "does map with Range iterator" do
       iter = (1..3).each.map &.*(2)
-      iter.next.should eq(2)
-      iter.next.should eq(4)
-      iter.next.should eq(6)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 2
+      assert iter.next == 4
+      assert iter.next == 6
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(2)
+      assert iter.next == 2
     end
   end
 
   describe "reject" do
     it "does reject with Range iterator" do
       iter = (1..3).each.reject &.>=(2)
-      iter.next.should eq(1)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
   end
 
   describe "select" do
     it "does select with Range iterator" do
       iter = (1..3).each.select &.>=(2)
-      iter.next.should eq(2)
-      iter.next.should eq(3)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 2
+      assert iter.next == 3
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(2)
+      assert iter.next == 2
     end
   end
 
   describe "skip" do
     it "does skip with Range iterator" do
       iter = (1..3).each.skip(2)
-      iter.next.should eq(3)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 3
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(3)
+      assert iter.next == 3
     end
 
     it "is cool to skip 0 elements" do
-      (1..3).each.skip(0).to_a.should eq [1, 2, 3]
+      assert (1..3).each.skip(0).to_a == [1, 2, 3]
     end
 
     it "raises ArgumentError if negative size is provided" do
@@ -242,23 +242,23 @@ describe Iterator do
   describe "skip_while" do
     it "does skip_while with an array" do
       iter = [1, 2, 3, 4, 0].each.skip_while { |i| i < 3 }
-      iter.next.should eq(3)
-      iter.next.should eq(4)
-      iter.next.should eq(0)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 3
+      assert iter.next == 4
+      assert iter.next == 0
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(3)
+      assert iter.next == 3
     end
 
     it "can skip everything" do
       iter = (1..3).each.skip_while { true }
-      iter.to_a.should eq [] of Int32
+      assert iter.to_a == [] of Int32
     end
 
     it "returns the full array if the condition is false for the first item" do
       iter = (1..2).each.skip_while { false }
-      iter.to_a.should eq [1, 2]
+      assert iter.to_a == [1, 2]
     end
 
     it "only calls the block as much as needed" do
@@ -268,47 +268,47 @@ describe Iterator do
         i < 3
       end
       5.times { iter.next }
-      called.should eq 3
+      assert called == 3
     end
   end
 
   describe "slice" do
     it "slices" do
       iter = (1..8).each.slice(3)
-      iter.next.should eq([1, 2, 3])
-      iter.next.should eq([4, 5, 6])
-      iter.next.should eq([7, 8])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1, 2, 3]
+      assert iter.next == [4, 5, 6]
+      assert iter.next == [7, 8]
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq([1, 2, 3])
+      assert iter.next == [1, 2, 3]
     end
   end
 
   describe "step" do
     it "returns every element" do
       iter = (1..3).each.step(1)
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should eq(3)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next == 3
+      assert iter.next.is_a?(Iterator::Stop)
     end
 
     it "returns every other element" do
       iter = (1..5).each.step(2)
-      iter.next.should eq(1)
-      iter.next.should eq(3)
-      iter.next.should eq(5)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 3
+      assert iter.next == 5
+      assert iter.next.is_a?(Iterator::Stop)
     end
 
     it "returns every third element" do
       iter = (1..12).each.step(3)
-      iter.next.should eq(1)
-      iter.next.should eq(4)
-      iter.next.should eq(7)
-      iter.next.should eq(10)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 4
+      assert iter.next == 7
+      assert iter.next == 10
+      assert iter.next.is_a?(Iterator::Stop)
     end
 
     it "raises with nonsensical steps" do
@@ -325,21 +325,21 @@ describe Iterator do
   describe "first" do
     it "does first with Range iterator" do
       iter = (1..3).each.first(2)
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
 
     it "does first with more than available" do
-      (1..3).each.first(10).to_a.should eq([1, 2, 3])
+      assert (1..3).each.first(10).to_a == [1, 2, 3]
     end
 
     it "is cool to first 0 elements" do
       iter = (1..3).each.first(0)
-      iter.next.should be_a Iterator::Stop
+      assert iter.next.is_a? Iterator::Stop
     end
 
     it "raises ArgumentError if negative size is provided" do
@@ -352,16 +352,16 @@ describe Iterator do
   describe "take_while" do
     it "does take_while with Range iterator" do
       iter = (1..5).each.take_while { |i| i < 3 }
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
 
     it "does take_while with more than available" do
-      (1..3).each.take_while { true }.to_a.should eq([1, 2, 3])
+      assert (1..3).each.take_while { true }.to_a == [1, 2, 3]
     end
 
     it "only calls the block as much as needed" do
@@ -371,7 +371,7 @@ describe Iterator do
         i < 3
       end
       5.times { iter.next }
-      called.should eq 3
+      assert called == 3
     end
   end
 
@@ -380,80 +380,80 @@ describe Iterator do
       a = 0
 
       iter = (1..3).each.tap { |x| a += x }
-      iter.next.should eq(1)
-      a.should eq(1)
+      assert iter.next == 1
+      assert a == 1
 
-      iter.next.should eq(2)
-      a.should eq(3)
+      assert iter.next == 2
+      assert a == 3
 
-      iter.next.should eq(3)
-      a.should eq(6)
+      assert iter.next == 3
+      assert a == 6
 
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
   end
 
   describe "uniq" do
     it "without block" do
       iter = (1..8).each.map { |x| x % 3 }.uniq
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should eq(0)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next == 0
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
 
     it "with block" do
       iter = (1..8).each.uniq { |x| x % 3 }
-      iter.next.should eq(1)
-      iter.next.should eq(2)
-      iter.next.should eq(3)
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == 1
+      assert iter.next == 2
+      assert iter.next == 3
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq(1)
+      assert iter.next == 1
     end
   end
 
   describe "with_index" do
     it "does with_index from range" do
       iter = (1..3).each.with_index
-      iter.next.should eq({1, 0})
-      iter.next.should eq({2, 1})
-      iter.next.should eq({3, 2})
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == {1, 0}
+      assert iter.next == {2, 1}
+      assert iter.next == {3, 2}
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq({1, 0})
+      assert iter.next == {1, 0}
     end
 
     it "does with_index with offset from range" do
       iter = (1..3).each.with_index(10)
-      iter.next.should eq({1, 10})
-      iter.next.should eq({2, 11})
-      iter.next.should eq({3, 12})
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == {1, 10}
+      assert iter.next == {2, 11}
+      assert iter.next == {3, 12}
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq({1, 10})
+      assert iter.next == {1, 10}
     end
   end
 
   describe "with object" do
     it "does with object" do
       iter = (1..3).each.with_object("a")
-      iter.next.should eq({1, "a"})
-      iter.next.should eq({2, "a"})
-      iter.next.should eq({3, "a"})
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == {1, "a"}
+      assert iter.next == {2, "a"}
+      assert iter.next == {3, "a"}
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq({1, "a"})
+      assert iter.next == {1, "a"}
     end
   end
 
@@ -462,27 +462,26 @@ describe Iterator do
       r1 = (1..3).each
       r2 = ('a'..'c').each
       iter = r1.zip(r2)
-      iter.next.should eq({1, 'a'})
-      iter.next.should eq({2, 'b'})
-      iter.next.should eq({3, 'c'})
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == {1, 'a'}
+      assert iter.next == {2, 'b'}
+      assert iter.next == {3, 'c'}
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq({1, 'a'})
+      assert iter.next == {1, 'a'}
 
       iter.rewind
-      iter.to_a.should eq([{1, 'a'}, {2, 'b'}, {3, 'c'}])
+      assert iter.to_a == [{1, 'a'}, {2, 'b'}, {3, 'c'}]
     end
   end
 
   describe "integreation" do
     it "combines many iterators" do
-      (1..100).each
-              .select { |x| 50 <= x < 60 }
-              .map { |x| x * 2 }
-              .first(3)
-              .to_a
-              .should eq([100, 102, 104])
+      assert (1..100).each
+                     .select { |x| 50 <= x < 60 }
+                     .map { |x| x * 2 }
+                     .first(3)
+                     .to_a == [100, 102, 104]
     end
   end
 

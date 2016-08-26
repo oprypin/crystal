@@ -2,11 +2,11 @@ require "../../spec_helper"
 
 describe "Code gen: var" do
   it "codegens var" do
-    run("a = 1; 1.5; a").to_i.should eq(1)
+    assert run("a = 1; 1.5; a").to_i == 1
   end
 
   it "codegens ivar assignment when not-nil type filter applies" do
-    run("
+    assert run("
       class Foo
         def foo
           if @a
@@ -18,11 +18,11 @@ describe "Code gen: var" do
 
       foo = Foo.new
       foo.foo
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens bug with instance vars and ssa" do
-    run("
+    assert run("
       class Foo
         def initialize
           @angle = 0
@@ -39,11 +39,11 @@ describe "Code gen: var" do
 
       f = Foo.new
       f.foo
-      ").to_i.should eq(-1)
+      ").to_i == -1
   end
 
   it "codegens bug with var, while, if, break and ssa" do
-    run("
+    assert run("
       a = 1
       a = 2
 
@@ -56,11 +56,11 @@ describe "Code gen: var" do
       end
 
       a
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens bug with union of int, nil and string (1): assigning nil to union must fill all zeros" do
-    run(%(
+    assert run(%(
       struct Nil
         def foo
           1
@@ -80,11 +80,11 @@ describe "Code gen: var" do
         x = "a"
       end
       x.foo
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens bug with union of int, nil and string (2): assigning nil to union must fill all zeros" do
-    run(%(
+    assert run(%(
       struct Nil
         def foo
           1
@@ -104,7 +104,7 @@ describe "Code gen: var" do
         x = "a"
       end
       x.foo
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens assignment that can never be reached" do
@@ -118,19 +118,19 @@ describe "Code gen: var" do
   end
 
   it "works with typeof with assignment (#828)" do
-    run(%(
+    assert run(%(
       class String; def to_i; 0; end; end
 
       a = 123
       typeof(a = "hello")
       a.to_i
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "assigns to underscore" do
-    run(%(
+    assert run(%(
       _ = (b = 2)
       b
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 end

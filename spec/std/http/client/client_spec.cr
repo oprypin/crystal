@@ -51,8 +51,8 @@ module HTTP
     describe "from URI" do
       it "has sane defaults" do
         cl = Client.new(URI.parse("http://example.com"))
-        cl.tls?.should be_nil
-        cl.port.should eq(80)
+        assert cl.tls?.nil?
+        assert cl.port == 80
       end
 
       {% if !flag?(:without_openssl) %}
@@ -110,8 +110,8 @@ module HTTP
       TestServer.open("localhost", 0, 0) do |server|
         client = Client.new("localhost", server.local_address.port)
         resp_head = client.head("/")
-        resp_head.headers.should eq(resp_get.headers)
-        resp_head.body.should eq("")
+        assert resp_head.headers == resp_get.headers
+        assert resp_head.body == ""
       end
     end
 

@@ -27,41 +27,41 @@ describe "ECR" do
       %(__str__ << " "),
       %(__str__ << "<% \\"string\\" %>"),
     ]
-    program.should eq(pieces.join("\n") + "\n")
+    assert program == pieces.join("\n") + "\n"
   end
 
   it "does ECR.def_to_s" do
     view = ECRSpecHelloView.new("world!")
-    view.to_s.strip.should eq("Hello world! 012")
+    assert view.to_s.strip == "Hello world! 012"
   end
 
   it "does with <%= -%>" do
     io = MemoryIO.new
     ECR.embed "#{__DIR__}/../data/test_template2.ecr", io
-    io.to_s.should eq("123")
+    assert io.to_s == "123"
   end
 
   it "does with <%- %> (1)" do
     io = MemoryIO.new
     ECR.embed "#{__DIR__}/../data/test_template3.ecr", io
-    io.to_s.should eq("01")
+    assert io.to_s == "01"
   end
 
   it "does with <%- %> (2)" do
     io = MemoryIO.new
     ECR.embed "#{__DIR__}/../data/test_template4.ecr", io
-    io.to_s.should eq("hi\n01")
+    assert io.to_s == "hi\n01"
   end
 
   it "does with <% -%>" do
     io = MemoryIO.new
     ECR.embed "#{__DIR__}/../data/test_template5.ecr", io
-    io.to_s.should eq("hi\n      0\n      1\n  ")
+    assert io.to_s == "hi\n      0\n      1\n  "
   end
 
   it "does with -% inside string" do
     io = MemoryIO.new
     ECR.embed "#{__DIR__}/../data/test_template6.ecr", io
-    io.to_s.should eq("string with -%")
+    assert io.to_s == "string with -%"
   end
 end

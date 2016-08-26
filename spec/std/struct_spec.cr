@@ -32,41 +32,41 @@ end
 describe "Struct" do
   it "does to_s" do
     s = StructSpec::TestClass.new(1, "hello")
-    s.to_s.should eq(%(StructSpec::TestClass(@x=1, @y="hello")))
+    assert s.to_s == %(StructSpec::TestClass(@x=1, @y="hello"))
   end
 
   it "does ==" do
     s = StructSpec::TestClass.new(1, "hello")
-    s.should eq(s)
+    assert s == s
   end
 
   it "does hash" do
     s = StructSpec::TestClass.new(1, "hello")
-    s.hash.should eq(31 + "hello".hash)
+    assert s.hash == 31 + "hello".hash
   end
 
   it "does hash for struct wrapper (#1940)" do
-    StructSpec::BigIntWrapper.new(BigInt.new(0)).hash.should eq(0)
+    assert StructSpec::BigIntWrapper.new(BigInt.new(0)).hash == 0
   end
 
   it "does dup" do
     original = StructSpec::DupCloneStruct.new
     duplicate = original.dup
-    duplicate.x.should eq(original.x)
-    duplicate.y.should be(original.y)
+    assert duplicate.x == original.x
+    assert duplicate.y.same?(original.y)
 
     original.x = 10
-    duplicate.x.should_not eq(10)
+    assert duplicate.x != 10
   end
 
   it "clones with def_clone" do
     original = StructSpec::DupCloneStruct.new
     clone = original.clone
-    clone.x.should eq(original.x)
-    clone.y.should_not be(original.y)
-    clone.y.should eq(original.y)
+    assert clone.x == original.x
+    assert !clone.y.same?(original.y)
+    assert clone.y == original.y
 
     original.x = 10
-    clone.x.should_not eq(10)
+    assert clone.x != 10
   end
 end

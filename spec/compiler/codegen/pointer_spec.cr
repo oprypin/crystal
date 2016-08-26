@@ -2,11 +2,11 @@ require "../../spec_helper"
 
 describe "Code gen: pointer" do
   it "get pointer and value of it" do
-    run("a = 1; b = pointerof(a); b.value").to_i.should eq(1)
+    assert run("a = 1; b = pointerof(a); b.value").to_i == 1
   end
 
   it "get pointer of instance var" do
-    run("
+    assert run("
       class Foo
         def initialize(value : Int32)
           @value = value
@@ -20,23 +20,23 @@ describe "Code gen: pointer" do
       foo = Foo.new(10)
       value_ptr = foo.value_ptr
       value_ptr.value
-      ").to_i.should eq(10)
+      ").to_i == 10
   end
 
   it "set pointer value" do
-    run("a = 1; b = pointerof(a); b.value = 2; a").to_i.should eq(2)
+    assert run("a = 1; b = pointerof(a); b.value = 2; a").to_i == 2
   end
 
   it "get value of pointer to union" do
-    run("a = 1.1; a = 1; b = pointerof(a); b.value.to_i").to_i.should eq(1)
+    assert run("a = 1.1; a = 1; b = pointerof(a); b.value.to_i").to_i == 1
   end
 
   it "sets value of pointer to union" do
-    run("p = Pointer(Int32|Float64).malloc(1_u64); a = 1; a = 2.5; p.value = a; p.value.to_i").to_i.should eq(2)
+    assert run("p = Pointer(Int32|Float64).malloc(1_u64); a = 1; a = 2.5; p.value = a; p.value.to_i").to_i == 2
   end
 
   it "increments pointer" do
-    run("
+    assert run("
       class Foo
         def initialize
           @a = 1
@@ -49,31 +49,31 @@ describe "Code gen: pointer" do
         end
       end
       Foo.new.value
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "codegens malloc" do
-    run("p = Pointer(Int32).malloc(10_u64); p.value = 1; p.value + 1_i64").to_i.should eq(2)
+    assert run("p = Pointer(Int32).malloc(10_u64); p.value = 1; p.value + 1_i64").to_i == 2
   end
 
   it "codegens realloc" do
-    run("p = Pointer(Int32).malloc(10_u64); p.value = 1; x = p.realloc(20_u64); x.value + 1_i64").to_i.should eq(2)
+    assert run("p = Pointer(Int32).malloc(10_u64); p.value = 1; x = p.realloc(20_u64); x.value + 1_i64").to_i == 2
   end
 
   it "codegens pointer cast" do
-    run("a = 1_i64; pointerof(a).as(Int32*).value").to_i.should eq(1)
+    assert run("a = 1_i64; pointerof(a).as(Int32*).value").to_i == 1
   end
 
   it "codegens pointer as if condition" do
-    run("a = 0; pointerof(a) ? 1 : 2").to_i.should eq(1)
+    assert run("a = 0; pointerof(a) ? 1 : 2").to_i == 1
   end
 
   it "codegens null pointer as if condition" do
-    run("Pointer(Int32).new(0_u64) ? 1 : 2").to_i.should eq(2)
+    assert run("Pointer(Int32).new(0_u64) ? 1 : 2").to_i == 2
   end
 
   it "gets pointer of instance variable in virtual type" do
-    run("
+    assert run("
       class Foo
         def initialize
           @a = 1
@@ -90,11 +90,11 @@ describe "Code gen: pointer" do
       foo = Foo.new || Bar.new
       x = foo.foo
       x.value
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "sets value of pointer to struct" do
-    run("
+    assert run("
       lib LibC
         struct Color
           r, g, b, a : UInt8
@@ -110,54 +110,54 @@ describe "Code gen: pointer" do
       color.value = color2.value
 
       color.value.r
-      ").to_i.should eq(20)
+      ").to_i == 20
   end
 
   it "changes through var and reads from pointer" do
-    run("
+    assert run("
       x = 1
       px = pointerof(x)
       x = 2
       px.value
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "creates pointer by address" do
-    run("
+    assert run("
       x = Pointer(Int32).new(123_u64)
       x.address
-    ").to_i.should eq(123)
+    ").to_i == 123
   end
 
   it "calculates pointer diff" do
-    run("
+    assert run("
       x = 1
       (pointerof(x) + 1_i64) - pointerof(x)
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "can dereference pointer to func" do
-    run("
+    assert run("
       def foo; 1; end
       x = ->foo
       y = pointerof(x)
       y.value.call
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "gets pointer of argument that is never assigned to" do
-    run("
+    assert run("
       def foo(x)
         pointerof(x)
       end
 
       foo(1)
       1
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens nilable pointer type (1)" do
-    run("
+    assert run("
       p = Pointer(Int32).malloc(1_u64)
       p.value = 3
       a = 1 == 2 ? nil : p
@@ -166,11 +166,11 @@ describe "Code gen: pointer" do
       else
         4
       end
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "codegens nilable pointer type (2)" do
-    run("
+    assert run("
       p = Pointer(Int32).malloc(1_u64)
       p.value = 3
       a = 1 == 1 ? nil : p
@@ -179,11 +179,11 @@ describe "Code gen: pointer" do
       else
         4
       end
-      ").to_i.should eq(4)
+      ").to_i == 4
   end
 
   it "codegens nilable pointer type dispatch (1)" do
-    run("
+    assert run("
       def foo(x : Pointer)
         x.value
       end
@@ -196,11 +196,11 @@ describe "Code gen: pointer" do
       p.value = 3
       a = 1 == 1 ? p : nil
       foo(a)
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "codegens nilable pointer type dispatch (2)" do
-    run("
+    assert run("
       def foo(x : Pointer)
         x.value
       end
@@ -213,11 +213,11 @@ describe "Code gen: pointer" do
       p.value = 3
       a = 1 == 1 ? nil : p
       foo(a)
-      ").to_i.should eq(0)
+      ").to_i == 0
   end
 
   it "assigns nil and pointer to nilable pointer type" do
-    run("
+    assert run("
       class Foo
         def initialize
         end
@@ -242,18 +242,18 @@ describe "Code gen: pointer" do
       else
         2
       end
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "gets pointer to constant" do
-    run("
+    assert run("
       FOO = 1
       pointerof(FOO).value
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "passes pointer of pointer to method" do
-    run("
+    assert run("
       def foo(x)
         x.value.value
       end
@@ -262,29 +262,29 @@ describe "Code gen: pointer" do
       p.value = Pointer(Int32).malloc(1_u64)
       p.value.value = 1
       foo p
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codgens pointer as if condition inside union (1)" do
-    run(%(
+    assert run(%(
       ptr = Pointer(Int32).new(0_u64) || Pointer(Float64).new(0_u64)
       if ptr
         1
       else
         2
       end
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "codgens pointer as if condition inside union (2)" do
-    run(%(
+    assert run(%(
       if 1 == 1
         ptr = Pointer(Int32).new(0_u64)
       else
         ptr = 10
       end
       ptr ? 20 : 30
-      )).to_i.should eq(30)
+      )).to_i == 30
   end
 
   it "can use typedef pointer value get and set (#630)" do
@@ -300,7 +300,7 @@ describe "Code gen: pointer" do
   end
 
   it "does pointerof class variable" do
-    run(%(
+    assert run(%(
       class Foo
         @@a = 1
 
@@ -315,11 +315,11 @@ describe "Code gen: pointer" do
 
       Foo.a_ptr.value = 2
       Foo.a
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "does pointerof class variable with class" do
-    run(%(
+    assert run(%(
       class Bar
         def initialize(@x : Int32)
         end
@@ -343,11 +343,11 @@ describe "Code gen: pointer" do
 
       Foo.a_ptr.value = Bar.new(2)
       Foo.a.x
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "does pointerof read variable" do
-    run(%(
+    assert run(%(
       class Foo
         def initialize
           @x = 1
@@ -361,7 +361,7 @@ describe "Code gen: pointer" do
       foo = Foo.new
       pointerof(foo.@x).value = 123
       foo.x
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "can assign nil to void pointer" do
@@ -432,7 +432,7 @@ describe "Code gen: pointer" do
   end
 
   it "generates correct code for Pointer.malloc(0) (#2905)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class Foo
@@ -447,11 +447,11 @@ describe "Code gen: pointer" do
       foo = Foo.new(3)
       Pointer(Int32 | UInt8[9]).malloc(0_u64)
       foo.value
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "compares pointers through typedef" do
-    run(%(
+    assert run(%(
       module Comparable(T)
         def ==(other : T)
           (self <=> other) == 0
@@ -472,6 +472,6 @@ describe "Code gen: pointer" do
 
       ptr = Pointer(Void).malloc(1_u64).as(LibFoo::Ptr)
       ptr == ptr
-      )).to_b.should be_true
+      )).to_b == true
   end
 end

@@ -2,18 +2,18 @@ require "../../spec_helper"
 
 describe "Semantic: yield with scope" do
   it "uses scope in global method" do
-    run("
+    assert run("
       require \"prelude\"
       def foo; with 1 yield; end
 
       foo do
         succ
       end
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "uses scope in instance method" do
-    run("
+    assert run("
       require \"prelude\"
       def foo; with 1 yield; end
 
@@ -30,11 +30,11 @@ describe "Semantic: yield with scope" do
       end
 
       Foo.new.test
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "it uses self for instance method" do
-    run("
+    assert run("
       require \"prelude\"
       def foo; with 1 yield; end
 
@@ -51,11 +51,11 @@ describe "Semantic: yield with scope" do
       end
 
       Foo.new.test
-    ").to_i.should eq(10)
+    ").to_i == 10
   end
 
   it "it invokes global method inside block of yield scope" do
-    run("
+    assert run("
       require \"prelude\"
 
       def foo
@@ -69,11 +69,11 @@ describe "Semantic: yield with scope" do
       foo do
         plus_two abs
       end
-    ").to_i.should eq(3)
+    ").to_i == 3
   end
 
   it "generate right code when yielding struct as scope" do
-    run("
+    assert run("
       struct Foo
         def bar; end
       end
@@ -84,7 +84,7 @@ describe "Semantic: yield with scope" do
       end
 
       foo { bar }
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "doesn't explode if specifying &block but never using it (#181)" do
@@ -103,7 +103,7 @@ describe "Semantic: yield with scope" do
   end
 
   it "uses instance variable of enclosing scope" do
-    run(%(
+    assert run(%(
       class Foo
         def foo
           with self yield
@@ -123,11 +123,11 @@ describe "Semantic: yield with scope" do
       end
 
       Bar.new.bar
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "uses method of enclosing scope" do
-    run(%(
+    assert run(%(
       class Foo
         def foo
           with self yield
@@ -147,11 +147,11 @@ describe "Semantic: yield with scope" do
       end
 
       Bar.new.bar
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "uses method of with object" do
-    run(%(
+    assert run(%(
       class Foo
         def initialize
           @x = 1
@@ -175,11 +175,11 @@ describe "Semantic: yield with scope" do
       end
 
       Bar.new.bar
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "yields with dispatch (#2171) (1)" do
-    run(%(
+    assert run(%(
       class Foo
         def method(x : Int32)
           10
@@ -197,11 +197,11 @@ describe "Semantic: yield with scope" do
       foo do
         method(1 || 1.5)
       end
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "yields virtual type (#2171) (2)" do
-    run(%(
+    assert run(%(
       class Foo
         def method
           1
@@ -219,6 +219,6 @@ describe "Semantic: yield with scope" do
       end
 
       foo { method }
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 end

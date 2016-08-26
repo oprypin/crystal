@@ -8,7 +8,7 @@ def assert_table(expected)
     end
   end
 
-  actual.should eq(expected[1..-1])
+  assert actual == expected[1..-1]
 end
 
 describe Crystal::TablePrint do

@@ -2,17 +2,17 @@ require "../../spec_helper"
 
 describe "Code gen: struct" do
   it "creates structs" do
-    run("
+    assert run("
       struct Foo
       end
 
       f = Foo.allocate
       1
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "creates structs with instance var" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -24,11 +24,11 @@ describe "Code gen: struct" do
 
       f = Foo.new(1)
       f.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "assigning a struct makes a copy (1)" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -47,11 +47,11 @@ describe "Code gen: struct" do
       g.x = 2
 
       g.x
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "assigning a struct makes a copy (2)" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -70,11 +70,11 @@ describe "Code gen: struct" do
       g.x = 2
 
       f.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "passes a struct as a parameter makes a copy" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -96,11 +96,11 @@ describe "Code gen: struct" do
       foo(f)
 
       f.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "passes a generic struct as a parameter makes a copy" do
-    run("
+    assert run("
       struct Foo(T)
         def initialize(@x : T)
         end
@@ -122,11 +122,11 @@ describe "Code gen: struct" do
       foo(f)
 
       f.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "returns struct as a copy" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -148,11 +148,11 @@ describe "Code gen: struct" do
 
       g = foo(f)
       g.x
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "creates struct in def" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -167,11 +167,11 @@ describe "Code gen: struct" do
       end
 
       foo.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "declares const struct" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -184,11 +184,11 @@ describe "Code gen: struct" do
       FOO = Foo.new(1)
 
       FOO.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "uses struct in if" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -206,21 +206,21 @@ describe "Code gen: struct" do
         foo = FOO
       end
       foo.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "uses nilable struct" do
-    run("
+    assert run("
       struct Foo
       end
 
       f = Foo.new || nil
       f.nil? ? 1 : 2
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "returns self" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x)
         end
@@ -238,11 +238,11 @@ describe "Code gen: struct" do
       f = Foo.new(1)
       g = f.foo
       g.x
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "returns self with block" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x)
         end
@@ -261,11 +261,11 @@ describe "Code gen: struct" do
       f = Foo.new(1)
       g = f.foo { }
       g.x
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "does phi of struct" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32)
         end
@@ -281,11 +281,11 @@ describe "Code gen: struct" do
             Foo.new(1)
           end
       x.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "allows assinging to struct argument (bug)" do
-    run("
+    assert run("
       struct Foo
         def bar
           2
@@ -297,11 +297,11 @@ describe "Code gen: struct" do
       end
 
       foo(Foo.new)
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens struct assigned to underscore (#1842)" do
-    run(%(
+    assert run(%(
       struct Foo
         def initialize
           @value = 123
@@ -317,11 +317,11 @@ describe "Code gen: struct" do
       end
 
       foo.value
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "codegens virtual struct" do
-    run(%(
+    assert run(%(
       abstract struct Foo
       end
 
@@ -347,11 +347,11 @@ describe "Code gen: struct" do
 
       foo = Bar.new || Baz.new
       foo.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens virtual struct with pointer" do
-    run(%(
+    assert run(%(
       abstract struct Foo
       end
 
@@ -379,11 +379,11 @@ describe "Code gen: struct" do
       ptr.value = Baz.new
       ptr.value = Bar.new
       ptr.value.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens virtual struct metaclass (#2551) (1)" do
-    run(%(
+    assert run(%(
       abstract struct Foo
         def initialize
           @x = 21
@@ -405,11 +405,11 @@ describe "Code gen: struct" do
       end
 
       Bar.new.as(Foo).x
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "codegens virtual struct metaclass (#2551) (2)" do
-    run(%(
+    assert run(%(
       abstract struct Foo
         def initialize
           @x = 21
@@ -426,11 +426,11 @@ describe "Code gen: struct" do
       end
 
       Bar.new.as(Foo).@x
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "codegens virtual struct metaclass (#2551) (3)" do
-    run(%(
+    assert run(%(
       abstract struct Foo
         def initialize
           @x = 21
@@ -451,11 +451,11 @@ describe "Code gen: struct" do
       end
 
       Bar.new.as(Foo).x
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "codegens virtual struct metaclass (#2551) (4)" do
-    run(%(
+    assert run(%(
       abstract struct Foo
         def initialize
           @x = 21
@@ -477,11 +477,11 @@ describe "Code gen: struct" do
       end
 
       (Bar || Baz).new.x
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "mutates a  virtual struct" do
-    run(%(
+    assert run(%(
       abstract struct Foo
         def initialize
           @x = 21
@@ -507,11 +507,11 @@ describe "Code gen: struct" do
       foo = Bar.new.as(Foo)
       foo.x = 84
       foo.x
-      )).to_i.should eq(84)
+      )).to_i == 84
   end
 
   it "codegens virtual structs union (1)" do
-    run(%(
+    assert run(%(
       abstract struct Foo
       end
 
@@ -543,11 +543,11 @@ describe "Code gen: struct" do
 
       f = foo || foo2
       f.x
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "codegens virtual structs union (2)" do
-    run(%(
+    assert run(%(
       abstract struct Foo
       end
 
@@ -579,11 +579,11 @@ describe "Code gen: struct" do
 
       f = foo2 || foo
       f.x
-      )).to_i.should eq(84)
+      )).to_i == 84
   end
 
   it "can cast virtual struct to specific struct" do
-    run(%(
+    assert run(%(
        require "prelude"
 
        abstract struct Foo
@@ -603,11 +603,11 @@ describe "Code gen: struct" do
 
        x = Bar.new || Baz.new
        x.as(Bar).foo
-       )).to_i.should eq(1)
+       )).to_i == 1
   end
 
   it "casts virtual struct to base type, only one subclass (#2885)" do
-    run(%(
+    assert run(%(
       abstract struct Entry
         def initialize(@uid : String, @country : String)
         end
@@ -622,6 +622,6 @@ describe "Code gen: struct" do
 
       entry = MyEntry.new("1", "GER")
       entry.as(Entry).uid
-      )).to_string.should eq("1")
+      )).to_string == "1"
   end
 end

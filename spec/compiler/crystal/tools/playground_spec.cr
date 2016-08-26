@@ -14,16 +14,16 @@ private def assert_agent(source, expected)
   # parse/to_s expected so block syntax and spaces do not bother
   expected = Parser.new(expected).parse.to_s
 
-  instrument(source).should contain(expected)
+  assert instrument(source).includes?(expected)
 
   # whatever case should work beforeit should work with appended lines
-  instrument("#{source}\n1\n").should contain(expected)
+  assert instrument("#{source}\n1\n").includes?(expected)
 end
 
 private def assert_agent_eq(source, expected)
   # parse/to_s expected so block syntax and spaces do not bother
   expected = Parser.new(expected).parse.to_s
-  instrument(source).should eq(expected)
+  assert instrument(source) == expected
 end
 
 class Crystal::Playground::Agent
@@ -54,11 +54,11 @@ end
 describe Playground::Agent do
   it "should send json messages and return inspected value" do
     agent = Crystal::Playground::TestAgent.new(".", 32)
-    agent.i(1) { 5 }.should eq(5)
-    agent.last_message.should eq(%({"tag":32,"type":"value","line":1,"value":"5","value_type":"Int32"}))
+    assert agent.i(1) { 5 } == 5
+    assert agent.last_message == %({"tag":32,"type":"value","line":1,"value":"5","value_type":"Int32"})
     x, y = 3, 4
-    agent.i(1, ["x", "y"]) { {x, y} }.should eq({3, 4})
-    agent.last_message.should eq(%({"tag":32,"type":"value","line":1,"value":"{3, 4}","value_type":"Tuple(Int32, Int32)","data":{"x":"3","y":"4"}}))
+    assert agent.i(1, ["x", "y"]) { {x, y} } == {3, 4}
+    assert agent.last_message == %({"tag":32,"type":"value","line":1,"value":"{3, 4}","value_type":"Tuple(Int32, Int32)","data":{"x":"3","y":"4"}})
   end
 end
 

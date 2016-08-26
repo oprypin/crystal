@@ -60,8 +60,8 @@ describe Mutex do
 
     3.times { ch.receive }
 
-    two.should be_true
-    three.should be_true
-    four.should be_true
+    assert two == true
+    assert three == true
+    assert four == true
   end
 end

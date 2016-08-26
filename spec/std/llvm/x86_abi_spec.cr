@@ -13,11 +13,11 @@ end
 class LLVM::ABI
   describe X86 do
     it "does size" do
-      abi.size(LLVM::Int32).should eq(4)
+      assert abi.size(LLVM::Int32) == 4
     end
 
     it "does align" do
-      abi.align(LLVM::Int32).should eq(4)
+      assert abi.align(LLVM::Int32) == 4
     end
 
     describe "abi_info" do
@@ -25,11 +25,11 @@ class LLVM::ABI
         arg_types = [LLVM::Int32, LLVM::Int64]
         return_type = LLVM::Int8
         info = abi.abi_info(arg_types, return_type, true)
-        info.arg_types.size.should eq(2)
+        assert info.arg_types.size == 2
 
-        info.arg_types[0].should eq(ArgType.direct(LLVM::Int32))
-        info.arg_types[1].should eq(ArgType.direct(LLVM::Int64))
-        info.return_type.should eq(ArgType.direct(LLVM::Int8))
+        assert info.arg_types[0] == ArgType.direct(LLVM::Int32)
+        assert info.arg_types[1] == ArgType.direct(LLVM::Int64)
+        assert info.return_type == ArgType.direct(LLVM::Int8)
       end
     end
   end

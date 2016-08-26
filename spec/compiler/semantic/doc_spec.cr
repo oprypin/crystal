@@ -9,8 +9,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 1
   end
 
   it "stores doc for abstract class" do
@@ -21,7 +21,7 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
+    assert foo.doc == "Hello"
   end
 
   it "stores doc for struct" do
@@ -32,8 +32,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 1
   end
 
   it "stores doc for module" do
@@ -44,8 +44,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 1
   end
 
   it "stores doc for def" do
@@ -59,7 +59,7 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     bar = foo.lookup_defs("bar").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for def when using ditto" do
@@ -77,7 +77,7 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     bar = foo.lookup_defs("bar2").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for def with visibility" do
@@ -91,7 +91,7 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     bar = foo.lookup_defs("bar").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for def with attribute" do
@@ -106,7 +106,7 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     bar = foo.lookup_defs("bar").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for def with attribute" do
@@ -119,7 +119,7 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     bar = program.lookup_defs("bar").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for abstract def" do
@@ -132,7 +132,7 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     bar = foo.lookup_defs("bar").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for macro" do
@@ -146,7 +146,7 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     bar = foo.metaclass.lookup_macros("bar").not_nil!.first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
   end
 
   it "stores doc for fun def" do
@@ -158,7 +158,7 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.lookup_defs("foo").first
-    foo.doc.should eq("Hello")
+    assert foo.doc == "Hello"
   end
 
   it "stores doc for enum" do
@@ -169,8 +169,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 1
   end
 
   it "stores doc for flags enum with base type" do
@@ -182,9 +182,9 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.has_attribute?("Flags").should be_true
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.has_attribute?("Flags") == true
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 1
   end
 
   it "stores doc for enum and doesn't mix with value" do
@@ -197,8 +197,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 1
   end
 
   it "stores doc for enum with @[Flags]" do
@@ -210,7 +210,7 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
+    assert foo.doc == "Hello"
   end
 
   it "stores doc for enum member" do
@@ -223,8 +223,8 @@ describe "Semantic: doc" do
     program = result.program
     foo = program.types["Foo"]
     a = foo.types["A"]
-    a.doc.should eq("Hello")
-    a.locations.not_nil!.size.should eq(1)
+    assert a.doc == "Hello"
+    assert a.locations.not_nil!.size == 1
   end
 
   it "stores doc for constant" do
@@ -234,8 +234,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     a = program.types["A"]
-    a.doc.should eq("Hello")
-    a.locations.not_nil!.size.should eq(1)
+    assert a.doc == "Hello"
+    assert a.locations.not_nil!.size == 1
   end
 
   it "stores doc for alias" do
@@ -245,8 +245,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     a = program.types["A"]
-    a.doc.should eq("Hello")
-    a.locations.not_nil!.size.should eq(1)
+    assert a.doc == "Hello"
+    assert a.locations.not_nil!.size == 1
   end
 
   it "stores doc for nodes defined in macro call" do
@@ -271,10 +271,10 @@ describe "Semantic: doc" do
     foo = program.types["Foo"]
 
     bar = foo.lookup_defs("bar").first
-    bar.doc.should eq("Hello")
+    assert bar.doc == "Hello"
 
     bar_assign = foo.lookup_defs("bar=").first
-    bar_assign.doc.should eq("Hello")
+    assert bar_assign.doc == "Hello"
   end
 
   it "stores doc for nodes defined in macro call (2)" do
@@ -289,7 +289,7 @@ describe "Semantic: doc" do
     ), wants_doc: true, inject_primitives: false
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
+    assert foo.doc == "Hello"
   end
 
   it "stores doc for class if reopening" do
@@ -303,8 +303,8 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
-    foo.locations.not_nil!.size.should eq(2)
+    assert foo.doc == "Hello"
+    assert foo.locations.not_nil!.size == 2
   end
 
   it "stores doc for module if reopening" do
@@ -318,7 +318,7 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.doc.should eq("Hello")
+    assert foo.doc == "Hello"
   end
 
   it "stores locations for auto-generated module" do
@@ -328,6 +328,6 @@ describe "Semantic: doc" do
     ), wants_doc: true
     program = result.program
     foo = program.types["Foo"]
-    foo.locations.not_nil!.size.should eq(1)
+    assert foo.locations.not_nil!.size == 1
   end
 end

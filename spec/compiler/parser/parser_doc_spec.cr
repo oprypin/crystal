@@ -26,7 +26,7 @@ describe "Parser doc" do
         ))
       parser.wants_doc = true
       node = parser.parse
-      node.doc.should eq("This is Foo.\nUse it well.")
+      assert node.doc == "This is Foo.\nUse it well."
     end
   end
 
@@ -46,12 +46,12 @@ describe "Parser doc" do
     nodes = parser.parse.as(Expressions)
 
     foo = nodes[0].as(Def)
-    foo.doc.should eq("doc 1")
+    assert foo.doc == "doc 1"
 
     bar = foo.body.as(Call)
-    bar.doc.should be_nil
+    assert bar.doc.nil?
 
     baz = nodes[1].as(Def)
-    baz.doc.should eq("doc 3")
+    assert baz.doc == "doc 3"
   end
 end

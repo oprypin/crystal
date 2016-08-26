@@ -6,19 +6,19 @@ describe "Codegen: while" do
   end
 
   it "codegens while with false" do
-    run("a = 1; while false; a = 2; end; a").to_i.should eq(1)
+    assert run("a = 1; while false; a = 2; end; a").to_i == 1
   end
 
   it "codegens while with non-false condition" do
-    run("a = 1; while a < 10; a = a + 1; end; a").to_i.should eq(10)
+    assert run("a = 1; while a < 10; a = a + 1; end; a").to_i == 10
   end
 
   it "break without value" do
-    run("a = 0; while a < 10; a += 1; break; end; a").to_i.should eq(1)
+    assert run("a = 0; while a < 10; a += 1; break; end; a").to_i == 1
   end
 
   it "conditional break without value" do
-    run("a = 0; while a < 10; a += 1; break if a > 5; end; a").to_i.should eq(6)
+    assert run("a = 0; while a < 10; a += 1; break if a > 5; end; a").to_i == 6
   end
 
   it "codegens endless while" do
@@ -26,18 +26,18 @@ describe "Codegen: while" do
   end
 
   it "codegens while with declared var 1" do
-    run("
+    assert run("
       struct Nil; def to_i; 0; end; end
 
       while 1 == 2
         a = 2
       end
       a.to_i
-      ").to_i.should eq(0)
+      ").to_i == 0
   end
 
   it "codegens while with declared var 2" do
-    run("
+    assert run("
       struct Nil; def to_i; 0; end; end
 
       while 1 == 1
@@ -48,11 +48,11 @@ describe "Codegen: while" do
         end
       end
       a.to_i
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "codegens while with declared var 3" do
-    run("
+    assert run("
       struct Nil; def to_i; 0; end; end
 
       while 1 == 1
@@ -64,11 +64,11 @@ describe "Codegen: while" do
         end
       end
       a.to_i
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "skip block with next" do
-    run("
+    assert run("
       i = 0
       x = 0
 
@@ -78,7 +78,7 @@ describe "Codegen: while" do
         x += i
       end
       x
-    ").to_i.should eq(25)
+    ").to_i == 25
   end
 
   it "doesn't crash on a = NoReturn" do
@@ -94,7 +94,7 @@ describe "Codegen: while" do
   end
 
   it "doesn't crash on #2767" do
-    run(%(
+    assert run(%(
       lib LibC
         fun exit(Int32) : NoReturn
       end
@@ -107,11 +107,11 @@ describe "Codegen: while" do
       end
       x
       10
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "doesn't crash on #2767 (2)" do
-    run(%(
+    assert run(%(
       lib LibC
         fun exit(Int32) : NoReturn
       end
@@ -122,11 +122,11 @@ describe "Codegen: while" do
       end
       x
       10
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "doesn't crash on #2767 (3)" do
-    run(%(
+    assert run(%(
       lib LibC
         fun exit(Int32) : NoReturn
       end
@@ -143,11 +143,11 @@ describe "Codegen: while" do
       end
       x
       10
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "doesn't crash on #2767 (4)" do
-    run(%(
+    assert run(%(
       lib LibC
         fun exit(Int32) : NoReturn
       end
@@ -163,6 +163,6 @@ describe "Codegen: while" do
       end
       x
       10
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 end

@@ -16,7 +16,7 @@ describe OpenSSL::HMAC do
     {:ripemd160, "20d23140503df606c91bda9293f1ad4a23afe509"},
   ].each do |(algorithm, expected)|
     it "computes #{algorithm}" do
-      OpenSSL::HMAC.hexdigest(algorithm, "foo", "bar").should eq(expected)
+      assert OpenSSL::HMAC.hexdigest(algorithm, "foo", "bar") == expected
     end
   end
 end

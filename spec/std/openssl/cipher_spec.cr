@@ -11,7 +11,7 @@ describe OpenSSL::Cipher do
     data = "DATA" * 5
     ciphertext = File.read(File.join(__DIR__ + "/cipher_spec.ciphertext"))
 
-    c1.name.should eq(c2.name)
+    assert c1.name == c2.name
 
     c1.encrypt
     c2.encrypt
@@ -26,8 +26,8 @@ describe OpenSSL::Cipher do
     s2.write(c2.update(data))
     s2.write(c2.final)
 
-    s1.to_slice.should eq(ciphertext.to_slice)
-    s1.to_slice.should eq(s2.to_slice)
+    assert s1.to_slice == ciphertext.to_slice
+    assert s1.to_slice == s2.to_slice
 
     c1.decrypt
     c2.decrypt
@@ -41,7 +41,7 @@ describe OpenSSL::Cipher do
 
     s4.write(c2.update(s2.to_slice))
     s4.write(c2.final)
-    s3.to_s.should eq(data)
-    s3.to_slice.should eq(s4.to_slice)
+    assert s3.to_s == data
+    assert s3.to_slice == s4.to_slice
   end
 end

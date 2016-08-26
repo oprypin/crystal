@@ -31,7 +31,7 @@ describe "Semantic: class" do
     ") { generic_class "Foo", int32 }
     mod = result.program
     type = result.node.type.as(GenericClassInstanceType)
-    type.instance_vars["@coco"].type.should eq(mod.nilable(mod.int32))
+    assert type.instance_vars["@coco"].type == mod.nilable(mod.int32)
   end
 
   it "types generic of generic type" do
@@ -71,11 +71,11 @@ describe "Semantic: class" do
     mod, node = result.program, result.node.as(Expressions)
     foo = mod.types["Foo"].as(GenericClassType)
 
-    node[1].type.should eq(foo.instantiate([mod.int32] of TypeVar))
-    node[1].type.as(InstanceVarContainer).instance_vars["@coco"].type.should eq(mod.nilable(mod.int32))
+    assert node[1].type == foo.instantiate([mod.int32] of TypeVar)
+    assert node[1].type.as(InstanceVarContainer).instance_vars["@coco"].type == mod.nilable(mod.int32)
 
-    node[3].type.should eq(foo.instantiate([mod.float64] of TypeVar))
-    node[3].type.as(InstanceVarContainer).instance_vars["@coco"].type.should eq(mod.nilable(mod.float64))
+    assert node[3].type == foo.instantiate([mod.float64] of TypeVar)
+    assert node[3].type.as(InstanceVarContainer).instance_vars["@coco"].type == mod.nilable(mod.float64)
   end
 
   it "types instance variable on getter" do
@@ -101,8 +101,8 @@ describe "Semantic: class" do
     result = semantic input
     mod, node = result.program, result.node.as(Expressions)
 
-    node[3].type.should eq(mod.nilable(mod.int32))
-    input.last.type.should eq(mod.nilable(mod.float64))
+    assert node[3].type == mod.nilable(mod.int32)
+    assert input.last.type == mod.nilable(mod.float64)
   end
 
   it "types recursive type" do
@@ -125,8 +125,8 @@ describe "Semantic: class" do
     mod, input = result.program, result.node.as(Expressions)
     node = mod.types["Node"].as(NonGenericClassType)
 
-    node.lookup_instance_var("@next").type.should eq(mod.nilable(node))
-    input.last.type.should eq(node)
+    assert node.lookup_instance_var("@next").type == mod.nilable(node)
+    assert input.last.type == node
   end
 
   it "types self inside method call without obj" do
@@ -208,8 +208,8 @@ describe "Semantic: class" do
       ") { generic_class "Box", int32 }
     mod = result.program
     type = result.node.type.as(GenericClassInstanceType)
-    type.type_vars["T"].type.should eq(mod.int32)
-    type.instance_vars["@value"].type.should eq(mod.int32)
+    assert type.type_vars["T"].type == mod.int32
+    assert type.instance_vars["@value"].type == mod.int32
   end
 
   it "does automatic type inference of new for generic types 2" do
@@ -225,8 +225,8 @@ describe "Semantic: class" do
       ") { generic_class "Box", bool }
     mod = result.program
     type = result.node.type.as(GenericClassInstanceType)
-    type.type_vars["T"].type.should eq(mod.bool)
-    type.instance_vars["@value"].type.should eq(mod.bool)
+    assert type.type_vars["T"].type == mod.bool
+    assert type.instance_vars["@value"].type == mod.bool
   end
 
   it "does automatic type inference of new for nested generic type" do
@@ -244,8 +244,8 @@ describe "Semantic: class" do
     result = semantic nodes
     mod = result.program
     type = nodes.last.type.as(GenericClassInstanceType)
-    type.type_vars["T"].type.should eq(mod.int32)
-    type.instance_vars["@x"].type.should eq(mod.int32)
+    assert type.type_vars["T"].type == mod.int32
+    assert type.instance_vars["@x"].type == mod.int32
   end
 
   it "reports uninitialized constant" do
@@ -1043,7 +1043,7 @@ describe "Semantic: class" do
       end
       ")
     instance_vars = result.program.types["Foo"].instance_vars.to_a.map(&.[0])
-    instance_vars.should eq(%w(@x @y))
+    assert instance_vars == %w(@x @y)
   end
 
   it "errors if inherits from module" do

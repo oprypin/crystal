@@ -8,8 +8,8 @@ private def expect_capture_option(args, option, value)
       flag = flag_value
     end
   end
-  flag.should eq(value)
-  args.size.should eq(0)
+  assert flag == value
+  assert args.size == 0
 end
 
 private def expect_doesnt_capture_option(args, option)
@@ -19,7 +19,7 @@ private def expect_doesnt_capture_option(args, option)
       flag = true
     end
   end
-  flag.should be_false
+  assert flag == false
 end
 
 private def expect_missing_option(option)
@@ -145,11 +145,11 @@ describe "OptionParser" do
       opts.on("-g[FLAG]", "some other flag") do
       end
     end
-    parser.to_s.should eq([
+    assert parser.to_s == [
       "Usage: foo",
       "    -f, --flag                       some flag",
       "    -g[FLAG]                         some other flag",
-    ].join "\n")
+    ].join "\n"
   end
 
   it "does to_s with separators" do
@@ -164,7 +164,7 @@ describe "OptionParser" do
       opts.on("-g[FLAG]", "some other flag") do
       end
     end
-    parser.to_s.should eq([
+    assert parser.to_s == [
       "Usage: foo",
       "",
       "Type F flags:",
@@ -172,7 +172,7 @@ describe "OptionParser" do
       "",
       "Type G flags:",
       "    -g[FLAG]                         some other flag",
-    ].join "\n")
+    ].join "\n"
   end
 
   it "raises on invalid option" do
@@ -188,12 +188,12 @@ describe "OptionParser" do
     OptionParser.parse(["-f", "-j"]) do |opts|
       opts.on("-f", "some flag") { }
       opts.invalid_option do |flag|
-        flag.should eq("-j")
+        assert flag == "-j"
         called = true
       end
     end
 
-    called.should be_true
+    assert called == true
   end
 
   it "calls the handler for missing options" do
@@ -201,12 +201,12 @@ describe "OptionParser" do
     OptionParser.parse(["-f"]) do |opts|
       opts.on("-f FOO", "some flag") { }
       opts.missing_option do |flag|
-        flag.should eq("-f")
+        assert flag == "-f"
         called = true
       end
     end
 
-    called.should be_true
+    assert called == true
   end
 
   describe "multiple times" do
@@ -218,7 +218,7 @@ describe "OptionParser" do
           count += 1
         end
       end
-      count.should eq(3)
+      assert count == 3
     end
 
     it "gets a single flag option multiple times" do
@@ -229,7 +229,7 @@ describe "OptionParser" do
           values << value
         end
       end
-      values.should eq(%w(1 2))
+      assert values == %w(1 2)
     end
 
     it "gets a double flag option multiple times" do
@@ -240,7 +240,7 @@ describe "OptionParser" do
           values << value
         end
       end
-      values.should eq(%w(1 2))
+      assert values == %w(1 2)
     end
   end
 
@@ -257,9 +257,9 @@ describe "OptionParser" do
           g = true
         end
       end
-      f.should be_true
-      g.should be_false
-      args.should eq(["bar", "baz", "qux", "-g"])
+      assert f == true
+      assert g == false
+      assert args == ["bar", "baz", "qux", "-g"]
     end
 
     it "ignores everything after -- with single flag)" do
@@ -274,9 +274,9 @@ describe "OptionParser" do
           g = v
         end
       end
-      f.should eq("bar")
-      g.should be_nil
-      args.should eq(["x", "baz", "qux", "-g", "lala"])
+      assert f == "bar"
+      assert g.nil?
+      assert args == ["x", "baz", "qux", "-g", "lala"]
     end
 
     it "ignores everything after -- with double flag" do
@@ -291,9 +291,9 @@ describe "OptionParser" do
           g = v
         end
       end
-      f.should eq("bar")
-      g.should be_nil
-      args.should eq(["x", "baz", "qux", "--g", "lala"])
+      assert f == "bar"
+      assert g.nil?
+      assert args == ["x", "baz", "qux", "--g", "lala"]
     end
 
     it "returns a pair with things coming before and after --" do
@@ -308,9 +308,9 @@ describe "OptionParser" do
           unknown_args = {before_dash, after_dash}
         end
       end
-      f.should eq("bar")
-      args.should eq(["baz", "qux"])
-      unknown_args.should eq({["baz"], ["qux"]})
+      assert f == "bar"
+      assert args == ["baz", "qux"]
+      assert unknown_args == {["baz"], ["qux"]}
     end
 
     it "returns a pair with things coming before and after --, without --" do
@@ -325,9 +325,9 @@ describe "OptionParser" do
           unknown_args = {before_dash, after_dash}
         end
       end
-      f.should eq("bar")
-      args.should eq(["baz"])
-      unknown_args.should eq({["baz"], [] of String})
+      assert f == "bar"
+      assert args == ["baz"]
+      assert unknown_args == {["baz"], [] of String}
     end
 
     it "initializes without block and does parse!" do
@@ -341,7 +341,7 @@ describe "OptionParser" do
             f = v
           end
         end.parse!
-        f.should eq("hi")
+        assert f == "hi"
       ensure
         ARGV.clear
         ARGV.concat old_argv
@@ -352,7 +352,7 @@ describe "OptionParser" do
       args = %w(-)
       OptionParser.parse(args) do |opts|
       end
-      args.should eq(%w(-))
+      assert args == %w(-)
     end
   end
 
@@ -365,8 +365,8 @@ describe "OptionParser" do
         opts.on("--lamb VALUE", "") { |v| value1 = v }
         opts.on("--lambda VALUE", "") { |v| value2 = v }
       end
-      value1.should eq("value1")
-      value2.should eq("value2")
+      assert value1 == "value1"
+      assert value2 == "value2"
     end
 
     it "distinguishes between '--lamb=VALUE' and '--lambda=VALUE'" do
@@ -377,8 +377,8 @@ describe "OptionParser" do
         opts.on("--lamb=VALUE", "") { |v| value1 = v }
         opts.on("--lambda=VALUE", "") { |v| value2 = v }
       end
-      value1.should eq("value1")
-      value2.should eq("value2")
+      assert value1 == "value1"
+      assert value2 == "value2"
     end
   end
 end

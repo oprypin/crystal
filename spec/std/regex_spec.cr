@@ -2,33 +2,33 @@ require "spec"
 
 describe "Regex" do
   it "compare to other instances" do
-    Regex.new("foo").should eq(Regex.new("foo"))
-    Regex.new("foo").should_not eq(Regex.new("bar"))
+    assert Regex.new("foo") == Regex.new("foo")
+    assert Regex.new("foo") != Regex.new("bar")
   end
 
   it "does =~" do
-    (/foo/ =~ "bar foo baz").should eq(4)
-    $~.size.should eq(0)
+    assert (/foo/ =~ "bar foo baz") == 4
+    assert $~.size == 0
   end
 
   it "does inspect" do
-    /foo/.inspect.should eq("/foo/")
-    /foo/.inspect.should eq("/foo/")
-    /foo/imx.inspect.should eq("/foo/imx")
+    assert /foo/.inspect == "/foo/"
+    assert /foo/.inspect == "/foo/"
+    assert /foo/imx.inspect == "/foo/imx"
   end
 
   it "does to_s" do
-    /foo/.to_s.should eq("(?-imsx:foo)")
-    /foo/im.to_s.should eq("(?ims-x:foo)")
-    /foo/imx.to_s.should eq("(?imsx-:foo)")
+    assert /foo/.to_s == "(?-imsx:foo)"
+    assert /foo/im.to_s == "(?ims-x:foo)"
+    assert /foo/imx.to_s == "(?imsx-:foo)"
 
-    "Crystal".match(/(?<bar>C)#{/(?<foo>R)/i}/).should be_truthy
-    "Crystal".match(/(?<bar>C)#{/(?<foo>R)/}/i).should be_falsey
+    assert "Crystal".match(/(?<bar>C)#{/(?<foo>R)/i}/)
+    assert !"Crystal".match(/(?<bar>C)#{/(?<foo>R)/}/i)
 
     md = "Crystal".match(/(?<bar>.)#{/(?<foo>.)/}/).not_nil!
-    md[0].should eq("Cr")
-    md["bar"].should eq("C")
-    md["foo"].should eq("r")
+    assert md[0] == "Cr"
+    assert md["bar"] == "C"
+    assert md["foo"] == "r"
   end
 
   it "doesn't crash when PCRE tries to free some memory (#771)" do
@@ -36,52 +36,52 @@ describe "Regex" do
   end
 
   it "escapes" do
-    Regex.escape(" .\\+*?[^]$(){}=!<>|:-hello").should eq("\\ \\.\\\\\\+\\*\\?\\[\\^\\]\\$\\(\\)\\{\\}\\=\\!\\<\\>\\|\\:\\-hello")
+    assert Regex.escape(" .\\+*?[^]$(){}=!<>|:-hello") == "\\ \\.\\\\\\+\\*\\?\\[\\^\\]\\$\\(\\)\\{\\}\\=\\!\\<\\>\\|\\:\\-hello"
   end
 
   it "matches ignore case" do
-    ("HeLlO" =~ /hello/).should be_nil
-    ("HeLlO" =~ /hello/i).should eq(0)
+    assert ("HeLlO" =~ /hello/).nil?
+    assert ("HeLlO" =~ /hello/i) == 0
   end
 
   it "matches lines beginnings on ^ in multiline mode" do
-    ("foo\nbar" =~ /^bar/).should be_nil
-    ("foo\nbar" =~ /^bar/m).should eq(4)
+    assert ("foo\nbar" =~ /^bar/).nil?
+    assert ("foo\nbar" =~ /^bar/m) == 4
   end
 
   it "matches multiline" do
-    ("foo\n<bar\n>baz" =~ /<bar.*?>/).should be_nil
-    ("foo\n<bar\n>baz" =~ /<bar.*?>/m).should eq(4)
+    assert ("foo\n<bar\n>baz" =~ /<bar.*?>/).nil?
+    assert ("foo\n<bar\n>baz" =~ /<bar.*?>/m) == 4
   end
 
   it "matches with =~ and captures" do
-    ("fooba" =~ /f(o+)(bar?)/).should eq(0)
-    $~.size.should eq(2)
-    $1.should eq("oo")
-    $2.should eq("ba")
+    assert ("fooba" =~ /f(o+)(bar?)/) == 0
+    assert $~.size == 2
+    assert $1 == "oo"
+    assert $2 == "ba"
   end
 
   it "matches with =~ and gets utf-8 codepoint index" do
     index = "こんに" =~ /ん/
-    index.should eq(1)
+    assert index == 1
   end
 
   it "matches with === and captures" do
     "foo" =~ /foo/
-    (/f(o+)(bar?)/ === "fooba").should be_true
-    $~.size.should eq(2)
-    $1.should eq("oo")
-    $2.should eq("ba")
+    assert (/f(o+)(bar?)/ === "fooba") == true
+    assert $~.size == 2
+    assert $1 == "oo"
+    assert $2 == "ba"
   end
 
   describe "name_table" do
     it "is a map of capture group number to name" do
       table = (/(?<date> (?<year>(\d\d)?\d\d) - (?<month>\d\d) - (?<day>\d\d) )/x).name_table
-      table[1].should eq("date")
-      table[2].should eq("year")
-      table[3]?.should be_nil
-      table[4].should eq("month")
-      table[5].should eq("day")
+      assert table[1] == "date"
+      assert table[2] == "year"
+      assert table[3]?.nil?
+      assert table[4] == "month"
+      assert table[5] == "day"
     end
   end
 
@@ -97,48 +97,48 @@ describe "Regex" do
   describe ".union" do
     it "constructs a Regex that matches things any of its arguments match" do
       re = Regex.union(/skiing/i, "sledding")
-      re.match("Skiing").not_nil![0].should eq "Skiing"
-      re.match("sledding").not_nil![0].should eq "sledding"
+      assert re.match("Skiing").not_nil![0] == "Skiing"
+      assert re.match("sledding").not_nil![0] == "sledding"
     end
 
     it "returns a regular expression that will match passed arguments" do
-      Regex.union("penzance").should eq /penzance/
-      Regex.union("skiing", "sledding").should eq /skiing|sledding/
-      Regex.union(/dogs/, /cats/i).should eq /(?-imsx:dogs)|(?i-msx:cats)/
+      assert Regex.union("penzance") == /penzance/
+      assert Regex.union("skiing", "sledding") == /skiing|sledding/
+      assert Regex.union(/dogs/, /cats/i) == /(?-imsx:dogs)|(?i-msx:cats)/
     end
 
     it "quotes any string arguments" do
-      Regex.union("n", ".").should eq /n|\./
+      assert Regex.union("n", ".") == /n|\./
     end
 
     it "returns a Regex with an Array(String) with special characters" do
-      Regex.union(["+", "-"]).should eq /\+|\-/
+      assert Regex.union(["+", "-"]) == /\+|\-/
     end
 
     it "accepts a single Array(String | Regex) argument" do
-      Regex.union(["skiing", "sledding"]).should eq /skiing|sledding/
-      Regex.union([/dogs/, /cats/i]).should eq /(?-imsx:dogs)|(?i-msx:cats)/
-      (/dogs/ + /cats/i).should eq /(?-imsx:dogs)|(?i-msx:cats)/
+      assert Regex.union(["skiing", "sledding"]) == /skiing|sledding/
+      assert Regex.union([/dogs/, /cats/i]) == /(?-imsx:dogs)|(?i-msx:cats)/
+      assert (/dogs/ + /cats/i) == /(?-imsx:dogs)|(?i-msx:cats)/
     end
 
     it "accepts a single Tuple(String | Regex) argument" do
-      Regex.union({"skiing", "sledding"}).should eq /skiing|sledding/
-      Regex.union({/dogs/, /cats/i}).should eq /(?-imsx:dogs)|(?i-msx:cats)/
-      (/dogs/ + /cats/i).should eq /(?-imsx:dogs)|(?i-msx:cats)/
+      assert Regex.union({"skiing", "sledding"}) == /skiing|sledding/
+      assert Regex.union({/dogs/, /cats/i}) == /(?-imsx:dogs)|(?i-msx:cats)/
+      assert (/dogs/ + /cats/i) == /(?-imsx:dogs)|(?i-msx:cats)/
     end
 
     it "combines Regex objects in the same way as Regex#+" do
-      Regex.union(/skiing/i, /sledding/).should eq(/skiing/i + /sledding/)
+      assert Regex.union(/skiing/i, /sledding/) == /skiing/i + /sledding/
     end
   end
 
   it "dups" do
     regex = /foo/
-    regex.dup.should be(regex)
+    assert regex.dup.same?(regex)
   end
 
   it "clones" do
     regex = /foo/
-    regex.clone.should be(regex)
+    assert regex.clone.same?(regex)
   end
 end

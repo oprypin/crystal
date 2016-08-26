@@ -4,27 +4,27 @@ CodeGenStructString = "lib LibFoo; struct Bar; x : Int32; y : Float32; end; end"
 
 describe "Code gen: struct" do
   it "codegens struct property default value" do
-    run("#{CodeGenStructString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.x").to_i.should eq(0)
+    assert run("#{CodeGenStructString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.x").to_i == 0
   end
 
   it "codegens struct property setter" do
-    run("#{CodeGenStructString}; bar = LibFoo::Bar.new; bar.y = 2.5_f32; bar.y").to_f32.should eq(2.5)
+    assert run("#{CodeGenStructString}; bar = LibFoo::Bar.new; bar.y = 2.5_f32; bar.y").to_f32 == 2.5
   end
 
   it "codegens struct property setter via pointer" do
-    run("#{CodeGenStructString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.y = 2.5_f32; bar.value.y").to_f32.should eq(2.5)
+    assert run("#{CodeGenStructString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.y = 2.5_f32; bar.value.y").to_f32 == 2.5
   end
 
   it "codegens struct property setter via pointer" do
-    run("#{CodeGenStructString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.y = 2.5_f32; bar.value.y").to_f32.should eq(2.5)
+    assert run("#{CodeGenStructString}; bar = Pointer(LibFoo::Bar).malloc(1_u64); bar.value.y = 2.5_f32; bar.value.y").to_f32 == 2.5
   end
 
   it "codegens set struct value with constant" do
-    run("#{CodeGenStructString}; CONST = 1; bar = LibFoo::Bar.new; bar.x = CONST; bar.x").to_i.should eq(1)
+    assert run("#{CodeGenStructString}; CONST = 1; bar = LibFoo::Bar.new; bar.x = CONST; bar.x").to_i == 1
   end
 
   it "codegens union inside struct" do
-    run("
+    assert run("
       lib LibFoo
         union Bar
           x : Int32
@@ -39,11 +39,11 @@ describe "Code gen: struct" do
       a = Pointer(LibFoo::Baz).malloc(1_u64)
       a.value.lala.x = 10
       a.value.lala.x
-      ").to_i.should eq(10)
+      ").to_i == 10
   end
 
   it "codegens struct get inside struct" do
-    run("
+    assert run("
       lib LibC
         struct Bar
           y : Int32
@@ -59,11 +59,11 @@ describe "Code gen: struct" do
       (foo.as(Int32*) + 1_i64).value = 2
 
       foo.value.bar.y
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens struct set inside struct" do
-    run("
+    assert run("
       lib LibC
         struct Bar
           y : Int32
@@ -81,11 +81,11 @@ describe "Code gen: struct" do
       foo.value.bar = bar
 
       foo.value.bar.y
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens pointer malloc of struct" do
-    run("
+    assert run("
       lib LibC
         struct Foo
           x : Int32
@@ -95,11 +95,11 @@ describe "Code gen: struct" do
       p = Pointer(LibC::Foo).malloc(1_u64)
       p.value.x = 1
       p.value.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "passes struct to method (1)" do
-    run("
+    assert run("
       lib LibC
         struct Foo
           x : Int32
@@ -117,11 +117,11 @@ describe "Code gen: struct" do
       f2 = foo(f1)
 
       f1.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "passes struct to method (2)" do
-    run("
+    assert run("
       lib LibC
         struct Foo
           x : Int32
@@ -138,11 +138,11 @@ describe "Code gen: struct" do
 
       f2 = foo(f1)
       f2.x
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens struct access with -> and then ." do
-    run("
+    assert run("
       lib LibC
         struct ScalarEvent
           x : Int32
@@ -159,11 +159,11 @@ describe "Code gen: struct" do
 
       e = Pointer(LibC::Event).malloc(1_u64)
       e.value.data.scalar.x
-      ").to_i.should eq(0)
+      ").to_i == 0
   end
 
   it "yields struct via ->" do
-    run("
+    assert run("
       lib LibC
         struct ScalarEvent
           x : Int32
@@ -186,11 +186,11 @@ describe "Code gen: struct" do
       foo do |data|
         data.scalar.x
       end
-      ").to_i.should eq(0)
+      ").to_i == 0
   end
 
   it "codegens assign struct to union" do
-    run("
+    assert run("
       lib LibFoo
         struct Coco
           x : Int32
@@ -200,11 +200,11 @@ describe "Code gen: struct" do
       x = LibFoo::Coco.new
       c = x || 0
       c.is_a?(LibFoo::Coco)
-    ").to_b.should be_true
+    ").to_b == true
   end
 
   it "codegens passing pointerof(struct) to fun" do
-    run("
+    assert run("
       lib LibC
         struct Foo
           a : Int32
@@ -219,7 +219,7 @@ describe "Code gen: struct" do
       f.a = 1
 
       foo pointerof(f)
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "builds struct setter with fun type (1)" do
@@ -253,7 +253,7 @@ describe "Code gen: struct" do
   end
 
   it "allows using named arguments for new" do
-    run(%(
+    assert run(%(
       lib LibC
         struct Point
           x, y : Int32
@@ -262,11 +262,11 @@ describe "Code gen: struct" do
 
       point = LibC::Point.new x: 1, y: 2
       point.x + point.y
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "does to_s" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       lib LibFoo
@@ -277,11 +277,11 @@ describe "Code gen: struct" do
 
       point = LibFoo::Point.new x: 1, y: 2
       point.to_s
-      )).to_string.should eq("LibFoo::Point(@x=1, @y=2)")
+      )).to_string == "LibFoo::Point(@x=1, @y=2)"
   end
 
   it "can access instance var from the outside (#1092)" do
-    run(%(
+    assert run(%(
       lib LibFoo
         struct Foo
           x : Int32
@@ -290,11 +290,11 @@ describe "Code gen: struct" do
 
       f = LibFoo::Foo.new x: 123
       f.@x
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "automatically converts numeric type in struct field assignment" do
-    run(%(
+    assert run(%(
       lib LibFoo
         struct Foo
           x : Int32
@@ -304,11 +304,11 @@ describe "Code gen: struct" do
       foo = LibFoo::Foo.new
       foo.x = 123_u8
       foo.x
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "automatically converts numeric union type in struct field assignment" do
-    run(%(
+    assert run(%(
       lib LibFoo
         struct Foo
           x : Int8
@@ -320,11 +320,11 @@ describe "Code gen: struct" do
       foo = LibFoo::Foo.new
       foo.x = a
       foo.x
-      )).to_i.should eq(57)
+      )).to_i == 57
   end
 
   it "automatically converts nil to pointer" do
-    run(%(
+    assert run(%(
       lib LibFoo
         struct Foo
           x : Int32*
@@ -335,11 +335,11 @@ describe "Code gen: struct" do
       foo.x = Pointer(Int32).new(1234_u64)
       foo.x = nil
       foo.x.address
-      )).to_i.should eq(0)
+      )).to_i == 0
   end
 
   it "automatically converts by invoking to_unsafe" do
-    run(%(
+    assert run(%(
       lib LibFoo
         struct Foo
           x : Int32
@@ -355,11 +355,11 @@ describe "Code gen: struct" do
       foo = LibFoo::Foo.new
       foo.x = Foo.new
       foo.x
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "sets instance var to proc" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       lib LibFoo
@@ -377,6 +377,6 @@ describe "Code gen: struct" do
       foo = LibFoo::Foo.new
       foo.set(->(x : Int32) { x + 1 })
       foo.x.call(1)
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 end

@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: cast" do
   it "allows casting object to pointer and back" do
-    run(%(
+    assert run(%(
       class Foo
         def initialize(@x : Int32)
         end
@@ -16,31 +16,31 @@ describe "Code gen: cast" do
       p = f.as(Void*)
       f = p.as(Foo)
       f.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts from int to int" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1
       b = a.as(Int32)
       b.abs
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts from union to single type" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1 || 'a'
       b = a.as(Int32)
       b.abs
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts from union to single type raises TypeCastError" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1 || 'a'
@@ -50,21 +50,21 @@ describe "Code gen: cast" do
       rescue ex
         ex.message.not_nil!.includes?("cast from Int32 to Char failed") && (ex.class == TypeCastError)
       end
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "casts from union to another union" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1 || 1.5 || 'a'
       b = a.as(Int32 | Float64)
       b.abs.to_i
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts from union to another union raises TypeCastError" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1 || 1.5 || 'a'
@@ -74,11 +74,11 @@ describe "Code gen: cast" do
       rescue ex
         ex.message.not_nil!.includes?("cast from Int32 to (Char | Float64) failed") && (ex.class == TypeCastError)
       end
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "casts from virtual to single type" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class CastSpecFoo
@@ -96,11 +96,11 @@ describe "Code gen: cast" do
       a = CastSpecBar.new || CastSpecFoo.new || CastSpecBaz.new
       b = a.as(CastSpecBar)
       b.bar
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts from virtual to single type raises TypeCastError" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class CastSpecFoo
@@ -122,20 +122,20 @@ describe "Code gen: cast" do
       rescue ex
         ex.message.not_nil!.includes?("cast from CastSpecBar to CastSpecBaz failed") && (ex.class == TypeCastError)
       end
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "casts from pointer to pointer" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1_i64
       pointerof(a).as(Int32*).value
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts to module" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       module CastSpecMoo
@@ -165,21 +165,21 @@ describe "Code gen: cast" do
       a = CastSpecBar.new || CastSpecFoo.new || CastSpecBaz.new || CastSpecBan.new
       m = a.as(CastSpecMoo)
       m.moo
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "casts from nilable to nil" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1 == 2 ? Reference.new : nil
       c = a.as(Nil)
       c == nil
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "casts from nilable to nil raises TypeCastError" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 1 == 1 ? Reference.new : nil
@@ -189,11 +189,11 @@ describe "Code gen: cast" do
       rescue ex
         ex.message.not_nil!.includes?("cast from Reference to Nil failed") && (ex.class == TypeCastError)
       end
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "casts to base class making it virtual" do
-    run(%(
+    assert run(%(
       class Foo
         def foo
           1
@@ -209,55 +209,55 @@ describe "Code gen: cast" do
       bar = Bar.new
       x = bar.as(Foo).foo
       x.to_i
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "casts to bigger union" do
-    run(%(
+    assert run(%(
       x = 1.5.as(Int32 | Float64)
       x.to_i
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "allows casting nil to Void*" do
-    run(%(
+    assert run(%(
       nil.as(Void*).address
-      )).to_i.should eq(0)
+      )).to_i == 0
   end
 
   it "allows casting nilable type to Void* (1)" do
-    run(%(
+    assert run(%(
       a = 1 == 1 ? Reference.new : nil
       a.as(Void*).address
-      )).to_i.should_not eq(0)
+      )).to_i != 0
   end
 
   it "allows casting nilable type to Void* (2)" do
-    run(%(
+    assert run(%(
       a = 1 == 2 ? Reference.new : nil
       a.as(Void*).address
-      )).to_i.should eq(0)
+      )).to_i == 0
   end
 
   it "allows casting nilable type to Void* (3)" do
-    run(%(
+    assert run(%(
       class Foo
       end
       a = 1 == 1 ? Reference.new : (1 == 2 ? Foo.new : nil)
       a.as(Void*).address
-      )).to_i.should_not eq(0)
+      )).to_i != 0
   end
 
   it "casts (bug)" do
-    run(%(
+    assert run(%(
       require "prelude"
       (1 || 1.1).as(Int32)
       123
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "can cast from Void* to virtual type (#3014)" do
-    run(%(
+    assert run(%(
       abstract class A
         abstract def hi
       end
@@ -269,11 +269,11 @@ describe "Code gen: cast" do
       end
 
       B.new.as(Void*).as(A).hi
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "upcasts from non-generic to generic" do
-    run(%(
+    assert run(%(
       class Foo(T)
         def foo
           1
@@ -287,6 +287,6 @@ describe "Code gen: cast" do
       end
 
       Bar.new.as(Foo(Int32)).foo
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 end

@@ -8,9 +8,9 @@ describe "Compiler" do
 
     Crystal::Command.run ["build", "#{__DIR__}/data/compiler_sample", "-o", tempfile.path]
 
-    File.exists?(tempfile.path).should be_true
+    assert File.exists?(tempfile.path) == true
 
-    `#{tempfile.path}`.should eq("Hello!")
+    assert `#{tempfile.path}` == "Hello!"
   end
 
   it "runs subcommand in preference to a filename " do
@@ -20,9 +20,9 @@ describe "Compiler" do
 
       Crystal::Command.run ["build", "#{__DIR__}/data/compiler_sample", "-o", tempfile.path]
 
-      File.exists?(tempfile.path).should be_true
+      assert File.exists?(tempfile.path) == true
 
-      `#{tempfile.path}`.should eq("Hello!")
+      assert `#{tempfile.path}` == "Hello!"
     end
   end
 end

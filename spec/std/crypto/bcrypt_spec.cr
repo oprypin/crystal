@@ -22,7 +22,7 @@ describe "Crypto::Bcrypt" do
     vectors.each_with_index do |vector, index|
       cost, password, salt, digest = vector
       bc = Crypto::Bcrypt.new(password, salt, cost)
-      Crypto::Bcrypt::Base64.encode(bc.digest, 23).should eq(digest)
+      assert Crypto::Bcrypt::Base64.encode(bc.digest, 23) == digest
     end
   end
 
@@ -65,6 +65,6 @@ describe "Crypto::Bcrypt" do
     salt = "OK.fbVrR/bpIqNJ5ianF.C"
     hash1 = Crypto::Bcrypt.new("ab#{latin1_pound_sign}", salt, 5)
     hash2 = Crypto::Bcrypt.new(latin1_pound_sign, salt, 5)
-    hash2.should_not eq(hash1)
+    assert hash2 != hash1
   end
 end

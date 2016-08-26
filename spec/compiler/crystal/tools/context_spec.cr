@@ -37,17 +37,17 @@ end
 
 def assert_context_keys(code, *variables)
   run_context_tool(code) do |result|
-    result.contexts.should_not be_nil
+    assert result.contexts
     result.contexts.not_nil!.each do |context|
-      context.keys.should eq(variables.to_a)
+      assert context.keys == variables.to_a
     end
   end
 end
 
 def assert_context_includes(code, variable, var_types)
   run_context_tool(code) do |result|
-    result.contexts.should_not be_nil
-    result.contexts.not_nil!.map { |h| h[variable].to_s }.should eq(var_types)
+    assert result.contexts
+    assert result.contexts.not_nil!.map { |h| h[variable].to_s } == var_types
   end
 end
 
@@ -209,9 +209,9 @@ describe "context" do
     ‸
     0
     )) do |result|
-      String::Builder.build do |io|
+      assert String::Builder.build do |io|
         result.to_text(io)
-      end.should eq %(1 possible context found
+      end == %(1 possible context found
 
 | Expr | Type           |
 -------------------------
@@ -230,9 +230,9 @@ describe "context" do
     ‸
     0
     )) do |result|
-      String::Builder.build do |io|
+      assert String::Builder.build do |io|
         result.to_json(io)
-      end.should eq %({"status":"ok","message":"1 possible context found","contexts":[{"a":"Int64 | String"}]})
+      end == %({"status":"ok","message":"1 possible context found","contexts":[{"a":"Int64 | String"}]})
     end
   end
 

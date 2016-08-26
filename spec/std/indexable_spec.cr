@@ -17,21 +17,21 @@ end
 describe Indexable do
   it "does index with big negative offset" do
     indexable = SafeIndexable.new(3)
-    indexable.index(0, -100).should be_nil
+    assert indexable.index(0, -100).nil?
   end
 
   it "does index with big offset" do
     indexable = SafeIndexable.new(3)
-    indexable.index(0, 100).should be_nil
+    assert indexable.index(0, 100).nil?
   end
 
   it "does rindex with big negative offset" do
     indexable = SafeIndexable.new(3)
-    indexable.rindex(0, -100).should be_nil
+    assert indexable.rindex(0, -100).nil?
   end
 
   it "does rindex with big offset" do
     indexable = SafeIndexable.new(3)
-    indexable.rindex(0, 100).should be_nil
+    assert indexable.rindex(0, 100).nil?
   end
 end

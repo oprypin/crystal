@@ -3,7 +3,7 @@ require "json"
 
 private def it_parses(string, expected_value, file = __FILE__, line = __LINE__)
   it "parses #{string}", file, line do
-    JSON.parse(string).raw.should eq(expected_value)
+    assert JSON.parse(string).raw == expected_value
   end
 end
 
@@ -55,7 +55,7 @@ describe JSON::Parser do
 
   it "returns raw" do
     value = JSON.parse_raw("1")
-    value.should eq(1)
-    value.should be_a(Int64)
+    assert value == 1
+    assert value.is_a?(Int64)
   end
 end

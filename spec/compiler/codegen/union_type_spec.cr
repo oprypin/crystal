@@ -2,35 +2,35 @@ require "../../spec_helper"
 
 describe "Code gen: union type" do
   it "codegens union type when obj is union and no args" do
-    run("a = 1; a = 2.5_f32; a.to_f").to_f64.should eq(2.5)
+    assert run("a = 1; a = 2.5_f32; a.to_f").to_f64 == 2.5
   end
 
   it "codegens union type when obj is union and arg is union" do
-    run("a = 1; a = 1.5_f32; (a + a).to_f").to_f64.should eq(3)
+    assert run("a = 1; a = 1.5_f32; (a + a).to_f").to_f64 == 3
   end
 
   it "codegens union type when obj is not union but arg is" do
-    run("a = 1; b = 2; b = 1.5_f32; (a + b).to_f").to_f64.should eq(2.5)
+    assert run("a = 1; b = 2; b = 1.5_f32; (a + b).to_f").to_f64 == 2.5
   end
 
   it "codegens union type when obj union but arg is not" do
-    run("a = 1; b = 2; b = 1.5_f32; (b + a).to_f").to_f64.should eq(2.5)
+    assert run("a = 1; b = 2; b = 1.5_f32; (b + a).to_f").to_f64 == 2.5
   end
 
   it "codegens union type when no obj" do
-    run("def foo(x); x; end; a = 1; a = 2.5_f32; foo(a).to_f").to_f64.should eq(2.5)
+    assert run("def foo(x); x; end; a = 1; a = 2.5_f32; foo(a).to_f").to_f64 == 2.5
   end
 
   it "codegens union type when no obj and restrictions" do
-    run("def foo(x : Int); 1.5; end; def foo(x : Float); 2.5; end; a = 1; a = 3.5_f32; foo(a).to_f").to_f64.should eq(2.5)
+    assert run("def foo(x : Int); 1.5; end; def foo(x : Float); 2.5; end; a = 1; a = 3.5_f32; foo(a).to_f").to_f64 == 2.5
   end
 
   it "codegens union type as return value" do
-    run("def foo; a = 1; a = 2.5_f32; a; end; foo.to_f").to_f64.should eq(2.5)
+    assert run("def foo; a = 1; a = 2.5_f32; a; end; foo.to_f").to_f64 == 2.5
   end
 
   it "codegens union type for instance var" do
-    run("
+    assert run("
       class Foo
         @value : Int32 | Float32
 
@@ -44,11 +44,11 @@ describe "Code gen: union type" do
       f = Foo.new(1)
       f.value = 1.5_f32
       (f.value + f.value).to_f
-    ").to_f64.should eq(3)
+    ").to_f64 == 3
   end
 
   it "codegens if with same nested union" do
-    run("
+    assert run("
       if true
         if true
           1
@@ -62,11 +62,11 @@ describe "Code gen: union type" do
           2.5_f32
         end
       end.to_i
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "assigns union to union" do
-    run("
+    assert run("
       require \"prelude\"
 
       struct Nil; def to_i; 0; end; end
@@ -94,11 +94,11 @@ describe "Code gen: union type" do
       f.foo 1
       f.foo 'a'
       f.x.to_i
-      ").to_i.should eq(97)
+      ").to_i == 97
   end
 
   it "assigns union to larger union" do
-    run("
+    assert run("
       require \"prelude\"
       a = 1
       a = 1.1_f32
@@ -106,7 +106,7 @@ describe "Code gen: union type" do
       b = 'd'
       a = b
       a.to_s
-    ").to_string.should eq("d")
+    ").to_string == "d"
   end
 
   it "assigns union to larger union when source is nilable 1" do
@@ -118,18 +118,18 @@ describe "Code gen: union type" do
       a = b
       a.to_s
     ").to_string
-    value.includes?("Reference").should be_true
+    assert value.includes?("Reference") == true
   end
 
   it "assigns union to larger union when source is nilable 2" do
-    run("
+    assert run("
       require \"prelude\"
       a = 1
       b = Reference.new
       b = nil
       a = b
       a.to_s
-    ").to_string.should eq("")
+    ").to_string == ""
   end
 
   it "dispatch call to object method on nilable" do
@@ -145,7 +145,7 @@ describe "Code gen: union type" do
   end
 
   it "sorts restrictions when there are unions" do
-    run("
+    assert run("
       class Middle
       end
 
@@ -176,7 +176,7 @@ describe "Code gen: union type" do
 
       t = Top.new || Another1.new
       type_id t
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens union to_s" do
@@ -190,17 +190,17 @@ describe "Code gen: union type" do
       a = 1 || 1.5
       foo(a)
       )).to_string
-    (str == "(Int32 | Float64)" || str == "(Float64 | Int32)").should be_true
+    assert (str == "(Int32 | Float64)" || str == "(Float64 | Int32)") == true
   end
 
   it "provides T as a tuple literal" do
-    run(%(
+    assert run(%(
       struct Union
         def self.foo
           {{ T.class_name }}
         end
       end
       Union(Nil, Int32).foo
-      )).to_string.should eq("TupleLiteral")
+      )).to_string == "TupleLiteral"
   end
 end

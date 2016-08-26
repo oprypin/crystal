@@ -12,15 +12,15 @@ module Zlib
 
       io.rewind
       inflate = Inflate.new(io)
-      inflate.gets_to_end.should eq(message)
+      assert inflate.gets_to_end == message
     end
 
     it "can be closed without sync" do
       io = MemoryIO.new
       deflate = Deflate.new(io)
       deflate.close
-      deflate.closed?.should be_true
-      io.closed?.should be_false
+      assert deflate.closed? == true
+      assert io.closed? == false
 
       expect_raises IO::Error, "closed stream" do
         deflate.print "a"
@@ -31,8 +31,8 @@ module Zlib
       io = MemoryIO.new
       deflate = Deflate.new(io, sync_close: true)
       deflate.close
-      deflate.closed?.should be_true
-      io.closed?.should be_true
+      assert deflate.closed? == true
+      assert io.closed? == true
     end
 
     it "can be closed with sync (2)" do
@@ -40,8 +40,8 @@ module Zlib
       deflate = Deflate.new(io)
       deflate.sync_close = true
       deflate.close
-      deflate.closed?.should be_true
-      io.closed?.should be_true
+      assert deflate.closed? == true
+      assert io.closed? == true
     end
 
     it "can be flushed" do
@@ -49,17 +49,17 @@ module Zlib
       deflate = Deflate.new(io)
 
       deflate.print "this"
-      io.to_slice.hexstring.should eq("789c")
+      assert io.to_slice.hexstring == "789c"
 
       deflate.flush
-      (io.to_slice.hexstring.size > 4).should be_true
+      assert (io.to_slice.hexstring.size > 4) == true
 
       deflate.print " is a test string !!!!\n"
       deflate.close
 
       io.rewind
       inflate = Inflate.new(io)
-      inflate.gets_to_end.should eq("this is a test string !!!!\n")
+      assert inflate.gets_to_end == "this is a test string !!!!\n"
     end
   end
 end

@@ -16,16 +16,16 @@ module Zlib
         IO.copy(inflate, builder)
       end
 
-      str.should eq("this is a test string !!!!\n")
-      inflate.read(Slice(UInt8).new(10)).should eq(0)
+      assert str == "this is a test string !!!!\n"
+      assert inflate.read(Slice(UInt8).new(10)) == 0
     end
 
     it "can be closed without sync" do
       io = MemoryIO.new("")
       inflate = Inflate.new(io)
       inflate.close
-      inflate.closed?.should be_true
-      io.closed?.should be_false
+      assert inflate.closed? == true
+      assert io.closed? == false
 
       expect_raises IO::Error, "closed stream" do
         inflate.gets
@@ -36,8 +36,8 @@ module Zlib
       io = MemoryIO.new("")
       inflate = Inflate.new(io, sync_close: true)
       inflate.close
-      inflate.closed?.should be_true
-      io.closed?.should be_true
+      assert inflate.closed? == true
+      assert io.closed? == true
     end
 
     it "can be closed with sync (2)" do
@@ -45,14 +45,14 @@ module Zlib
       inflate = Inflate.new(io)
       inflate.sync_close = true
       inflate.close
-      inflate.closed?.should be_true
-      io.closed?.should be_true
+      assert inflate.closed? == true
+      assert io.closed? == true
     end
 
     it "should not inflate from empty stream" do
       io = MemoryIO.new("")
       inflate = Inflate.new(io)
-      inflate.read_byte.should be_nil
+      assert inflate.read_byte.nil?
     end
 
     it "should not freeze when reading empty slice" do
@@ -63,7 +63,7 @@ module Zlib
       io.rewind
       inflate = Inflate.new(io)
       slice = Slice(UInt8).new(0)
-      inflate.read(slice).should eq(0)
+      assert inflate.read(slice) == 0
     end
   end
 end

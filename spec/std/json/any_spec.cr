@@ -4,83 +4,83 @@ require "json"
 describe JSON::Any do
   describe "casts" do
     it "gets nil" do
-      JSON.parse("null").as_nil.should be_nil
+      assert JSON.parse("null").as_nil.nil?
     end
 
     it "gets bool" do
-      JSON.parse("true").as_bool.should be_true
-      JSON.parse("false").as_bool.should be_false
-      JSON.parse("true").as_bool?.should be_true
-      JSON.parse("false").as_bool?.should be_false
-      JSON.parse("2").as_bool?.should be_nil
+      assert JSON.parse("true").as_bool == true
+      assert JSON.parse("false").as_bool == false
+      assert JSON.parse("true").as_bool? == true
+      assert JSON.parse("false").as_bool? == false
+      assert JSON.parse("2").as_bool?.nil?
     end
 
     it "gets int" do
-      JSON.parse("123").as_i.should eq(123)
-      JSON.parse("123456789123456").as_i64.should eq(123456789123456)
-      JSON.parse("123").as_i?.should eq(123)
-      JSON.parse("123456789123456").as_i64?.should eq(123456789123456)
-      JSON.parse("true").as_i?.should be_nil
-      JSON.parse("true").as_i64?.should be_nil
+      assert JSON.parse("123").as_i == 123
+      assert JSON.parse("123456789123456").as_i64 == 123456789123456
+      assert JSON.parse("123").as_i? == 123
+      assert JSON.parse("123456789123456").as_i64? == 123456789123456
+      assert JSON.parse("true").as_i?.nil?
+      assert JSON.parse("true").as_i64?.nil?
     end
 
     it "gets float" do
-      JSON.parse("123.45").as_f.should eq(123.45)
-      JSON.parse("123.45").as_f32.should eq(123.45_f32)
-      JSON.parse("123.45").as_f?.should eq(123.45)
-      JSON.parse("123.45").as_f32?.should eq(123.45_f32)
-      JSON.parse("true").as_f?.should be_nil
-      JSON.parse("true").as_f32?.should be_nil
+      assert JSON.parse("123.45").as_f == 123.45
+      assert JSON.parse("123.45").as_f32 == 123.45_f32
+      assert JSON.parse("123.45").as_f? == 123.45
+      assert JSON.parse("123.45").as_f32? == 123.45_f32
+      assert JSON.parse("true").as_f?.nil?
+      assert JSON.parse("true").as_f32?.nil?
     end
 
     it "gets string" do
-      JSON.parse(%("hello")).as_s.should eq("hello")
-      JSON.parse(%("hello")).as_s?.should eq("hello")
-      JSON.parse("true").as_s?.should be_nil
+      assert JSON.parse(%("hello")).as_s == "hello"
+      assert JSON.parse(%("hello")).as_s? == "hello"
+      assert JSON.parse("true").as_s?.nil?
     end
 
     it "gets array" do
-      JSON.parse(%([1, 2, 3])).as_a.should eq([1, 2, 3])
-      JSON.parse(%([1, 2, 3])).as_a?.should eq([1, 2, 3])
-      JSON.parse("true").as_a?.should be_nil
+      assert JSON.parse(%([1, 2, 3])).as_a == [1, 2, 3]
+      assert JSON.parse(%([1, 2, 3])).as_a? == [1, 2, 3]
+      assert JSON.parse("true").as_a?.nil?
     end
 
     it "gets hash" do
-      JSON.parse(%({"foo": "bar"})).as_h.should eq({"foo" => "bar"})
-      JSON.parse(%({"foo": "bar"})).as_h?.should eq({"foo" => "bar"})
-      JSON.parse("true").as_h?.should be_nil
+      assert JSON.parse(%({"foo": "bar"})).as_h == {"foo" => "bar"}
+      assert JSON.parse(%({"foo": "bar"})).as_h? == {"foo" => "bar"}
+      assert JSON.parse("true").as_h?.nil?
     end
   end
 
   describe "#size" do
     it "of array" do
-      JSON.parse("[1, 2, 3]").size.should eq(3)
+      assert JSON.parse("[1, 2, 3]").size == 3
     end
 
     it "of hash" do
-      JSON.parse(%({"foo": "bar"})).size.should eq(1)
+      assert JSON.parse(%({"foo": "bar"})).size == 1
     end
   end
 
   describe "#[]" do
     it "of array" do
-      JSON.parse("[1, 2, 3]")[1].raw.should eq(2)
+      assert JSON.parse("[1, 2, 3]")[1].raw == 2
     end
 
     it "of hash" do
-      JSON.parse(%({"foo": "bar"}))["foo"].raw.should eq("bar")
+      assert JSON.parse(%({"foo": "bar"}))["foo"].raw == "bar"
     end
   end
 
   describe "#[]?" do
     it "of array" do
-      JSON.parse("[1, 2, 3]")[1]?.not_nil!.raw.should eq(2)
-      JSON.parse("[1, 2, 3]")[3]?.should be_nil
+      assert JSON.parse("[1, 2, 3]")[1]?.not_nil!.raw == 2
+      assert JSON.parse("[1, 2, 3]")[3]?.nil?
     end
 
     it "of hash" do
-      JSON.parse(%({"foo": "bar"}))["foo"]?.not_nil!.raw.should eq("bar")
-      JSON.parse(%({"foo": "bar"}))["fox"]?.should be_nil
+      assert JSON.parse(%({"foo": "bar"}))["foo"]?.not_nil!.raw == "bar"
+      assert JSON.parse(%({"foo": "bar"}))["fox"]?.nil?
     end
   end
 
@@ -90,7 +90,7 @@ describe JSON::Any do
       JSON.parse("[1, 2, 3]").each do |any|
         elems << any.as_i
       end
-      elems.should eq([1, 2, 3])
+      assert elems == [1, 2, 3]
     end
 
     it "of hash" do
@@ -98,35 +98,35 @@ describe JSON::Any do
       JSON.parse(%({"foo": "bar"})).each do |key, value|
         elems << key.to_s << value.to_s
       end
-      elems.should eq(%w(foo bar))
+      assert elems == %w(foo bar)
     end
   end
 
   it "traverses big structure" do
     obj = JSON.parse(%({"foo": [1, {"bar": [2, 3]}]}))
-    obj["foo"][1]["bar"][1].as_i.should eq(3)
+    assert obj["foo"][1]["bar"][1].as_i == 3
   end
 
   it "compares to other objects" do
     obj = JSON.parse(%([1, 2]))
-    obj.should eq([1, 2])
-    obj[0].should eq(1)
+    assert obj == [1, 2]
+    assert obj[0] == 1
   end
 
   it "can compare with ===" do
-    (1 === JSON.parse("1")).should be_truthy
+    assert 1 === JSON.parse("1")
   end
 
   it "exposes $~ when doing Regex#===" do
-    (/o+/ === JSON.parse(%("foo"))).should be_truthy
-    $~[0].should eq("oo")
+    assert /o+/ === JSON.parse(%("foo"))
+    assert $~[0] == "oo"
   end
 
   it "is enumerable" do
     nums = JSON.parse("[1, 2, 3]")
     nums.each_with_index do |x, i|
-      x.should be_a(JSON::Any)
-      x.raw.should eq(i + 1)
+      assert x.is_a?(JSON::Any)
+      assert x.raw == i + 1
     end
   end
 end

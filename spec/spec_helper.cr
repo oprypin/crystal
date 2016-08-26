@@ -146,7 +146,7 @@ def assert_type(str, flags = nil, inject_primitives = true)
   result = semantic_result(str, flags, inject_primitives: inject_primitives)
   program = result.program
   expected_type = with program yield program
-  result.type.should eq(expected_type)
+  assert result.type == expected_type
   result
 end
 
@@ -180,7 +180,7 @@ def assert_normalize(from, to, flags = nil)
   normalizer = Normalizer.new(program)
   from_nodes = Parser.parse(from)
   to_nodes = program.normalize(from_nodes)
-  to_nodes.to_s.strip.should eq(to.strip)
+  assert to_nodes.to_s.strip == to.strip
 end
 
 def assert_expand(from : String, to)
@@ -189,7 +189,7 @@ end
 
 def assert_expand(from_nodes : ASTNode, to)
   to_nodes = LiteralExpander.new(Program.new).expand(from_nodes)
-  to_nodes.to_s.strip.should eq(to.strip)
+  assert to_nodes.to_s.strip == to.strip
 end
 
 def assert_expand_second(from : String, to)
@@ -206,7 +206,7 @@ def assert_after_cleanup(before, after)
   # before = inject_primitives(before)
   node = Parser.parse(before)
   result = semantic node
-  result.node.to_s.strip.should eq(after.strip)
+  assert result.node.to_s.strip == after.strip
 end
 
 def assert_syntax_error(str, message = nil, line = nil, column = nil, metafile = __FILE__, metaline = __LINE__)
@@ -260,7 +260,7 @@ def assert_macro_internal(program, sub_node, macro_args, macro_body, expected)
   call = Call.new(nil, "", sub_node)
   result = program.expand_macro a_macro, call, program, program
   result = result.chomp(';')
-  result.should eq(expected)
+  assert result == expected
 end
 
 def parse(string, wants_doc = false)
@@ -330,7 +330,7 @@ def test_c(c_code, crystal_code)
   begin
     File.write(c_filename, c_code)
 
-    `#{Crystal::Compiler::CC} #{c_filename} -c -o #{o_filename}`.should be_truthy
+    assert `#{Crystal::Compiler::CC} #{c_filename} -c -o #{o_filename}`
 
     yield run(%(
     require "prelude"

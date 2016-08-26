@@ -4,73 +4,73 @@ require "bit_array"
 describe "BitArray" do
   it "has size" do
     ary = BitArray.new(100)
-    ary.size.should eq(100)
+    assert ary.size == 100
   end
 
   it "is initially empty" do
     ary = BitArray.new(100)
     100.times do |i|
-      ary[i].should be_false
+      assert ary[i] == false
     end
   end
 
   it "sets first bit to true" do
     ary = BitArray.new(100)
     ary[0] = true
-    ary[0].should be_true
+    assert ary[0] == true
   end
 
   it "sets second bit to true" do
     ary = BitArray.new(100)
     ary[1] = true
-    ary[1].should be_true
+    assert ary[1] == true
   end
 
   it "sets first bit to false" do
     ary = BitArray.new(100)
     ary[0] = true
     ary[0] = false
-    ary[0].should be_false
+    assert ary[0] == false
   end
 
   it "sets second bit to false" do
     ary = BitArray.new(100)
     ary[1] = true
     ary[1] = false
-    ary[1].should be_false
+    assert ary[1] == false
   end
 
   it "sets last bit to true with negative index" do
     ary = BitArray.new(100)
     ary[-1] = true
-    ary[-1].should be_true
-    ary[99].should be_true
+    assert ary[-1] == true
+    assert ary[99] == true
   end
 
   it "toggles a bit" do
     ary = BitArray.new(32)
-    ary[3].should be_false
+    assert ary[3] == false
 
     ary.toggle(3)
-    ary[3].should be_true
+    assert ary[3] == true
 
     ary.toggle(3)
-    ary[3].should be_false
+    assert ary[3] == false
   end
 
   it "inverts all bits" do
     ary = BitArray.new(100)
-    ary.none?.should be_true
+    assert ary.none? == true
 
     ary.invert
-    ary.all?.should be_true
+    assert ary.all? == true
 
     ary[50] = false
     ary[33] = false
-    ary.count { |b| b }.should eq(98)
+    assert ary.count { |b| b } == 98
 
     ary.invert
-    ary.count { |b| b }.should eq(2)
+    assert ary.count { |b| b } == 2
   end
 
   it "raises when out of bounds" do
@@ -85,13 +85,13 @@ describe "BitArray" do
     ary[0] = true
     ary[2] = true
     ary[4] = true
-    ary.to_s.should eq("BitArray[10101000]")
-    ary.inspect.should eq("BitArray[10101000]")
+    assert ary.to_s == "BitArray[10101000]"
+    assert ary.inspect == "BitArray[10101000]"
   end
 
   it "initializes with true by default" do
     ary = BitArray.new(64, true)
-    ary.size.times { |i| ary[i].should be_true }
+    ary.size.times { |i| assert ary[i] == true }
   end
 
   it "reads bits from slice" do
@@ -107,13 +107,13 @@ describe "BitArray" do
     ary[42] = true
     slice = ary.to_slice
 
-    slice.size.should eq(6)
-    slice[0].should eq(0b00001011_u8)
-    slice[1].should eq(0b00000000_u8)
-    slice[2].should eq(0b11010000_u8)
-    slice[3].should eq(0b00000000_u8)
-    slice[4].should eq(0b00000000_u8)
-    slice[5].should eq(0b00000101_u8)
+    assert slice.size == 6
+    assert slice[0] == 0b00001011_u8
+    assert slice[1] == 0b00000000_u8
+    assert slice[2] == 0b11010000_u8
+    assert slice[3] == 0b00000000_u8
+    assert slice[4] == 0b00000000_u8
+    assert slice[5] == 0b00000101_u8
   end
 
   it "read bits written from slice" do
@@ -123,7 +123,7 @@ describe "BitArray" do
     slice[1] = 0b01010101_u8
     slice[5] = 0b11111101_u8
     ary.each_with_index do |e, i|
-      e.should eq({1, 3, 5, 7, 8, 10, 12, 14, 40, 42}.includes?(i))
+      assert e == {1, 3, 5, 7, 8, 10, 12, 14, 40, 42}.includes?(i)
     end
   end
 
@@ -133,27 +133,27 @@ describe "BitArray" do
     ary[1] = false
 
     iter = ary.each
-    iter.next.should be_true
-    iter.next.should be_false
-    iter.next.should be_a(Iterator::Stop)
+    assert iter.next == true
+    assert iter.next == false
+    assert iter.next.is_a?(Iterator::Stop)
 
     iter.rewind
-    iter.next.should be_true
+    assert iter.next == true
 
     iter.rewind
-    iter.cycle.first(3).to_a.should eq([true, false, true])
+    assert iter.cycle.first(3).to_a == [true, false, true]
   end
 
   it "provides an index iterator" do
     ary = BitArray.new(2)
 
     iter = ary.each_index
-    iter.next.should eq(0)
-    iter.next.should eq(1)
-    iter.next.should be_a(Iterator::Stop)
+    assert iter.next == 0
+    assert iter.next == 1
+    assert iter.next.is_a?(Iterator::Stop)
 
     iter.rewind
-    iter.next.should eq(0)
+    assert iter.next == 0
   end
 
   it "provides a reverse iterator" do
@@ -162,11 +162,11 @@ describe "BitArray" do
     ary[1] = false
 
     iter = ary.reverse_each
-    iter.next.should be_false
-    iter.next.should be_true
-    iter.next.should be_a(Iterator::Stop)
+    assert iter.next == false
+    assert iter.next == true
+    assert iter.next.is_a?(Iterator::Stop)
 
     iter.rewind
-    iter.next.should be_false
+    assert iter.next == false
   end
 end

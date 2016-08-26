@@ -4,7 +4,7 @@ private def it_lexes(string, type)
   it "lexes #{string.inspect}" do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(type)
+    assert token.type == type
   end
 end
 
@@ -12,8 +12,8 @@ private def it_lexes(string, type, value)
   it "lexes #{string.inspect}" do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(type)
-    token.value.should eq(value)
+    assert token.type == type
+    assert token.value == value
   end
 end
 
@@ -21,9 +21,9 @@ private def it_lexes(string, type, value, number_kind)
   it "lexes #{string.inspect}" do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(type)
-    token.value.should eq(value)
-    token.number_kind.should eq(number_kind)
+    assert token.type == type
+    assert token.value == value
+    assert token.number_kind == number_kind
   end
 end
 
@@ -77,8 +77,8 @@ private def it_lexes_char(string, value)
   it "lexes #{string}" do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).should eq(value)
+    assert token.type == :CHAR
+    assert token.value.as(Char) == value
   end
 end
 
@@ -284,72 +284,72 @@ describe "Lexer" do
   it "lexes not instance var" do
     lexer = Lexer.new "!@foo"
     token = lexer.next_token
-    token.type.should eq(:"!")
+    assert token.type == :"!"
     token = lexer.next_token
-    token.type.should eq(:INSTANCE_VAR)
-    token.value.should eq("@foo")
+    assert token.type == :INSTANCE_VAR
+    assert token.value == "@foo"
   end
 
   it "lexes space after keyword" do
     lexer = Lexer.new "end 1"
     token = lexer.next_token
-    token.type.should eq(:IDENT)
-    token.value.should eq(:end)
+    assert token.type == :IDENT
+    assert token.value == :end
     token = lexer.next_token
-    token.type.should eq(:SPACE)
+    assert token.type == :SPACE
   end
 
   it "lexes space after char" do
     lexer = Lexer.new "'a' "
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.should eq('a')
+    assert token.type == :CHAR
+    assert token.value == 'a'
     token = lexer.next_token
-    token.type.should eq(:SPACE)
+    assert token.type == :SPACE
   end
 
   it "lexes comment and token" do
     lexer = Lexer.new "# comment\n="
     token = lexer.next_token
-    token.type.should eq(:NEWLINE)
+    assert token.type == :NEWLINE
     token = lexer.next_token
-    token.type.should eq(:"=")
+    assert token.type == :"="
   end
 
   it "lexes comment at the end" do
     lexer = Lexer.new "# comment"
     token = lexer.next_token
-    token.type.should eq(:EOF)
+    assert token.type == :EOF
   end
 
   it "lexes __LINE__" do
     lexer = Lexer.new "__LINE__"
     token = lexer.next_token
-    token.type.should eq(:__LINE__)
+    assert token.type == :__LINE__
   end
 
   it "lexes __FILE__" do
     lexer = Lexer.new "__FILE__"
     lexer.filename = "foo"
     token = lexer.next_token
-    token.type.should eq(:__FILE__)
+    assert token.type == :__FILE__
   end
 
   it "lexes __DIR__" do
     lexer = Lexer.new "__DIR__"
     token = lexer.next_token
-    token.type.should eq(:__DIR__)
+    assert token.type == :__DIR__
   end
 
   it "lexes dot and ident" do
     lexer = Lexer.new ".read"
     token = lexer.next_token
-    token.type.should eq(:".")
+    assert token.type == :"."
     token = lexer.next_token
-    token.type.should eq(:IDENT)
-    token.value.should eq("read")
+    assert token.type == :IDENT
+    assert token.value == "read"
     token = lexer.next_token
-    token.type.should eq(:EOF)
+    assert token.type == :EOF
   end
 
   assert_syntax_error "/foo", "unterminated regular expression"
@@ -358,31 +358,31 @@ describe "Lexer" do
   it "lexes utf-8 char" do
     lexer = Lexer.new "'á'"
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).ord.should eq(225)
+    assert token.type == :CHAR
+    assert token.value.as(Char).ord == 225
   end
 
   it "lexes utf-8 multibyte char" do
     lexer = Lexer.new "'日'"
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).ord.should eq(26085)
+    assert token.type == :CHAR
+    assert token.value.as(Char).ord == 26085
   end
 
   it "doesn't raise if slash r with slash n" do
     lexer = Lexer.new("\r\n1")
     token = lexer.next_token
-    token.type.should eq(:NEWLINE)
+    assert token.type == :NEWLINE
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
   end
 
   it "doesn't raise if many slash r with slash n" do
     lexer = Lexer.new("\r\n\r\n\r\n1")
     token = lexer.next_token
-    token.type.should eq(:NEWLINE)
+    assert token.type == :NEWLINE
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
+    assert token.type == :NUMBER
   end
 
   assert_syntax_error "\r1", "expected '\\n' after '\\r'"
@@ -390,59 +390,59 @@ describe "Lexer" do
   it "lexes char with unicode codepoint" do
     lexer = Lexer.new "'\\uFEDA'"
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).ord.should eq(0xFEDA)
+    assert token.type == :CHAR
+    assert token.value.as(Char).ord == 0xFEDA
   end
 
   it "lexes char with unicode codepoint and curly with zeros" do
     lexer = Lexer.new "'\\u{0}'"
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).ord.should eq(0)
+    assert token.type == :CHAR
+    assert token.value.as(Char).ord == 0
   end
 
   it "lexes char with unicode codepoint and curly" do
     lexer = Lexer.new "'\\u{A5}'"
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).ord.should eq(0xA5)
+    assert token.type == :CHAR
+    assert token.value.as(Char).ord == 0xA5
   end
 
   it "lexes char with unicode codepoint and curly with six hex digits" do
     lexer = Lexer.new "'\\u{10FFFF}'"
     token = lexer.next_token
-    token.type.should eq(:CHAR)
-    token.value.as(Char).ord.should eq(0x10FFFF)
+    assert token.type == :CHAR
+    assert token.value.as(Char).ord == 0x10FFFF
   end
 
   it "lexes float then zero (bug)" do
     lexer = Lexer.new "2.5 0"
-    lexer.next_token.number_kind.should eq(:f64)
-    lexer.next_token.type.should eq(:SPACE)
+    assert lexer.next_token.number_kind == :f64
+    assert lexer.next_token.type == :SPACE
     token = lexer.next_token
-    token.type.should eq(:NUMBER)
-    token.number_kind.should eq(:i32)
+    assert token.type == :NUMBER
+    assert token.number_kind == :i32
   end
 
   it "lexes symbol with quote" do
     lexer = Lexer.new %(:"\\"")
     token = lexer.next_token
-    token.type.should eq(:SYMBOL)
-    token.value.should eq("\"")
+    assert token.type == :SYMBOL
+    assert token.value == "\""
   end
 
   it "lexes symbol with backslash (#2187)" do
     lexer = Lexer.new %(:"\\\\")
     token = lexer.next_token
-    token.type.should eq(:SYMBOL)
-    token.value.should eq("\\")
+    assert token.type == :SYMBOL
+    assert token.value == "\\"
   end
 
   it "lexes /=" do
     lexer = Lexer.new("/=")
     lexer.slash_is_regex = false
     token = lexer.next_token
-    token.type.should eq(:"/=")
+    assert token.type == :"/="
   end
 
   assert_syntax_error "'\\uFEDZ'", "expected hexadecimal character in unicode escape"

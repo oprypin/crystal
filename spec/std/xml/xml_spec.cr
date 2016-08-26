@@ -12,68 +12,68 @@ describe XML do
       </people>
       XML
     )
-    doc.document.should eq(doc)
-    doc.name.should eq("document")
-    doc.attributes.empty?.should be_true
-    doc.namespace.should be_nil
+    assert doc.document == doc
+    assert doc.name == "document"
+    assert doc.attributes.empty? == true
+    assert doc.namespace.nil?
 
     people = doc.root.not_nil!
-    people.name.should eq("people")
-    people.type.should eq(XML::Type::ELEMENT_NODE)
+    assert people.name == "people"
+    assert people.type == XML::Type::ELEMENT_NODE
 
-    people.attributes.empty?.should be_true
+    assert people.attributes.empty? == true
 
     children = doc.children
-    children.size.should eq(1)
-    children.empty?.should be_false
+    assert children.size == 1
+    assert children.empty? == false
 
     people = children[0]
-    people.name.should eq("people")
+    assert people.name == "people"
 
-    people.document.should eq(doc)
+    assert people.document == doc
 
     children = people.children
-    children.size.should eq(3)
+    assert children.size == 3
 
     text = children[0]
-    text.name.should eq("text")
-    text.content.should eq("\n  ")
+    assert text.name == "text"
+    assert text.content == "\n  "
 
     person = children[1]
-    person.name.should eq("person")
+    assert person.name == "person"
 
     text = children[2]
-    text.content.should eq("\n")
+    assert text.content == "\n"
 
     attrs = person.attributes
-    attrs.empty?.should be_false
-    attrs.size.should eq(2)
+    assert attrs.empty? == false
+    assert attrs.size == 2
 
     attr = attrs[0]
-    attr.name.should eq("id")
-    attr.content.should eq("1")
-    attr.text.should eq("1")
-    attr.inner_text.should eq("1")
+    assert attr.name == "id"
+    assert attr.content == "1"
+    assert attr.text == "1"
+    assert attr.inner_text == "1"
 
     attr = attrs[1]
-    attr.name.should eq("id2")
-    attr.content.should eq("2")
+    assert attr.name == "id2"
+    assert attr.content == "2"
 
-    attrs["id"].content.should eq("1")
-    attrs["id2"].content.should eq("2")
+    assert attrs["id"].content == "1"
+    assert attrs["id2"].content == "2"
 
-    attrs["id3"]?.should be_nil
+    assert attrs["id3"]?.nil?
     expect_raises(KeyError) { attrs["id3"] }
 
-    person["id"].should eq("1")
-    person["id2"].should eq("2")
-    person["id3"]?.should be_nil
+    assert person["id"] == "1"
+    assert person["id2"] == "2"
+    assert person["id3"]?.nil?
     expect_raises(KeyError) { person["id3"] }
 
     name = person.children.find { |node| node.name == "name" }.not_nil!
-    name.content.should eq("John")
+    assert name.content == "John"
 
-    name.parent.should eq(person)
+    assert name.parent == person
   end
 
   it "parses from io" do
@@ -88,12 +88,12 @@ describe XML do
     )
 
     doc = XML.parse(io)
-    doc.document.should eq(doc)
-    doc.name.should eq("document")
+    assert doc.document == doc
+    assert doc.name == "document"
 
     people = doc.children.find { |node| node.name == "people" }.not_nil!
     person = people.children.find { |node| node.name == "person" }.not_nil!
-    person["id"].should eq("1")
+    assert person["id"] == "1"
   end
 
   it "raises exception on empty string" do
@@ -113,7 +113,7 @@ describe XML do
       XML
 
     doc = XML.parse(string)
-    doc.to_s.strip.should eq(<<-XML
+    assert doc.to_s.strip == <<-XML
       <?xml version="1.0" encoding="UTF-8"?>
       <people>
         <person id="1" id2="2">
@@ -121,7 +121,6 @@ describe XML do
         </person>
       </people>
       XML
-    )
   end
 
   it "navigates in tree" do
@@ -135,36 +134,36 @@ describe XML do
     )
 
     people = doc.first_element_child.not_nil!
-    people.name.should eq("people")
+    assert people.name == "people"
 
     person = people.first_element_child.not_nil!
-    person.name.should eq("person")
-    person["id"].should eq("1")
+    assert person.name == "person"
+    assert person["id"] == "1"
 
     text = person.next.not_nil!
-    text.content.should eq("\n  ")
+    assert text.content == "\n  "
 
-    text.previous.should eq(person)
-    text.previous_sibling.should eq(person)
+    assert text.previous == person
+    assert text.previous_sibling == person
 
-    person.next_sibling.should eq(text)
+    assert person.next_sibling == text
 
     person2 = text.next.not_nil!
-    person2.name.should eq("person")
-    person2["id"].should eq("2")
+    assert person2.name == "person"
+    assert person2["id"] == "2"
 
-    person.next_element.should eq(person2)
-    person2.previous_element.should eq(person)
+    assert person.next_element == person2
+    assert person2.previous_element == person
   end
 
   it "handles errors" do
     xml = XML.parse(%(<people>))
-    xml.root.not_nil!.name.should eq("people")
+    assert xml.root.not_nil!.name == "people"
     errors = xml.errors.not_nil!
-    errors.size.should eq(1)
-    errors[0].message.should eq("Premature end of data in tag people line 1")
-    errors[0].line_number.should eq(1)
-    errors[0].to_s.should eq("Premature end of data in tag people line 1")
+    assert errors.size == 1
+    assert errors[0].message == "Premature end of data in tag people line 1"
+    assert errors[0].line_number == 1
+    assert errors[0].to_s == "Premature end of data in tag people line 1"
   end
 
   it "gets root namespaces scopes" do
@@ -176,11 +175,11 @@ describe XML do
     )
     namespaces = doc.root.not_nil!.namespace_scopes
 
-    namespaces.size.should eq(2)
-    namespaces[0].href.should eq("http://www.w3.org/2005/Atom")
-    namespaces[0].prefix.should be_nil
-    namespaces[1].href.should eq("http://a9.com/-/spec/opensearchrss/1.0/")
-    namespaces[1].prefix.should eq("openSearch")
+    assert namespaces.size == 2
+    assert namespaces[0].href == "http://www.w3.org/2005/Atom"
+    assert namespaces[0].prefix.nil?
+    assert namespaces[1].href == "http://a9.com/-/spec/opensearchrss/1.0/"
+    assert namespaces[1].prefix == "openSearch"
   end
 
   it "returns empty array if no namespaces scopes exists" do
@@ -191,7 +190,7 @@ describe XML do
     )
     namespaces = doc.root.not_nil!.namespace_scopes
 
-    namespaces.size.should eq(0)
+    assert namespaces.size == 0
   end
 
   it "gets root namespaces as hash" do
@@ -202,17 +201,17 @@ describe XML do
       XML
     )
     namespaces = doc.root.not_nil!.namespaces
-    namespaces.should eq({
+    assert namespaces == {
       "xmlns"          => "http://www.w3.org/2005/Atom",
       "xmlns:openSearch": "http://a9.com/-/spec/opensearchrss/1.0/",
-    })
+    }
   end
 
   it "reads big xml file (#1455)" do
     content = "." * 20_000
     string = %(<?xml version="1.0"?><root>#{content}</root>)
     parsed = XML.parse(MemoryIO.new(string))
-    parsed.root.not_nil!.children[0].text.should eq(content)
+    assert parsed.root.not_nil!.children[0].text == content
   end
 
   it "sets node text/content" do
@@ -223,10 +222,10 @@ describe XML do
     )
     root = doc.root.not_nil!
     root.text = "Peter"
-    root.text.should eq("Peter")
+    assert root.text == "Peter"
 
     root.content = "Foo"
-    root.content.should eq("Foo")
+    assert root.content == "Foo"
   end
 
   it "sets node name" do
@@ -237,7 +236,7 @@ describe XML do
     )
     root = doc.root.not_nil!
     root.name = "last-name"
-    root.name.should eq("last-name")
+    assert root.name == "last-name"
   end
 
   it "gets encoding" do
@@ -247,7 +246,7 @@ describe XML do
         </people>
         XML
     )
-    doc.encoding.should eq("UTF-8")
+    assert doc.encoding == "UTF-8"
   end
 
   it "gets encoding when nil" do
@@ -257,7 +256,7 @@ describe XML do
         </people>
         XML
     )
-    doc.encoding.should be_nil
+    assert doc.encoding.nil?
   end
 
   it "gets version" do
@@ -267,7 +266,7 @@ describe XML do
         </people>
         XML
     )
-    doc.version.should eq("1.0")
+    assert doc.version == "1.0"
   end
 
   it "does to_s with correct encoding (#2319)" do
@@ -279,20 +278,20 @@ describe XML do
     XML
 
     doc = XML.parse(xml_str)
-    doc.root.to_s.should eq("<person>\n  <name>たろう</name>\n</person>")
+    assert doc.root.to_s == "<person>\n  <name>たろう</name>\n</person>"
   end
 
   describe "escape" do
     it "does not change a safe string" do
       str = XML.escape("safe_string")
 
-      str.should eq("safe_string")
+      assert str == "safe_string"
     end
 
     it "escapes dangerous characters from a string" do
       str = XML.escape("< & >")
 
-      str.should eq("&lt; &amp; &gt;")
+      assert str == "&lt; &amp; &gt;"
     end
   end
 end

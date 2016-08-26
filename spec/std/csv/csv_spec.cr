@@ -8,12 +8,12 @@ end
 describe CSV do
   it "gets headers" do
     csv = new_csv headers: true
-    csv.headers.should eq(%w(one two))
+    assert csv.headers == %w(one two)
   end
 
   it "works without headers" do
     csv = CSV.new("", headers: true)
-    csv.headers.empty?.should be_true
+    assert csv.headers.empty? == true
   end
 
   it "raises if trying to access before first row" do
@@ -25,23 +25,23 @@ describe CSV do
 
   it "gets row values with string" do
     csv = new_csv headers: true
-    csv.next.should be_true
-    csv["one"].should eq("1")
-    csv["two"].should eq(" 2")
+    assert csv.next == true
+    assert csv["one"] == "1"
+    assert csv["two"] == " 2"
 
     expect_raises(KeyError) { csv["three"] }
 
-    csv["one"]?.should eq("1")
-    csv["three"]?.should be_nil
+    assert csv["one"]? == "1"
+    assert csv["three"]?.nil?
 
-    csv.next.should be_true
-    csv["one"].should eq("3")
+    assert csv.next == true
+    assert csv["one"] == "3"
 
-    csv.next.should be_true
-    csv["one"].should eq("5")
-    csv["two"].should eq("")
+    assert csv.next == true
+    assert csv["one"] == "5"
+    assert csv["two"] == ""
 
-    csv.next.should be_false
+    assert csv.next == false
 
     expect_raises(CSV::Error, "after last row") do
       csv["one"]
@@ -50,32 +50,32 @@ describe CSV do
 
   it "gets row values with integer" do
     csv = new_csv headers: true
-    csv.next.should be_true
-    csv[0].should eq("1")
-    csv[1].should eq(" 2")
+    assert csv.next == true
+    assert csv[0] == "1"
+    assert csv[1] == " 2"
 
     expect_raises(IndexError) do
       csv[2]
     end
 
-    csv[-1].should eq(" 2")
-    csv[-2].should eq("1")
+    assert csv[-1] == " 2"
+    assert csv[-2] == "1"
 
     csv.next
     csv.next
 
-    csv[0].should eq("5")
-    csv[1].should eq("")
-    csv[-2].should eq("5")
-    csv[-1].should eq("")
+    assert csv[0] == "5"
+    assert csv[1] == ""
+    assert csv[-2] == "5"
+    assert csv[-1] == ""
   end
 
   it "gets row values with regex" do
     csv = new_csv headers: true
-    csv.next.should be_true
+    assert csv.next == true
 
-    csv[/on/].should eq("1")
-    csv[/tw/].should eq(" 2")
+    assert csv[/on/] == "1"
+    assert csv[/tw/] == " 2"
 
     expect_raises(KeyError) do
       csv[/foo/]
@@ -84,47 +84,47 @@ describe CSV do
 
   it "gets current row" do
     csv = new_csv headers: true
-    csv.next.should be_true
+    assert csv.next == true
 
     row = csv.row
-    row["one"].should eq("1")
-    row[1].should eq(" 2")
-    row[/on/].should eq("1")
-    row.size.should eq(2)
+    assert row["one"] == "1"
+    assert row[1] == " 2"
+    assert row[/on/] == "1"
+    assert row.size == 2
 
-    row.to_a.should eq(["1", " 2"])
-    row.to_h.should eq({"one" => "1", "two" => " 2"})
+    assert row.to_a == ["1", " 2"]
+    assert row.to_h == {"one" => "1", "two" => " 2"}
   end
 
   it "strips" do
     csv = new_csv headers: true, strip: true
-    csv.next.should be_true
+    assert csv.next == true
 
-    csv["one"].should eq("1")
-    csv["two"].should eq("2")
+    assert csv["one"] == "1"
+    assert csv["two"] == "2"
 
-    csv.row.to_a.should eq(%w(1 2))
-    csv.row.to_h.should eq({"one" => "1", "two" => "2"})
+    assert csv.row.to_a == %w(1 2)
+    assert csv.row.to_h == {"one" => "1", "two" => "2"}
   end
 
   it "works without headers" do
     csv = new_csv headers: false
-    csv.next.should be_true
-    csv[0].should eq("one")
+    assert csv.next == true
+    assert csv[0] == "one"
   end
 
   it "can do each" do
     csv = new_csv headers: true
     csv.each do
-      csv["one"].should eq("1")
+      assert csv["one"] == "1"
       break
     end
   end
 
   it "can do new with block" do
     CSV.new(%(one, two\n1, 2\n3, 4\n5), headers: true, strip: true) do |csv|
-      csv["one"].should eq("1")
-      csv["two"].should eq("2")
+      assert csv["one"] == "1"
+      assert csv["two"] == "2"
       break
     end
   end

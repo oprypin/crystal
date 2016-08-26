@@ -2,55 +2,55 @@ require "../../spec_helper"
 
 describe "Codegen: is_a?" do
   it "codegens is_a? true for simple type" do
-    run("1.is_a?(Int)").to_b.should be_true
+    assert run("1.is_a?(Int)").to_b == true
   end
 
   it "codegens is_a? false for simple type" do
-    run("1.is_a?(Bool)").to_b.should be_false
+    assert run("1.is_a?(Bool)").to_b == false
   end
 
   it "codegens is_a? with union gives true" do
-    run("(1 == 1 ? 1 : 'a').is_a?(Int)").to_b.should be_true
+    assert run("(1 == 1 ? 1 : 'a').is_a?(Int)").to_b == true
   end
 
   it "codegens is_a? with union gives false" do
-    run("(1 == 1 ? 1 : 'a').is_a?(Char)").to_b.should be_false
+    assert run("(1 == 1 ? 1 : 'a').is_a?(Char)").to_b == false
   end
 
   it "codegens is_a? with union gives false" do
-    run("(1 == 1 ? 1 : 'a').is_a?(Float)").to_b.should be_false
+    assert run("(1 == 1 ? 1 : 'a').is_a?(Float)").to_b == false
   end
 
   it "codegens is_a? with union gives true" do
-    run("(1 == 1 ? 1 : 'a').is_a?(Object)").to_b.should be_true
+    assert run("(1 == 1 ? 1 : 'a').is_a?(Object)").to_b == true
   end
 
   it "codegens is_a? with nilable gives true" do
-    run("(1 == 1 ? nil : Reference.new).is_a?(Nil)").to_b.should be_true
+    assert run("(1 == 1 ? nil : Reference.new).is_a?(Nil)").to_b == true
   end
 
   it "codegens is_a? with nilable gives false because other type 1" do
-    run("(1 == 1 ? nil : Reference.new).is_a?(Reference)").to_b.should be_false
+    assert run("(1 == 1 ? nil : Reference.new).is_a?(Reference)").to_b == false
   end
 
   it "codegens is_a? with nilable gives false because other type 2" do
-    run("(1 == 2 ? nil : Reference.new).is_a?(Reference)").to_b.should be_true
+    assert run("(1 == 2 ? nil : Reference.new).is_a?(Reference)").to_b == true
   end
 
   it "codegens is_a? with nilable gives false because no type" do
-    run("(1 == 2 ? nil : Reference.new).is_a?(String)").to_b.should be_false
+    assert run("(1 == 2 ? nil : Reference.new).is_a?(String)").to_b == false
   end
 
   it "codegens is_a? with nilable gives false because no type" do
-    run("1.is_a?(Object)").to_b.should be_true
+    assert run("1.is_a?(Object)").to_b == true
   end
 
   it "evaluate method on filtered type" do
-    run("a = 1; a = 'a'; if a.is_a?(Char); a.ord; else; 0; end").to_i.chr.should eq('a')
+    assert run("a = 1; a = 'a'; if a.is_a?(Char); a.ord; else; 0; end").to_i.chr == 'a'
   end
 
   it "evaluate method on filtered type nilable type not-nil" do
-    run("
+    assert run("
       class Foo
         def foo
           1
@@ -64,11 +64,11 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "evaluate method on filtered type nilable type nil" do
-    run("
+    assert run("
       struct Nil
         def foo
           1
@@ -85,11 +85,11 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "evaluates method on filtered union type" do
-    run("
+    assert run("
       class Foo
         def initialize(x : Int32)
           @x = x
@@ -108,11 +108,11 @@ describe "Codegen: is_a?" do
       else
         0
       end
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "evaluates method on filtered union type 2" do
-    run("
+    assert run("
       class Foo
         def initialize(x : Int32)
           @x = x
@@ -142,11 +142,11 @@ describe "Codegen: is_a?" do
       else
         0
       end
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "evaluates method on filtered union type 3" do
-    run("
+    assert run("
       require \"prelude\"
       a = 1
       a = [1.1]
@@ -157,11 +157,11 @@ describe "Codegen: is_a?" do
       else
         0
       end.to_i
-    ").to_i.should eq(5)
+    ").to_i == 5
   end
 
   it "codegens when is_a? is always false but properties are used" do
-    run("
+    assert run("
       require \"prelude\"
 
       class Foo
@@ -170,11 +170,11 @@ describe "Codegen: is_a?" do
 
       foo = 1
       foo.is_a?(Foo) && foo.obj && foo.obj
-    ").to_b.should be_false
+    ").to_b == false
   end
 
   it "codegens is_a? on right side of and" do
-    run("
+    assert run("
       class Foo
         def bar
           true
@@ -187,11 +187,11 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens is_a? with virtual" do
-    run("
+    assert run("
       class Foo
       end
 
@@ -200,11 +200,11 @@ describe "Codegen: is_a?" do
 
       foo = Bar.new || Foo.new
       foo.is_a?(Bar) ? 1 : 2
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens is_a? with virtual and nil" do
-    run("
+    assert run("
       class Foo
       end
 
@@ -213,11 +213,11 @@ describe "Codegen: is_a?" do
 
       f = Foo.new || Bar.new || nil
       f.is_a?(Foo) ? 1 : 2
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens is_a? with virtual and module" do
-    run("
+    assert run("
       module Bar
       end
 
@@ -236,22 +236,22 @@ describe "Codegen: is_a?" do
 
       f = Foo.new || Foo2.new
       f.is_a?(Bar)
-      ").to_b.should be_true
+      ").to_b == true
   end
 
   it "restricts simple type with union" do
-    run("
+    assert run("
       a = 1
       if a.is_a?(Int32 | Char)
         a + 1
       else
         0
       end
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "restricts union with union" do
-    run("
+    assert run("
       struct Char
         def +(other : Int32)
           other
@@ -270,37 +270,37 @@ describe "Codegen: is_a?" do
       else
         a.foo
       end
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "codegens is_a? with a Const does comparison and gives true" do
-    run("
+    assert run("
       require \"prelude\"
       A = 1
       1.is_a?(A)
-      ").to_b.should be_true
+      ").to_b == true
   end
 
   it "codegens is_a? with a Const does comparison and gives false" do
-    run("
+    assert run("
       require \"prelude\"
       A = 1
       2.is_a?(A)
-      ").to_b.should be_false
+      ").to_b == false
   end
 
   it "gives false if generic type doesn't match exactly" do
-    run("
+    assert run("
       class Foo(T)
       end
 
       foo = Foo(Int32 | Float64).new
       foo.is_a?(Foo(Int32)) ? 1 : 2
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "does is_a? with more strict virtual type" do
-    run("
+    assert run("
       class Foo
       end
 
@@ -316,11 +316,11 @@ describe "Codegen: is_a?" do
       else
         1
       end
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens is_a? casts union to nilable" do
-    run("
+    assert run("
       class Foo; end
 
       var = \"hello\" || Foo.new || nil
@@ -330,11 +330,11 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens is_a? casts union to nilable in method" do
-    run("
+    assert run("
       class Foo; end
 
       def foo(var)
@@ -348,11 +348,11 @@ describe "Codegen: is_a?" do
 
       var = \"hello\" || Foo.new || nil
       foo(var)
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens is_a? from virtual type to module" do
-    run("
+    assert run("
       module Moo
       end
 
@@ -374,11 +374,11 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens is_a? from nilable reference union type to nil" do
-    run("
+    assert run("
       class Foo
       end
 
@@ -392,11 +392,11 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens is_a? from nilable reference union type to type" do
-    run("
+    assert run("
       class Foo
       end
 
@@ -410,17 +410,17 @@ describe "Codegen: is_a?" do
       else
         2
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "says false for value.is_a?(Class)" do
-    run("
+    assert run("
       1.is_a?(Class)
-      ").to_b.should be_false
+      ").to_b == false
   end
 
   it "restricts type in else but lazily" do
-    run("
+    assert run("
       class Foo
         def initialize(@x : Int32)
         end
@@ -439,11 +439,11 @@ describe "Codegen: is_a?" do
       end
 
       z
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "works with inherited generic class against an instantiation" do
-    run(%(
+    assert run(%(
       class Foo(T)
       end
 
@@ -452,11 +452,11 @@ describe "Codegen: is_a?" do
 
       bar = Bar.new
       bar.is_a?(Foo(Int32))
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "works with inherited generic class against an instantiation (2)" do
-    run(%(
+    assert run(%(
       class A
       end
 
@@ -471,11 +471,11 @@ describe "Codegen: is_a?" do
 
       bar = Bar.new
       bar.is_a?(Foo(A))
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "works with inherited generic class against an instantiation (3)" do
-    run(%(
+    assert run(%(
       class Foo(T)
       end
 
@@ -484,66 +484,66 @@ describe "Codegen: is_a?" do
 
       bar = Bar.new
       bar.is_a?(Foo(Float32))
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "doesn't type merge (1) (#548)" do
-    run(%(
+    assert run(%(
       class Base; end
       class A < Base; end
       class B < Base; end
       class C < Base; end
 
       C.new.is_a?(A | B)
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "doesn't type merge (2) (#548)" do
-    run(%(
+    assert run(%(
       class Base; end
       class A < Base; end
       class B < Base; end
       class C < Base; end
 
       A.new.is_a?(A | B) && B.new.is_a?(A | B)
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "doesn't skip assignment when used in combination with .is_a? (true case, then) (#1121)" do
-    run(%(
+    assert run(%(
       a = 123
       if (b = a).is_a?(Int32)
         b + 1
       else
         a
       end
-      )).to_i.should eq(124)
+      )).to_i == 124
   end
 
   it "doesn't skip assignment when used in combination with .is_a? (true case, else) (#1121)" do
-    run(%(
+    assert run(%(
       a = 123
       if (b = a).is_a?(Int32)
         a + 2
       else
         b
       end
-      )).to_i.should eq(125)
+      )).to_i == 125
   end
 
   it "doesn't skip assignment when used in combination with .is_a? (false case) (#1121)" do
-    run(%(
+    assert run(%(
       a = 123
       if (b = a).is_a?(Char)
         b
       else
         b + 1
       end
-      )).to_i.should eq(124)
+      )).to_i == 124
   end
 
   it "doesn't skip assignment when used in combination with .is_a? and && (#1121)" do
-    run(%(
+    assert run(%(
       a = 123
       if (1 == 1) && (b = a).is_a?(Char)
         b
@@ -551,11 +551,11 @@ describe "Codegen: is_a?" do
         a
       end
       b ? b + 1 : 0
-      )).to_i.should eq(124)
+      )).to_i == 124
   end
 
   it "transforms then if condition is always truthy" do
-    run(%(
+    assert run(%(
       def foo
         123 && 456
       end
@@ -565,11 +565,11 @@ describe "Codegen: is_a?" do
       else
         999
       end
-      )).to_i.should eq(456)
+      )).to_i == 456
   end
 
   it "transforms else if condition is always falsey" do
-    run(%(
+    assert run(%(
       def foo
         123 && 456
       end
@@ -579,11 +579,11 @@ describe "Codegen: is_a?" do
       else
         foo
       end
-      )).to_i.should eq(456)
+      )).to_i == 456
   end
 
   it "resets truthy state after visiting nodes (bug)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 123
@@ -591,20 +591,20 @@ describe "Codegen: is_a?" do
         a = 456
       end
       a
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "does is_a? with generic class metaclass" do
-    run(%(
+    assert run(%(
       class Foo(T)
       end
 
       Foo(Int32).is_a?(Foo.class)
-      )).to_b.should be_true
+      )).to_b == true
   end
 
   it "says false for GenericChild(Base).is_a?(GenericBase(Child)) (#1294)" do
-    run(%(
+    assert run(%(
       class Base
       end
 
@@ -618,33 +618,33 @@ describe "Codegen: is_a?" do
       end
 
       GenericChild(Base).new.is_a?(GenericBase(Child))
-      )).to_b.should be_false
+      )).to_b == false
   end
 
   it "does is_a?/responds_to? twice (#1451)" do
-    run(%(
+    assert run(%(
       a = 1 == 2 ? 1 : false
       if a.is_a?(Int32) && a.is_a?(Int32)
         3
       else
         4
       end
-      )).to_i.should eq(4)
+      )).to_i == 4
   end
 
   it "does is_a? with && and true condition" do
-    run(%(
+    assert run(%(
       a = 1 == 1 ? 1 : false
       if a.is_a?(Int32) && 1 == 1
         3
       else
         4
       end
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "does is_a? for union of module and type" do
-    run(%(
+    assert run(%(
       module Moo
         def moo
           2
@@ -669,6 +669,6 @@ describe "Codegen: is_a?" do
 
       io = Foo.new.as(Moo) || 1
       foo(io)
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 end

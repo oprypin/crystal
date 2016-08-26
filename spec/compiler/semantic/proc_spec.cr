@@ -259,7 +259,7 @@ describe "Semantic: proc" do
 
   it "types nil or proc type" do
     result = assert_type("1 == 1 ? nil : ->{}") { nilable proc_of(nil_type) }
-    result.node.type.should be_a(NilableProcType)
+    assert result.node.type.is_a?(NilableProcType)
   end
 
   it "allows passing NoReturn type for any return type (1)" do
@@ -493,7 +493,7 @@ describe "Semantic: proc" do
       end
       ))
     foo = result.program.types["LibFoo"].lookup_first_def("foo", nil).as(External)
-    foo.call_convention.should eq(LLVM::CallConvention::X86_StdCall)
+    assert foo.call_convention == LLVM::CallConvention::X86_StdCall
   end
 
   it "errors if wrong number of arguments for CallConvention" do

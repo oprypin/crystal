@@ -2641,10 +2641,10 @@ describe "Semantic: instance var" do
       ))
 
     foo = result.program.types["Foo"].as(NonGenericClassType)
-    foo.instance_vars["@x"].type.should eq(result.program.int32)
+    assert foo.instance_vars["@x"].type == result.program.int32
 
     bar = result.program.types["Bar"].as(NonGenericClassType)
-    bar.instance_vars.empty?.should be_true
+    assert bar.instance_vars.empty? == true
   end
 
   it "infers type from custom array literal" do
@@ -4104,7 +4104,7 @@ describe "Semantic: instance var" do
     mod = result.program
 
     foo = mod.types["Foo"].as(NonGenericClassType)
-    foo.instance_vars["@x"].type.should eq(mod.int32)
+    assert foo.instance_vars["@x"].type == mod.int32
   end
 
   it "declares instance var of generic class" do
@@ -4120,7 +4120,7 @@ describe "Semantic: instance var" do
       ") do
       foo = types["Foo"].as(GenericClassType)
       foo_i32 = foo.instantiate([int32] of TypeVar)
-      foo_i32.lookup_instance_var("@x").type.should eq(int32)
+      assert foo_i32.lookup_instance_var("@x").type == int32
       foo_i32
     end
   end
@@ -4142,7 +4142,7 @@ describe "Semantic: instance var" do
       f") do
       foo = types["Foo"].as(GenericClassType)
       foo_i32 = foo.instantiate([int32] of TypeVar)
-      foo_i32.lookup_instance_var("@x").type.should eq(int32)
+      assert foo_i32.lookup_instance_var("@x").type == int32
       foo_i32
     end
   end

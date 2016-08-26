@@ -31,14 +31,14 @@ describe "Crypto::Bcrypt::Base64" do
   it "encodes" do
     vectors.each do |vector|
       decoded, encoded = vector
-      Crypto::Bcrypt::Base64.encode(decoded, decoded.size).should eq(encoded)
+      assert Crypto::Bcrypt::Base64.encode(decoded, decoded.size) == encoded
     end
   end
 
   it "decodes" do
     vectors.each do |vector|
       decoded, encoded = vector
-      Crypto::Bcrypt::Base64.decode(encoded, decoded.size).to_a.should eq(decoded)
+      assert Crypto::Bcrypt::Base64.decode(encoded, decoded.size).to_a == decoded
     end
   end
 end

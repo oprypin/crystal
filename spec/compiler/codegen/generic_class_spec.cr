@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: generic class type" do
   it "codegens inherited generic class instance var" do
-    run(%(
+    assert run(%(
       class Foo(T)
         def initialize(@x : T)
         end
@@ -16,11 +16,11 @@ describe "Code gen: generic class type" do
       end
 
       Bar.new(1).x
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "instantiates generic class with default argument in initialize (#394)" do
-    run(%(
+    assert run(%(
       class Foo(T)
         def initialize(@x = 1)
         end
@@ -31,11 +31,11 @@ describe "Code gen: generic class type" do
       end
 
       Foo(Int32).new.x + 1
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "allows initializing instance variable (#665)" do
-    run(%(
+    assert run(%(
       class SomeType(T)
         @x = 1
 
@@ -45,11 +45,11 @@ describe "Code gen: generic class type" do
       end
 
       SomeType(Char).new.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "allows initializing instance variable in inherited generic type" do
-    run(%(
+    assert run(%(
       class Foo(T)
         @x = 1
 
@@ -63,11 +63,11 @@ describe "Code gen: generic class type" do
       end
 
       Bar(Char).new.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "declares instance var with virtual T (#1675)" do
-    run(%(
+    assert run(%(
       class Foo
         def foo
           1
@@ -93,11 +93,11 @@ describe "Code gen: generic class type" do
       generic = Generic(Foo).new
       generic.value = Foo.new
       generic.value.foo
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens statis array size after instantiating" do
-    run(%(
+    assert run(%(
       struct StaticArray(T, N)
         def size
           N
@@ -108,11 +108,11 @@ describe "Code gen: generic class type" do
 
       x = uninitialized Int32[3]
       x.size
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "inherited instance var initialize from generic to concrete (#2128)" do
-    run(%(
+    assert run(%(
       class Foo(T)
         @x = 42
 
@@ -125,11 +125,11 @@ describe "Code gen: generic class type" do
       end
 
       Bar.new.x
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "inherited instance var initialize from generic to generic to concrete (#2128)" do
-    run(%(
+    assert run(%(
       class Foo(T)
         @x = 10
 
@@ -151,11 +151,11 @@ describe "Code gen: generic class type" do
 
       baz = Baz.new
       baz.x + baz.y
-      )).to_i.should eq(42)
+      )).to_i == 42
   end
 
   it "invokes super in generic class (#2354)" do
-    run(%(
+    assert run(%(
       class Global
         @@x = 1
 
@@ -183,11 +183,11 @@ describe "Code gen: generic class type" do
       b.foo
 
       Global.x
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "uses big integer as generic type argument (#2353)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       MIN_RANGE = -2374623294237463578
@@ -200,11 +200,11 @@ describe "Code gen: generic class type" do
       end
 
       Hello(MAX_RANGE).t
-      )).to_u64.should eq(2374623294237463578)
+      )).to_u64 == 2374623294237463578
   end
 
   it "doesn't use virtual + in type arguments (#2839)" do
-    run(%(
+    assert run(%(
       class Class
         def name : String
           {{ @type.name.stringify }}
@@ -221,11 +221,11 @@ describe "Code gen: generic class type" do
       end
 
       Gen(Foo).name
-      )).to_string.should eq("Gen(Foo)")
+      )).to_string == "Gen(Foo)"
   end
 
   it "doesn't use virtual + in type arguments for Tuple (#2839)" do
-    run(%(
+    assert run(%(
       class Class
         def name : String
           {{ @type.name.stringify }}
@@ -242,11 +242,11 @@ describe "Code gen: generic class type" do
       end
 
       Tuple(Foo).name
-      )).to_string.should eq("Tuple(Foo)")
+      )).to_string == "Tuple(Foo)"
   end
 
   it "doesn't use virtual + in type arguments for NamedTuple (#2839)" do
-    run(%(
+    assert run(%(
       class Class
         def name : String
           {{ @type.name.stringify }}
@@ -263,6 +263,6 @@ describe "Code gen: generic class type" do
       end
 
       NamedTuple(x: Foo).name
-      )).to_string.should eq("NamedTuple(x: Foo)")
+      )).to_string == "NamedTuple(x: Foo)"
   end
 end

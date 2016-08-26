@@ -2,43 +2,43 @@ require "spec"
 
 describe "Bool" do
   describe "!" do
-    assert { (!true).should be_false }
-    assert { (!false).should be_true }
+    it { assert (!true) == false }
+    it { assert (!false) == true }
   end
 
   describe "|" do
-    assert { (false | false).should be_false }
-    assert { (false | true).should be_true }
-    assert { (true | false).should be_true }
-    assert { (true | true).should be_true }
+    it { assert (false | false) == false }
+    it { assert (false | true) == true }
+    it { assert (true | false) == true }
+    it { assert (true | true) == true }
   end
 
   describe "&" do
-    assert { (false & false).should be_false }
-    assert { (false & true).should be_false }
-    assert { (true & false).should be_false }
-    assert { (true & true).should be_true }
+    it { assert (false & false) == false }
+    it { assert (false & true) == false }
+    it { assert (true & false) == false }
+    it { assert (true & true) == true }
   end
 
   describe "^" do
-    assert { (false ^ false).should be_false }
-    assert { (false ^ true).should be_true }
-    assert { (true ^ false).should be_true }
-    assert { (true ^ true).should be_false }
+    it { assert (false ^ false) == false }
+    it { assert (false ^ true) == true }
+    it { assert (true ^ false) == true }
+    it { assert (true ^ true) == false }
   end
 
   describe "hash" do
-    assert { true.hash.should eq(1) }
-    assert { false.hash.should eq(0) }
+    it { assert true.hash == 1 }
+    it { assert false.hash == 0 }
   end
 
   describe "to_s" do
-    assert { true.to_s.should eq("true") }
-    assert { false.to_s.should eq("false") }
+    it { assert true.to_s == "true" }
+    it { assert false.to_s == "false" }
   end
 
   describe "clone" do
-    assert { true.clone.should be_true }
-    assert { false.clone.should be_false }
+    it { assert true.clone == true }
+    it { assert false.clone == false }
   end
 end

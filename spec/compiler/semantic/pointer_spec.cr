@@ -57,7 +57,7 @@ describe "Semantic: pointer" do
 
   it "types nil or pointer type" do
     result = assert_type("1 == 1 ? nil : Pointer(Int32).new(0_u64)") { nilable pointer_of(int32) }
-    result.node.type.should be_a(NilablePointerType)
+    assert result.node.type.is_a?(NilablePointerType)
   end
 
   it "types nil or pointer type with typedef" do
@@ -68,7 +68,7 @@ describe "Semantic: pointer" do
       end
       LibC.foo
       )) { nilable types["LibC"].types["T"] }
-    result.node.type.should be_a(NilablePointerType)
+    assert result.node.type.is_a?(NilablePointerType)
   end
 
   it "types pointer of constant" do

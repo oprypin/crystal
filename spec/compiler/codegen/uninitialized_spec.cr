@@ -6,11 +6,11 @@ describe "Code gen: uninitialized" do
   end
 
   it "codegens declare var and changes it" do
-    run("a = uninitialized Int32; while a != 10; a = 10; end; a").to_i.should eq(10)
+    assert run("a = uninitialized Int32; while a != 10; a = 10; end; a").to_i == 10
   end
 
   it "codegens declare instance var" do
-    run("
+    assert run("
       class Foo
         def initialize
           @x = uninitialized Int32
@@ -22,7 +22,7 @@ describe "Code gen: uninitialized" do
       end
 
       Foo.new.x
-      ").to_i.should eq(0)
+      ").to_i == 0
   end
 
   it "codegens declare instance var with static array type" do
@@ -43,7 +43,7 @@ describe "Code gen: uninitialized" do
   end
 
   it "doesn't break on inherited declared var (#390)" do
-    run(%(
+    assert run(%(
       class Foo
         def initialize
           @x = 1
@@ -68,11 +68,11 @@ describe "Code gen: uninitialized" do
 
       bar = Bar.new
       bar.x + bar.y
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "works inside while/begin/rescue (bug inside #759)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       a = 3
@@ -85,6 +85,6 @@ describe "Code gen: uninitialized" do
         end
       end
       a
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 end

@@ -12,7 +12,7 @@ describe "Semantic: super" do
     mod, type = result.program, result.node.type.as(NonGenericClassType)
 
     superclass = type.superclass.as(NonGenericClassType)
-    superclass.instance_vars["@x"].type.should eq(mod.nilable(mod.int32))
+    assert superclass.instance_vars["@x"].type == mod.nilable(mod.int32)
   end
 
   it "types super without arguments but parent has arguments" do
@@ -38,11 +38,11 @@ describe "Semantic: super" do
     result = semantic nodes
     mod, type = result.program, result.node.type.as(NonGenericClassType)
 
-    type.should eq(mod.types["Baz"])
+    assert type == mod.types["Baz"]
 
     superclass = type.superclass.as(NonGenericClassType)
     superclass2 = superclass.superclass.as(NonGenericClassType)
-    superclass2.instance_vars["@x"].type.should eq(mod.int32)
+    assert superclass2.instance_vars["@x"].type == mod.int32
   end
 
   it "types super when container method is defined in parent class two levels up" do

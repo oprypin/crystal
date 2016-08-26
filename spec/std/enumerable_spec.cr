@@ -13,57 +13,57 @@ end
 describe "Enumerable" do
   describe "all? with block" do
     it "returns true" do
-      ["ant", "bear", "cat"].all? { |word| word.size >= 3 }.should be_true
+      assert ["ant", "bear", "cat"].all? { |word| word.size >= 3 } == true
     end
 
     it "returns false" do
-      ["ant", "bear", "cat"].all? { |word| word.size >= 4 }.should be_false
+      assert ["ant", "bear", "cat"].all? { |word| word.size >= 4 } == false
     end
   end
 
   describe "all? without block" do
     it "returns true" do
-      [15].all?.should be_true
+      assert [15].all? == true
     end
 
     it "returns false" do
-      [nil, true, 99].all?.should be_false
+      assert [nil, true, 99].all? == false
     end
   end
 
   describe "any? with block" do
     it "returns true if at least one element fulfills the condition" do
-      ["ant", "bear", "cat"].any? { |word| word.size >= 4 }.should be_true
+      assert ["ant", "bear", "cat"].any? { |word| word.size >= 4 } == true
     end
 
     it "returns false if all elements does not fulfill the condition" do
-      ["ant", "bear", "cat"].any? { |word| word.size > 4 }.should be_false
+      assert ["ant", "bear", "cat"].any? { |word| word.size > 4 } == false
     end
   end
 
   describe "any? without block" do
     it "returns true if at least one element is truthy" do
-      [nil, true, 99].any?.should be_true
+      assert [nil, true, 99].any? == true
     end
 
     it "returns false if all elements are falsey" do
-      [nil, false].any?.should be_false
+      assert [nil, false].any? == false
     end
   end
 
   describe "compact map" do
-    assert { Set{1, nil, 2, nil, 3}.compact_map { |x| x.try &.+(1) }.should eq([2, 3, 4]) }
+    it { assert Set{1, nil, 2, nil, 3}.compact_map { |x| x.try &.+(1) } == [2, 3, 4] }
   end
 
   describe "size without block" do
     it "returns the number of elements in the Enumerable" do
-      SpecEnumerable.new.size.should eq 3
+      assert SpecEnumerable.new.size == 3
     end
   end
 
   describe "count with block" do
     it "returns the number of the times the item is present" do
-      %w(a b c a d A).count("a").should eq 2
+      assert %w(a b c a d A).count("a") == 2
     end
   end
 
@@ -76,8 +76,8 @@ describe "Enumerable" do
         called += 1
         break if called == 6
       end
-      called.should eq 6
-      elements.should eq [1, 2, 1, 2, 1, 2]
+      assert called == 6
+      assert elements == [1, 2, 1, 2, 1, 2]
     end
 
     it "calls the block n times given the optional argument" do
@@ -87,8 +87,8 @@ describe "Enumerable" do
         elements << e
         called += 1
       end
-      called.should eq 6
-      elements.should eq [1, 2, 1, 2, 1, 2]
+      assert called == 6
+      assert elements == [1, 2, 1, 2, 1, 2]
     end
   end
 
@@ -96,24 +96,24 @@ describe "Enumerable" do
     it "returns running pairs" do
       array = [] of Array(Int32)
       [1, 2, 3, 4].each_cons(2) { |pair| array << pair }
-      array.should eq([[1, 2], [2, 3], [3, 4]])
+      assert array == [[1, 2], [2, 3], [3, 4]]
     end
 
     it "returns running triples" do
       array = [] of Array(Int32)
       [1, 2, 3, 4, 5].each_cons(3) { |triple| array << triple }
-      array.should eq([[1, 2, 3], [2, 3, 4], [3, 4, 5]])
+      assert array == [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
     end
 
     it "returns each_cons iterator" do
       iter = [1, 2, 3, 4, 5].each_cons(3)
-      iter.next.should eq([1, 2, 3])
-      iter.next.should eq([2, 3, 4])
-      iter.next.should eq([3, 4, 5])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1, 2, 3]
+      assert iter.next == [2, 3, 4]
+      assert iter.next == [3, 4, 5]
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq([1, 2, 3])
+      assert iter.next == [1, 2, 3]
     end
   end
 
@@ -121,24 +121,24 @@ describe "Enumerable" do
     it "returns partial slices" do
       array = [] of Array(Int32)
       [1, 2, 3].each_slice(2) { |slice| array << slice }
-      array.should eq([[1, 2], [3]])
+      assert array == [[1, 2], [3]]
     end
 
     it "returns full slices" do
       array = [] of Array(Int32)
       [1, 2, 3, 4].each_slice(2) { |slice| array << slice }
-      array.should eq([[1, 2], [3, 4]])
+      assert array == [[1, 2], [3, 4]]
     end
 
     it "returns each_slice iterator" do
       iter = [1, 2, 3, 4, 5].each_slice(2)
-      iter.next.should eq([1, 2])
-      iter.next.should eq([3, 4])
-      iter.next.should eq([5])
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == [1, 2]
+      assert iter.next == [3, 4]
+      assert iter.next == [5]
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq([1, 2])
+      assert iter.next == [1, 2]
     end
   end
 
@@ -148,7 +148,7 @@ describe "Enumerable" do
       ["a", "b", "c"].each_with_index do |e, i|
         collection << {e, i}
       end
-      collection.should eq [{"a", 0}, {"b", 1}, {"c", 2}]
+      assert collection == [{"a", 0}, {"b", 1}, {"c", 2}]
     end
 
     it "accepts an optional offset parameter" do
@@ -156,17 +156,17 @@ describe "Enumerable" do
       ["Alice", "Bob"].each_with_index(1) do |e, i|
         collection << {e, i}
       end
-      collection.should eq [{"Alice", 1}, {"Bob", 2}]
+      assert collection == [{"Alice", 1}, {"Bob", 2}]
     end
 
     it "gets each_with_index iterator" do
       iter = [1, 2].each_with_index
-      iter.next.should eq({1, 0})
-      iter.next.should eq({2, 1})
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == {1, 0}
+      assert iter.next == {2, 1}
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq({1, 0})
+      assert iter.next == {1, 0}
     end
   end
 
@@ -177,37 +177,37 @@ describe "Enumerable" do
       (1..3).each_with_object(object) do |e, o|
         collection << {e, o}
       end
-      collection.should eq [{1, object}, {2, object}, {3, object}]
+      assert collection == [{1, object}, {2, object}, {3, object}]
     end
 
     it "gets each_with_object iterator" do
       iter = [1, 2].each_with_object("a")
-      iter.next.should eq({1, "a"})
-      iter.next.should eq({2, "a"})
-      iter.next.should be_a(Iterator::Stop)
+      assert iter.next == {1, "a"}
+      assert iter.next == {2, "a"}
+      assert iter.next.is_a?(Iterator::Stop)
 
       iter.rewind
-      iter.next.should eq({1, "a"})
+      assert iter.next == {1, "a"}
     end
   end
 
   describe "find" do
     it "finds" do
-      [1, 2, 3].find { |x| x > 2 }.should eq(3)
+      assert [1, 2, 3].find { |x| x > 2 } == 3
     end
 
     it "doesn't find" do
-      [1, 2, 3].find { |x| x > 3 }.should be_nil
+      assert [1, 2, 3].find { |x| x > 3 }.nil?
     end
 
     it "doesn't find with default value" do
-      [1, 2, 3].find(-1) { |x| x > 3 }.should eq(-1)
+      assert [1, 2, 3].find(-1) { |x| x > 3 } == -1
     end
   end
 
   describe "first" do
     it "gets first" do
-      (1..3).first.should eq(1)
+      assert (1..3).first == 1
     end
 
     it "raises if enumerable empty" do
@@ -216,53 +216,53 @@ describe "Enumerable" do
       end
     end
 
-    assert { [-1, -2, -3].first.should eq(-1) }
+    it { assert [-1, -2, -3].first == -1 }
   end
 
   describe "first?" do
     it "gets first?" do
-      (1..3).first?.should eq(1)
+      assert (1..3).first? == 1
     end
 
     it "returns nil if enumerable empty" do
-      (1...1).first?.should be_nil
+      assert (1...1).first?.nil?
     end
   end
 
   describe "flat_map" do
     it "does example 1" do
-      [1, 2, 3, 4].flat_map { |e| [e, -e] }.should eq([1, -1, 2, -2, 3, -3, 4, -4])
+      assert [1, 2, 3, 4].flat_map { |e| [e, -e] } == [1, -1, 2, -2, 3, -3, 4, -4]
     end
 
     it "does example 2" do
-      [[1, 2], [3, 4]].flat_map { |e| e + [100] }.should eq([1, 2, 100, 3, 4, 100])
+      assert [[1, 2], [3, 4]].flat_map { |e| e + [100] } == [1, 2, 100, 3, 4, 100]
     end
   end
 
   describe "grep" do
     it "works with regexes for instance" do
-      ["Alice", "Bob", "Cipher", "Anna"].grep(/^A/).should eq ["Alice", "Anna"]
+      assert ["Alice", "Bob", "Cipher", "Anna"].grep(/^A/) == ["Alice", "Anna"]
     end
 
     it "returns empty array if nothing matches" do
-      %w(Alice Bob Mallory).grep(/nothing/).should eq [] of String
+      assert %w(Alice Bob Mallory).grep(/nothing/) == [] of String
     end
   end
 
   describe "group_by" do
-    assert { [1, 2, 2, 3].group_by { |x| x == 2 }.should eq({true => [2, 2], false => [1, 3]}) }
+    it { assert [1, 2, 2, 3].group_by { |x| x == 2 } == {true => [2, 2], false => [1, 3]} }
 
     it "groups can group by size (like the doc example)" do
-      %w(Alice Bob Ary).group_by { |e| e.size }.should eq({3 => ["Bob", "Ary"],
-        5 => ["Alice"]})
+      assert %w(Alice Bob Ary).group_by { |e| e.size } == {3 => ["Bob", "Ary"],
+        5 => ["Alice"]}
     end
   end
 
   describe "in_groups_of" do
-    assert { [1, 2, 3].in_groups_of(1).should eq([[1], [2], [3]]) }
-    assert { [1, 2, 3].in_groups_of(2).should eq([[1, 2], [3, nil]]) }
-    assert { ([] of Int32).in_groups_of(2).should eq([] of Array(Array(Int32 | Nil))) }
-    assert { [1, 2, 3].in_groups_of(2, "x").should eq([[1, 2], [3, "x"]]) }
+    it { assert [1, 2, 3].in_groups_of(1) == [[1], [2], [3]] }
+    it { assert [1, 2, 3].in_groups_of(2) == [[1, 2], [3, nil]] }
+    it { assert ([] of Int32).in_groups_of(2) == [] of Array(Array(Int32 | Nil)) }
+    it { assert [1, 2, 3].in_groups_of(2, "x") == [[1, 2], [3, "x"]] }
 
     it "raises argument error if size is less than 0" do
       expect_raises ArgumentError, "size must be positive" do
@@ -273,55 +273,55 @@ describe "Enumerable" do
     it "takes a block" do
       sums = [] of Int32
       [1, 2, 4].in_groups_of(2, 0) { |a| sums << a.sum }
-      sums.should eq([3, 4])
+      assert sums == [3, 4]
     end
   end
 
   describe "includes?" do
     it "is true if the object exists in the collection" do
-      [1, 2, 3].includes?(2).should be_true
+      assert [1, 2, 3].includes?(2) == true
     end
 
     it "is false if the object is not part of the collection" do
-      [1, 2, 3].includes?(5).should be_false
+      assert [1, 2, 3].includes?(5) == false
     end
   end
 
   describe "index with a block" do
     it "returns the index of the first element where the blcok returns true" do
-      ["Alice", "Bob"].index { |name| name.size < 4 }.should eq 1
+      assert ["Alice", "Bob"].index { |name| name.size < 4 } == 1
     end
 
     it "returns nil if no object could be found" do
-      ["Alice", "Bob"].index { |name| name.size < 3 }.should eq nil
+      assert ["Alice", "Bob"].index { |name| name.size < 3 } == nil
     end
   end
 
   describe "index with an object" do
     it "returns the index of that object if found" do
-      ["Alice", "Bob"].index("Alice").should eq 0
+      assert ["Alice", "Bob"].index("Alice") == 0
     end
 
     it "returns nil if the object was not found" do
-      ["Alice", "Bob"].index("Mallory").should be_nil
+      assert ["Alice", "Bob"].index("Mallory").nil?
     end
   end
 
   describe "index_by" do
     it "creates a hash indexed by the value returned by the block" do
       hash = ["Anna", "Ary", "Alice"].index_by { |e| e.size }
-      hash.should eq({4 => "Anna", 3 => "Ary", 5 => "Alice"})
+      assert hash == {4 => "Anna", 3 => "Ary", 5 => "Alice"}
     end
 
     it "overrides values if a value is returned twice" do
       hash = ["Anna", "Ary", "Alice", "Bob"].index_by { |e| e.size }
-      hash.should eq({4 => "Anna", 3 => "Bob", 5 => "Alice"})
+      assert hash == {4 => "Anna", 3 => "Bob", 5 => "Alice"}
     end
   end
 
   describe "reduce" do
-    assert { [1, 2, 3].reduce { |memo, i| memo + i }.should eq(6) }
-    assert { [1, 2, 3].reduce(10) { |memo, i| memo + i }.should eq(16) }
+    it { assert [1, 2, 3].reduce { |memo, i| memo + i } == 6 }
+    it { assert [1, 2, 3].reduce(10) { |memo, i| memo + i } == 16 }
 
     it "raises if empty" do
       expect_raises Enumerable::EmptyError do
@@ -331,54 +331,54 @@ describe "Enumerable" do
 
     it "does not raise if empty if there is a memo argument" do
       result = ([] of Int32).reduce(10) { |memo, i| memo + i }
-      result.should eq 10
+      assert result == 10
     end
   end
 
   describe "join" do
     it "joins with separator and block" do
       str = [1, 2, 3].join(", ") { |x| x + 1 }
-      str.should eq("2, 3, 4")
+      assert str == "2, 3, 4"
     end
 
     it "joins without separator and block" do
       str = [1, 2, 3].join { |x| x + 1 }
-      str.should eq("234")
+      assert str == "234"
     end
 
     it "joins with io and block" do
       str = MemoryIO.new
       [1, 2, 3].join(", ", str) { |x, io| io << x + 1 }
-      str.to_s.should eq("2, 3, 4")
+      assert str.to_s == "2, 3, 4"
     end
 
     it "joins with only separator" do
-      ["Ruby", "Crystal", "Python"].join(", ").should eq "Ruby, Crystal, Python"
+      assert ["Ruby", "Crystal", "Python"].join(", ") == "Ruby, Crystal, Python"
     end
   end
 
   describe "map" do
     it "applies the function to each element and returns a new array" do
       result = [1, 2, 3].map { |i| i * 10 }
-      result.should eq [10, 20, 30]
+      assert result == [10, 20, 30]
     end
 
     it "leaves the original unmodified" do
       original = [1, 2, 3]
       original.map { |i| i * 10 }
-      original.should eq [1, 2, 3]
+      assert original == [1, 2, 3]
     end
   end
 
   describe "map_with_index" do
     it "yields the element and the index" do
       result = ["Alice", "Bob"].map_with_index { |name, i| "User ##{i}: #{name}" }
-      result.should eq ["User #0: Alice", "User #1: Bob"]
+      assert result == ["User #0: Alice", "User #1: Bob"]
     end
   end
 
   describe "max" do
-    assert { [1, 2, 3].max.should eq(3) }
+    it { assert [1, 2, 3].max == 3 }
 
     it "raises if empty" do
       expect_raises Enumerable::EmptyError do
@@ -389,32 +389,32 @@ describe "Enumerable" do
 
   describe "max?" do
     it "returns nil if empty" do
-      ([] of Int32).max?.should be_nil
+      assert ([] of Int32).max?.nil?
     end
   end
 
   describe "max_by" do
-    assert { [-1, -2, -3].max_by { |x| -x }.should eq(-3) }
+    it { assert [-1, -2, -3].max_by { |x| -x } == -3 }
   end
 
   describe "max_by?" do
     it "returns nil if empty" do
-      ([] of Int32).max_by? { |x| -x }.should be_nil
+      assert ([] of Int32).max_by? { |x| -x }.nil?
     end
   end
 
   describe "max_of" do
-    assert { [-1, -2, -3].max_of { |x| -x }.should eq(3) }
+    it { assert [-1, -2, -3].max_of { |x| -x } == 3 }
   end
 
   describe "max_of?" do
     it "returns nil if empty" do
-      ([] of Int32).max_of? { |x| -x }.should be_nil
+      assert ([] of Int32).max_of? { |x| -x }.nil?
     end
   end
 
   describe "min" do
-    assert { [1, 2, 3].min.should eq(1) }
+    it { assert [1, 2, 3].min == 1 }
 
     it "raises if empty" do
       expect_raises Enumerable::EmptyError do
@@ -425,32 +425,32 @@ describe "Enumerable" do
 
   describe "min?" do
     it "returns nil if empty" do
-      ([] of Int32).min?.should be_nil
+      assert ([] of Int32).min?.nil?
     end
   end
 
   describe "min_by" do
-    assert { [1, 2, 3].min_by { |x| -x }.should eq(3) }
+    it { assert [1, 2, 3].min_by { |x| -x } == 3 }
   end
 
   describe "min_by?" do
     it "returns nil if empty" do
-      ([] of Int32).max_by? { |x| -x }.should be_nil
+      assert ([] of Int32).max_by? { |x| -x }.nil?
     end
   end
 
   describe "min_of" do
-    assert { [1, 2, 3].min_of { |x| -x }.should eq(-3) }
+    it { assert [1, 2, 3].min_of { |x| -x } == -3 }
   end
 
   describe "min_of?" do
     it "returns nil if empty" do
-      ([] of Int32).min_of? { |x| -x }.should be_nil
+      assert ([] of Int32).min_of? { |x| -x }.nil?
     end
   end
 
   describe "minmax" do
-    assert { [1, 2, 3].minmax.should eq({1, 3}) }
+    it { assert [1, 2, 3].minmax == {1, 3} }
 
     it "raises if empty" do
       expect_raises Enumerable::EmptyError do
@@ -461,70 +461,70 @@ describe "Enumerable" do
 
   describe "minmax?" do
     it "returns two nils if empty" do
-      ([] of Int32).minmax?.should eq({nil, nil})
+      assert ([] of Int32).minmax? == {nil, nil}
     end
   end
 
   describe "minmax_by" do
-    assert { [-1, -2, -3].minmax_by { |x| -x }.should eq({-1, -3}) }
+    it { assert [-1, -2, -3].minmax_by { |x| -x } == {-1, -3} }
   end
 
   describe "minmax_by?" do
     it "returns two nils if empty" do
-      ([] of Int32).minmax_by? { |x| -x }.should eq({nil, nil})
+      assert ([] of Int32).minmax_by? { |x| -x } == {nil, nil}
     end
   end
 
   describe "minmax_of" do
-    assert { [-1, -2, -3].minmax_of { |x| -x }.should eq({1, 3}) }
+    it { assert [-1, -2, -3].minmax_of { |x| -x } == {1, 3} }
   end
 
   describe "minmax_of?" do
     it "returns two nils if empty" do
-      ([] of Int32).minmax_of? { |x| -x }.should eq({nil, nil})
+      assert ([] of Int32).minmax_of? { |x| -x } == {nil, nil}
     end
   end
 
   describe "none?" do
-    assert { [1, 2, 2, 3].none? { |x| x == 1 }.should eq(false) }
-    assert { [1, 2, 2, 3].none? { |x| x == 0 }.should eq(true) }
+    it { assert [1, 2, 2, 3].none? { |x| x == 1 } == false }
+    it { assert [1, 2, 2, 3].none? { |x| x == 0 } == true }
   end
 
   describe "none? without block" do
-    assert { [nil, false].none?.should be_true }
-    assert { [nil, false, true].none?.should be_false }
+    it { assert [nil, false].none? == true }
+    it { assert [nil, false, true].none? == false }
   end
 
   describe "one?" do
-    assert { [1, 2, 2, 3].one? { |x| x == 1 }.should eq(true) }
-    assert { [1, 2, 2, 3].one? { |x| x == 2 }.should eq(false) }
-    assert { [1, 2, 2, 3].one? { |x| x == 0 }.should eq(false) }
+    it { assert [1, 2, 2, 3].one? { |x| x == 1 } == true }
+    it { assert [1, 2, 2, 3].one? { |x| x == 2 } == false }
+    it { assert [1, 2, 2, 3].one? { |x| x == 0 } == false }
   end
 
   describe "partition" do
-    assert { [1, 2, 2, 3].partition { |x| x == 2 }.should eq({[2, 2], [1, 3]}) }
-    assert { [1, 2, 3, 4, 5, 6].partition(&.even?).should eq({[2, 4, 6], [1, 3, 5]}) }
+    it { assert [1, 2, 2, 3].partition { |x| x == 2 } == {[2, 2], [1, 3]} }
+    it { assert [1, 2, 3, 4, 5, 6].partition(&.even?) == {[2, 4, 6], [1, 3, 5]} }
   end
 
   describe "reject" do
     it "rejects the values for which the block returns true" do
-      [1, 2, 3, 4].reject(&.even?).should eq([1, 3])
+      assert [1, 2, 3, 4].reject(&.even?) == [1, 3]
     end
   end
 
   describe "select" do
     it "selects the values for which the block returns true" do
-      [1, 2, 3, 4].select(&.even?).should eq([2, 4])
+      assert [1, 2, 3, 4].select(&.even?) == [2, 4]
     end
   end
 
   describe "skip" do
     it "returns an array without the skipped elements" do
-      [1, 2, 3, 4, 5, 6].skip(3).should eq [4, 5, 6]
+      assert [1, 2, 3, 4, 5, 6].skip(3) == [4, 5, 6]
     end
 
     it "returns an empty array when skipping more elements than array size" do
-      [1, 2].skip(3).should eq [] of Int32
+      assert [1, 2].skip(3) == [] of Int32
     end
 
     it "raises if count is negative" do
@@ -537,15 +537,15 @@ describe "Enumerable" do
   describe "skip_while" do
     it "skips elements while the condition holds true" do
       result = [1, 2, 3, 4, 5, 0].skip_while { |i| i < 3 }
-      result.should eq [3, 4, 5, 0]
+      assert result == [3, 4, 5, 0]
     end
 
     it "returns an empty array if the condition is always true" do
-      [1, 2, 3].skip_while { true }.should eq [] of Int32
+      assert [1, 2, 3].skip_while { true } == [] of Int32
     end
 
     it "returns the full Array if the the first check is false" do
-      [5, 0, 1, 2, 3].skip_while { |x| x < 4 }.should eq [5, 0, 1, 2, 3]
+      assert [5, 0, 1, 2, 3].skip_while { |x| x < 4 } == [5, 0, 1, 2, 3]
     end
 
     it "does not yield to the block anymore once it returned false" do
@@ -554,43 +554,43 @@ describe "Enumerable" do
         called += 1
         i < 3
       end
-      called.should eq 3
+      assert called == 3
     end
   end
 
   describe "sum" do
-    assert { ([] of Int32).sum.should eq(0) }
-    assert { [1, 2, 3].sum.should eq(6) }
-    assert { [1, 2, 3].sum(4).should eq(10) }
-    assert { [1, 2, 3].sum(4.5).should eq(10.5) }
-    assert { (1..3).sum { |x| x * 2 }.should eq(12) }
-    assert { (1..3).sum(1.5) { |x| x * 2 }.should eq(13.5) }
+    it { assert ([] of Int32).sum == 0 }
+    it { assert [1, 2, 3].sum == 6 }
+    it { assert [1, 2, 3].sum(4) == 10 }
+    it { assert [1, 2, 3].sum(4.5) == 10.5 }
+    it { assert (1..3).sum { |x| x * 2 } == 12 }
+    it { assert (1..3).sum(1.5) { |x| x * 2 } == 13.5 }
 
     it "uses zero from type" do
-      typeof([1, 2, 3].sum).should eq(Int32)
-      typeof([1.5, 2.5, 3.5].sum).should eq(Float64)
-      typeof([1, 2, 3].sum(&.to_f)).should eq(Float64)
+      assert typeof([1, 2, 3].sum) == Int32
+      assert typeof([1.5, 2.5, 3.5].sum) == Float64
+      assert typeof([1, 2, 3].sum(&.to_f)) == Float64
     end
   end
 
   describe "product" do
-    assert { ([] of Int32).product.should eq(1) }
-    assert { [1, 2, 3].product.should eq(6) }
-    assert { [1, 2, 3].product(4).should eq(24) }
-    assert { [1, 2, 3].product(4.5).should eq(27) }
-    assert { (1..3).product { |x| x * 2 }.should eq(48) }
-    assert { (1..3).product(1.5) { |x| x * 2 }.should eq(72) }
+    it { assert ([] of Int32).product == 1 }
+    it { assert [1, 2, 3].product == 6 }
+    it { assert [1, 2, 3].product(4) == 24 }
+    it { assert [1, 2, 3].product(4.5) == 27 }
+    it { assert (1..3).product { |x| x * 2 } == 48 }
+    it { assert (1..3).product(1.5) { |x| x * 2 } == 72 }
 
     it "uses zero from type" do
-      typeof([1, 2, 3].product).should eq(Int32)
-      typeof([1.5, 2.5, 3.5].product).should eq(Float64)
-      typeof([1, 2, 3].product(&.to_f)).should eq(Float64)
+      assert typeof([1, 2, 3].product) == Int32
+      assert typeof([1.5, 2.5, 3.5].product) == Float64
+      assert typeof([1, 2, 3].product(&.to_f)) == Float64
     end
   end
 
   describe "first" do
-    assert { (1..3).first(1).should eq([1]) }
-    assert { (1..3).first(4).should eq([1, 2, 3]) }
+    it { assert (1..3).first(1) == [1] }
+    it { assert (1..3).first(4) == [1, 2, 3] }
 
     it "raises if count is negative" do
       expect_raises(ArgumentError) do
@@ -601,15 +601,15 @@ describe "Enumerable" do
 
   describe "take_while" do
     it "keeps elements while the block returns true" do
-      [1, 2, 3, 4, 5, 0].take_while { |i| i < 3 }.should eq [1, 2]
+      assert [1, 2, 3, 4, 5, 0].take_while { |i| i < 3 } == [1, 2]
     end
 
     it "returns the full Array if the condition is always true" do
-      [1, 2, 3, -3].take_while { true }.should eq [1, 2, 3, -3]
+      assert [1, 2, 3, -3].take_while { true } == [1, 2, 3, -3]
     end
 
     it "returns an empty Array if the block is false for the first element" do
-      [1, 2, -1, 0].take_while { |i| i <= 0 }.should eq [] of Int32
+      assert [1, 2, -1, 0].take_while { |i| i <= 0 } == [] of Int32
     end
 
     it "does not call the block again once it returned false" do
@@ -618,25 +618,25 @@ describe "Enumerable" do
         called += 1
         i < 3
       end
-      called.should eq 3
+      assert called == 3
     end
   end
 
   describe "to_a" do
     it "converts to an Array" do
-      (1..3).to_a.should eq [1, 2, 3]
+      assert (1..3).to_a == [1, 2, 3]
     end
   end
 
   describe "to_h" do
     it "for tuples" do
       hash = Tuple.new({:a, 1}, {:c, 2}).to_h
-      hash.should be_a(Hash(Symbol, Int32))
-      hash.should eq({:a => 1, :c => 2})
+      assert hash.is_a?(Hash(Symbol, Int32))
+      assert hash == {:a => 1, :c => 2}
     end
 
     it "for array" do
-      [[:a, :b], [:c, :d]].to_h.should eq({:a => :b, :c => :d})
+      assert [[:a, :b], [:c, :d]].to_h == {:a => :b, :c => :d}
     end
   end
 end

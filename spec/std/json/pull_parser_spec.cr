@@ -3,42 +3,42 @@ require "json"
 
 class JSON::PullParser
   def check(event_kind : Symbol)
-    kind.should eq(event_kind)
+    assert kind == event_kind
     read_next
   end
 
   def check(value : Nil)
-    kind.should eq(:null)
+    assert kind == :null
     read_next
   end
 
   def check(value : Int)
-    kind.should eq(:int)
-    int_value.should eq(value)
+    assert kind == :int
+    assert int_value == value
     read_next
   end
 
   def check(value : Float)
-    kind.should eq(:float)
-    float_value.should eq(value)
+    assert kind == :float
+    assert float_value == value
     read_next
   end
 
   def check(value : Bool)
-    kind.should eq(:bool)
-    bool_value.should eq(value)
+    assert kind == :bool
+    assert bool_value == value
     read_next
   end
 
   def check(value : String)
-    kind.should eq(:string)
-    string_value.should eq(value)
+    assert kind == :string
+    assert string_value == value
     read_next
   end
 
   def check(value : String)
-    kind.should eq(:string)
-    string_value.should eq(value)
+    assert kind == :string
+    assert string_value == value
     read_next
     yield
   end
@@ -62,10 +62,10 @@ class JSON::PullParser
   end
 
   def check_array
-    kind.should eq(:begin_array)
+    assert kind == :begin_array
     read_next
     yield
-    kind.should eq(:end_array)
+    assert kind == :end_array
     read_next
   end
 
@@ -74,10 +74,10 @@ class JSON::PullParser
   end
 
   def check_object
-    kind.should eq(:begin_object)
+    assert kind == :begin_object
     read_next
     yield
-    kind.should eq(:end_object)
+    assert kind == :end_object
     read_next
   end
 
@@ -96,7 +96,7 @@ private def check_pull_parse(string)
   it "parses #{string}" do
     parser = JSON::PullParser.new string
     parser.check JSON.parse(string).raw
-    parser.kind.should eq(:EOF)
+    assert parser.kind == :EOF
   end
 end
 
@@ -114,7 +114,7 @@ end
 private def check_raw(string, file = __FILE__, line = __LINE__)
   it "parses raw #{string.inspect}", file, line do
     pull = JSON::PullParser.new(string)
-    pull.read_raw.should eq(string)
+    assert pull.read_raw == string
   end
 end
 
@@ -175,32 +175,32 @@ describe JSON::PullParser do
       it "skips #{desc}" do
         pull = JSON::PullParser.new("[1, #{obj}, 2]")
         pull.read_array do
-          pull.read_int.should eq(1)
+          assert pull.read_int == 1
           pull.skip
-          pull.read_int.should eq(2)
+          assert pull.read_int == 2
         end
       end
     end
   end
 
   it "reads bool or null" do
-    JSON::PullParser.new("null").read_bool_or_null.should be_nil
-    JSON::PullParser.new("false").read_bool_or_null.should be_false
+    assert JSON::PullParser.new("null").read_bool_or_null.nil?
+    assert JSON::PullParser.new("false").read_bool_or_null == false
   end
 
   it "reads int or null" do
-    JSON::PullParser.new("null").read_int_or_null.should be_nil
-    JSON::PullParser.new("1").read_int_or_null.should eq(1)
+    assert JSON::PullParser.new("null").read_int_or_null.nil?
+    assert JSON::PullParser.new("1").read_int_or_null == 1
   end
 
   it "reads float or null" do
-    JSON::PullParser.new("null").read_float_or_null.should be_nil
-    JSON::PullParser.new("1.5").read_float_or_null.should eq(1.5)
+    assert JSON::PullParser.new("null").read_float_or_null.nil?
+    assert JSON::PullParser.new("1.5").read_float_or_null == 1.5
   end
 
   it "reads string or null" do
-    JSON::PullParser.new("null").read_string_or_null.should be_nil
-    JSON::PullParser.new(%("hello")).read_string_or_null.should eq("hello")
+    assert JSON::PullParser.new("null").read_string_or_null.nil?
+    assert JSON::PullParser.new(%("hello")).read_string_or_null == "hello"
   end
 
   it "reads array or null" do
@@ -208,7 +208,7 @@ describe JSON::PullParser do
 
     pull = JSON::PullParser.new(%([1]))
     pull.read_array_or_null do
-      pull.read_int.should eq(1)
+      assert pull.read_int == 1
     end
   end
 
@@ -217,8 +217,8 @@ describe JSON::PullParser do
 
     pull = JSON::PullParser.new(%({"foo": 1}))
     pull.read_object_or_null do |key|
-      key.should eq("foo")
-      pull.read_int.should eq(1)
+      assert key == "foo"
+      assert pull.read_int == 1
     end
   end
 
@@ -231,7 +231,7 @@ describe JSON::PullParser do
         bar = pull.read_int
       end
 
-      bar.should eq(2)
+      assert bar == 2
     end
 
     it "finds key" do
@@ -242,7 +242,7 @@ describe JSON::PullParser do
         bar = pull.read_int
       end
 
-      bar.should eq(2)
+      assert bar == 2
     end
 
     it "doesn't find key" do
@@ -253,7 +253,7 @@ describe JSON::PullParser do
         bar = pull.read_int
       end
 
-      bar.should be_nil
+      assert bar.nil?
     end
 
     it "finds key with bang" do
@@ -264,7 +264,7 @@ describe JSON::PullParser do
         bar = pull.read_int
       end
 
-      bar.should eq(2)
+      assert bar == 2
     end
 
     it "doesn't find key with bang" do
@@ -279,15 +279,15 @@ describe JSON::PullParser do
     it "reads float when it is an int" do
       pull = JSON::PullParser.new(%(1))
       f = pull.read_float
-      f.should be_a(Float64)
-      f.should eq(1.0)
+      assert f.is_a?(Float64)
+      assert f == 1.0
     end
 
     ["1", "[1]", %({"x": [1]})].each do |value|
       it "yields all keys when skipping #{value}" do
         pull = JSON::PullParser.new(%({"foo": #{value}, "bar": 2}))
         pull.read_object do |key|
-          key.should_not eq("")
+          assert key != ""
           pull.skip
         end
       end

@@ -13,14 +13,14 @@ describe "Semantic: closure" do
     result = assert_type("x = 1; -> { x }; x") { int32 }
     program = result.program
     var = program.vars["x"]
-    var.closured?.should be_true
+    assert var.closured? == true
   end
 
   it "marks variable as closured in program on assign" do
     result = assert_type("x = 1; -> { x = 1 }; x") { int32 }
     program = result.program
     var = program.vars["x"]
-    var.closured?.should be_true
+    assert var.closured? == true
   end
 
   it "marks variable as closured in def" do
@@ -29,7 +29,7 @@ describe "Semantic: closure" do
     call = node.expressions.last.as(Call)
     target_def = call.target_def
     var = target_def.vars.not_nil!["x"]
-    var.closured?.should be_true
+    assert var.closured? == true
   end
 
   it "marks variable as closured in block" do
@@ -48,7 +48,7 @@ describe "Semantic: closure" do
     call = node.expressions.last.as(Call)
     block = call.block.not_nil!
     var = block.vars.not_nil!["x"]
-    var.closured?.should be_true
+    assert var.closured? == true
   end
 
   it "unifies types of closured var (1)" do
@@ -81,7 +81,7 @@ describe "Semantic: closure" do
       ") { int32 }
     program = result.program
     var = program.vars.not_nil!["a"]
-    var.closured?.should be_true
+    assert var.closured? == true
   end
 
   it "doesn't mark var as closured if only used in block" do
@@ -96,7 +96,7 @@ describe "Semantic: closure" do
       ") { int32 }
     program = result.program
     var = program.vars["x"]
-    var.closured?.should be_false
+    assert var.closured? == false
   end
 
   it "doesn't mark var as closured if only used in two block" do
@@ -116,7 +116,7 @@ describe "Semantic: closure" do
     call = node[1].as(Call)
     block = call.block.not_nil!
     var = block.vars.not_nil!["x"]
-    var.closured?.should be_false
+    assert var.closured? == false
   end
 
   it "doesn't mark self var as closured, but marks method as self closured" do
@@ -134,8 +134,8 @@ describe "Semantic: closure" do
     call = node.expressions[-2].as(Call)
     target_def = call.target_def
     var = target_def.vars.not_nil!["self"]
-    var.closured?.should be_false
-    target_def.self_closured?.should be_true
+    assert var.closured? == false
+    assert target_def.self_closured? == true
   end
 
   it "marks method as self closured if instance var is read" do
@@ -153,7 +153,7 @@ describe "Semantic: closure" do
     ") { int32 }
     node = result.node.as(Expressions)
     call = node.expressions[-2].as(Call)
-    call.target_def.self_closured?.should be_true
+    assert call.target_def.self_closured? == true
   end
 
   it "marks method as self closured if instance var is written" do
@@ -169,7 +169,7 @@ describe "Semantic: closure" do
     ") { int32 }
     node = result.node.as(Expressions)
     call = node.expressions[-2].as(Call)
-    call.target_def.self_closured?.should be_true
+    assert call.target_def.self_closured? == true
   end
 
   it "marks method as self closured if explicit self call is made" do
@@ -188,7 +188,7 @@ describe "Semantic: closure" do
     ") { int32 }
     node = result.node.as(Expressions)
     call = node.expressions[-2].as(Call)
-    call.target_def.self_closured?.should be_true
+    assert call.target_def.self_closured? == true
   end
 
   it "marks method as self closured if implicit self call is made" do
@@ -207,7 +207,7 @@ describe "Semantic: closure" do
     ") { int32 }
     node = result.node.as(Expressions)
     call = node.expressions[-2].as(Call)
-    call.target_def.self_closured?.should be_true
+    assert call.target_def.self_closured? == true
   end
 
   it "marks method as self closured if used inside a block" do
@@ -227,7 +227,7 @@ describe "Semantic: closure" do
     ") { int32 }
     node = result.node.as(Expressions)
     call = node.expressions[-2].as(Call)
-    call.target_def.self_closured?.should be_true
+    assert call.target_def.self_closured? == true
   end
 
   it "errors if sending closured proc literal to C" do
@@ -448,7 +448,7 @@ describe "Semantic: closure" do
       ->{ a = 1; ->{ a } }
       ), inject_primitives: false) { proc_of(proc_of(int32)) }
     fn = result.node.as(ProcLiteral)
-    fn.def.closure?.should be_false
+    assert fn.def.closure? == false
   end
 
   it "marks outer fun inside a block as closured" do
@@ -461,7 +461,7 @@ describe "Semantic: closure" do
       ->{ ->{ foo { a } } }
       )) { proc_of(proc_of(int32)) }
     fn = result.node.as(Expressions).last.as(ProcLiteral)
-    fn.def.closure?.should be_true
+    assert fn.def.closure? == true
   end
 
   it "marks outer fun as closured when using self" do
@@ -476,9 +476,9 @@ describe "Semantic: closure" do
       )) { proc_of(proc_of(types["Foo"])) }
     call = result.node.as(Expressions).last.as(Call)
     a_def = call.target_def
-    a_def.self_closured?.should be_true
+    assert a_def.self_closured? == true
     fn = (a_def.body.as(ProcLiteral))
-    fn.def.closure?.should be_true
+    assert fn.def.closure? == true
   end
 
   it "can use fun typedef as block type" do

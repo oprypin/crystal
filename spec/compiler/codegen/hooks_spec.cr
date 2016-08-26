@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: hooks" do
   it "does inherited macro" do
-    run("
+    assert run("
       class Foo
         macro inherited
           @@x = 1
@@ -17,11 +17,11 @@ describe "Code gen: hooks" do
       end
 
       Bar.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does included macro" do
-    run("
+    assert run("
       module Foo
         macro included
           @@x = 1
@@ -37,11 +37,11 @@ describe "Code gen: hooks" do
       end
 
       Bar.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does extended macro" do
-    run("
+    assert run("
       module Foo
         macro extended
           @@x = 1
@@ -57,11 +57,11 @@ describe "Code gen: hooks" do
       end
 
       Bar.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does added method macro" do
-    run("
+    assert run("
       class Global
         @@x = 0
 
@@ -82,11 +82,11 @@ describe "Code gen: hooks" do
       end
 
       Global.x
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "does inherited macro recursively" do
-    run("
+    assert run("
       class Global
         @@x = 0
 
@@ -111,11 +111,11 @@ describe "Code gen: hooks" do
       end
 
       Global.x
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "does inherited macro before class body" do
-    run("
+    assert run("
       class Global
         @@x = 123
 
@@ -142,6 +142,6 @@ describe "Code gen: hooks" do
       end
 
       Bar.y
-      ").to_i.should eq(123)
+      ").to_i == 123
   end
 end

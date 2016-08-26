@@ -103,61 +103,61 @@ describe Object do
   describe "delegate" do
     it "delegates" do
       wrapper = ObjectSpec::StringWrapper.new("HellO")
-      wrapper.downcase.should eq("hello")
-      wrapper.upcase.should eq("HELLO")
-      wrapper.capitalize.should eq("Hello")
+      assert wrapper.downcase == "hello"
+      assert wrapper.upcase == "HELLO"
+      assert wrapper.capitalize == "Hello"
 
-      wrapper.at(0).should eq('H')
-      wrapper.at(index: 1).should eq('e')
+      assert wrapper.at(0) == 'H'
+      assert wrapper.at(index: 1) == 'e'
 
-      wrapper.at(10) { 20 }.should eq(20)
+      assert wrapper.at(10) { 20 } == 20
 
       matches = [] of String
       wrapper.scan(/l/) do |match|
         matches << match[0]
       end
-      matches.should eq(["l", "l"])
+      assert matches == ["l", "l"]
     end
   end
 
   describe "getter" do
     it "uses simple getter" do
       obj = ObjectSpec::TestObject.new
-      obj.getter1.should eq(1)
-      typeof(obj.@getter1).should eq(Int32)
-      typeof(obj.getter1).should eq(Int32)
+      assert obj.getter1 == 1
+      assert typeof(obj.@getter1) == Int32
+      assert typeof(obj.getter1) == Int32
     end
 
     it "uses getter with type declaration" do
       obj = ObjectSpec::TestObject.new
-      obj.getter2.should eq(2)
-      typeof(obj.@getter2).should eq(Int32)
-      typeof(obj.getter2).should eq(Int32)
+      assert obj.getter2 == 2
+      assert typeof(obj.@getter2) == Int32
+      assert typeof(obj.getter2) == Int32
     end
 
     it "uses getter with type declaration and default value" do
       obj = ObjectSpec::TestObject.new
-      obj.getter3.should eq(3)
-      typeof(obj.@getter3).should eq(Int32)
-      typeof(obj.getter3).should eq(Int32)
+      assert obj.getter3 == 3
+      assert typeof(obj.@getter3) == Int32
+      assert typeof(obj.getter3) == Int32
     end
 
     it "uses getter with assignment" do
       obj = ObjectSpec::TestObject.new
-      obj.getter4.should eq(4)
-      typeof(obj.@getter4).should eq(Int32)
-      typeof(obj.getter4).should eq(Int32)
+      assert obj.getter4 == 4
+      assert typeof(obj.@getter4) == Int32
+      assert typeof(obj.getter4) == Int32
     end
 
     it "defines lazy getter with block" do
       obj = ObjectSpec::TestObject.new
-      obj.getter11.should eq(11)
-      obj.getter12.should eq(12)
+      assert obj.getter11 == 11
+      assert obj.getter12 == 12
       ObjectSpec::TestObject.getter12_value = 24
-      obj.getter12.should eq(12)
+      assert obj.getter12 == 12
 
       obj2 = ObjectSpec::TestObject.new
-      obj2.getter12.should eq(24)
+      assert obj2.getter12 == 24
     end
   end
 
@@ -168,9 +168,9 @@ describe Object do
         obj.getter5
       end
       obj.getter5 = 5
-      obj.getter5.should eq(5)
-      typeof(obj.@getter5).should eq(Int32 | Nil)
-      typeof(obj.getter5).should eq(Int32)
+      assert obj.getter5 == 5
+      assert typeof(obj.@getter5) == Int32 | Nil
+      assert typeof(obj.getter5) == Int32
     end
 
     it "uses getter! with type declaration" do
@@ -179,110 +179,110 @@ describe Object do
         obj.getter6
       end
       obj.getter6 = 6
-      obj.getter6.should eq(6)
-      typeof(obj.@getter6).should eq(Int32 | Nil)
-      typeof(obj.getter6).should eq(Int32)
+      assert obj.getter6 == 6
+      assert typeof(obj.@getter6) == Int32 | Nil
+      assert typeof(obj.getter6) == Int32
     end
   end
 
   describe "getter?" do
     it "uses getter?" do
       obj = ObjectSpec::TestObject.new
-      obj.getter7?.should be_true
-      typeof(obj.@getter7).should eq(Bool)
-      typeof(obj.getter7?).should eq(Bool)
+      assert obj.getter7? == true
+      assert typeof(obj.@getter7) == Bool
+      assert typeof(obj.getter7?) == Bool
     end
 
     it "uses getter? with type declaration" do
       obj = ObjectSpec::TestObject.new
-      obj.getter8?.should be_true
-      typeof(obj.@getter8).should eq(Bool)
-      typeof(obj.getter8?).should eq(Bool)
+      assert obj.getter8? == true
+      assert typeof(obj.@getter8) == Bool
+      assert typeof(obj.getter8?) == Bool
     end
 
     it "uses getter? with type declaration and default value" do
       obj = ObjectSpec::TestObject.new
-      obj.getter9?.should be_true
-      typeof(obj.@getter9).should eq(Bool)
-      typeof(obj.getter9?).should eq(Bool)
+      assert obj.getter9? == true
+      assert typeof(obj.@getter9) == Bool
+      assert typeof(obj.getter9?) == Bool
     end
 
     it "uses getter? with default value" do
       obj = ObjectSpec::TestObject.new
-      obj.getter10?.should be_true
-      typeof(obj.@getter10).should eq(Bool)
-      typeof(obj.getter10?).should eq(Bool)
+      assert obj.getter10? == true
+      assert typeof(obj.@getter10) == Bool
+      assert typeof(obj.getter10?) == Bool
     end
   end
 
   describe "setter" do
     it "uses setter" do
       obj = ObjectSpec::TestObject.new
-      obj.setter1.should eq(1)
+      assert obj.setter1 == 1
       obj.setter1 = 2
-      obj.setter1.should eq(2)
+      assert obj.setter1 == 2
     end
 
     it "uses setter with type declaration" do
       obj = ObjectSpec::TestObject.new
-      obj.setter2.should eq(2)
+      assert obj.setter2 == 2
       obj.setter2 = 3
-      obj.setter2.should eq(3)
+      assert obj.setter2 == 3
     end
 
     it "uses setter with type declaration and default value" do
       obj = ObjectSpec::TestObject.new
-      obj.setter3.should eq(3)
+      assert obj.setter3 == 3
       obj.setter3 = 4
-      obj.setter3.should eq(4)
+      assert obj.setter3 == 4
     end
 
     it "uses setter with default value" do
       obj = ObjectSpec::TestObject.new
-      obj.setter4.should eq(4)
+      assert obj.setter4 == 4
       obj.setter4 = 5
-      obj.setter4.should eq(5)
+      assert obj.setter4 == 5
     end
   end
 
   describe "property" do
     it "uses property" do
       obj = ObjectSpec::TestObject.new
-      obj.property1.should eq(1)
+      assert obj.property1 == 1
       obj.property1 = 2
-      obj.property1.should eq(2)
+      assert obj.property1 == 2
     end
 
     it "uses property with type declaration" do
       obj = ObjectSpec::TestObject.new
-      obj.property2.should eq(2)
+      assert obj.property2 == 2
       obj.property2 = 3
-      obj.property2.should eq(3)
+      assert obj.property2 == 3
     end
 
     it "uses property with type declaration and default value" do
       obj = ObjectSpec::TestObject.new
-      obj.property3.should eq(3)
+      assert obj.property3 == 3
       obj.property3 = 4
-      obj.property3.should eq(4)
+      assert obj.property3 == 4
     end
 
     it "uses property with default value" do
       obj = ObjectSpec::TestObject.new
-      obj.property4.should eq(4)
+      assert obj.property4 == 4
       obj.property4 = 5
-      obj.property4.should eq(5)
+      assert obj.property4 == 5
     end
 
     it "defines lazy property with block" do
       obj = ObjectSpec::TestObject.new
-      obj.property11.should eq(11)
+      assert obj.property11 == 11
       obj.property11 = 12
-      obj.property11.should eq(12)
+      assert obj.property11 == 12
 
-      obj.property12.should eq(12)
+      assert obj.property12 == 12
       obj.property12 = 13
-      obj.property12.should eq(13)
+      assert obj.property12 == 13
     end
   end
 
@@ -293,7 +293,7 @@ describe Object do
         obj.property5
       end
       obj.property5 = 5
-      obj.property5.should eq(5)
+      assert obj.property5 == 5
     end
 
     it "uses property! with type declaration" do
@@ -302,37 +302,37 @@ describe Object do
         obj.property6
       end
       obj.property6 = 6
-      obj.property6.should eq(6)
+      assert obj.property6 == 6
     end
   end
 
   describe "property?" do
     it "uses property?" do
       obj = ObjectSpec::TestObject.new
-      obj.property7?.should be_true
+      assert obj.property7? == true
       obj.property7 = false
-      obj.property7?.should be_false
+      assert obj.property7? == false
     end
 
     it "uses property? with type declaration" do
       obj = ObjectSpec::TestObject.new
-      obj.property8?.should be_true
+      assert obj.property8? == true
       obj.property8 = false
-      obj.property8?.should be_false
+      assert obj.property8? == false
     end
 
     it "uses property? with type declaration and default value" do
       obj = ObjectSpec::TestObject.new
-      obj.property9?.should be_true
+      assert obj.property9? == true
       obj.property9 = false
-      obj.property9?.should be_false
+      assert obj.property9? == false
     end
 
     it "uses property? with default value" do
       obj = ObjectSpec::TestObject.new
-      obj.property10?.should be_true
+      assert obj.property10? == true
       obj.property10 = false
-      obj.property10?.should be_false
+      assert obj.property10? == false
     end
   end
 end

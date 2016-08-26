@@ -83,39 +83,39 @@ end
 describe "YAML mapping" do
   it "parses person" do
     person = YAMLPerson.from_yaml("---\nname: John\nage: 30\n")
-    person.should be_a(YAMLPerson)
-    person.name.should eq("John")
-    person.age.should eq(30)
+    assert person.is_a?(YAMLPerson)
+    assert person.name == "John"
+    assert person.age == 30
   end
 
   it "parses person without age" do
     person = YAMLPerson.from_yaml("---\nname: John\n")
-    person.should be_a(YAMLPerson)
-    person.name.should eq("John")
-    person.name.size.should eq(4) # This verifies that name is not nilable
-    person.age.should be_nil
+    assert person.is_a?(YAMLPerson)
+    assert person.name == "John"
+    assert person.name.size == 4 # This verifies that name is not nilable
+    assert person.age.nil?
   end
 
   it "parses person with blank age" do
     person = YAMLPerson.from_yaml("---\nname: John\nage:\n")
-    person.should be_a(YAMLPerson)
-    person.name.should eq("John")
-    person.name.size.should eq(4) # This verifies that name is not nilable
-    person.age.should be_nil
+    assert person.is_a?(YAMLPerson)
+    assert person.name == "John"
+    assert person.name.size == 4 # This verifies that name is not nilable
+    assert person.age.nil?
   end
 
   it "parses array of people" do
     people = Array(YAMLPerson).from_yaml("---\n- name: John\n- name: Doe\n")
-    people.size.should eq(2)
-    people[0].name.should eq("John")
-    people[1].name.should eq("Doe")
+    assert people.size == 2
+    assert people[0].name == "John"
+    assert people[1].name == "Doe"
   end
 
   it "parses person with unknown attributes" do
     person = YAMLPerson.from_yaml("---\nname: John\nunknown: [1, 2, 3]\nage: 30\n")
-    person.should be_a(YAMLPerson)
-    person.name.should eq("John")
-    person.age.should eq(30)
+    assert person.is_a?(YAMLPerson)
+    assert person.name == "John"
+    assert person.age == 30
   end
 
   it "parses strict person with unknown attributes" do
@@ -132,48 +132,48 @@ describe "YAML mapping" do
 
   it "doesn't raises on false value when not-nil" do
     yaml = YAMLWithBool.from_yaml("---\nvalue: false\n")
-    yaml.value.should be_false
+    assert yaml.value == false
   end
 
   it "parses yaml with Time::Format converter" do
     yaml = YAMLWithTime.from_yaml("---\nvalue: 2014-10-31 23:37:16\n")
-    yaml.value.should eq(Time.new(2014, 10, 31, 23, 37, 16))
+    assert yaml.value == Time.new(2014, 10, 31, 23, 37, 16)
   end
 
   it "parses YAML with mapping key named 'key'" do
     yaml = YAMLWithKey.from_yaml("---\nkey: foo\nvalue: 1\npull: 2")
-    yaml.key.should eq("foo")
-    yaml.value.should eq(1)
-    yaml.pull.should eq(2)
+    assert yaml.key == "foo"
+    assert yaml.value == 1
+    assert yaml.pull == 2
   end
 
   it "allows small types of integer" do
     yaml = YAMLWithSmallIntegers.from_yaml(%({"foo": 21, "bar": 7}))
 
-    yaml.foo.should eq(21)
-    typeof(yaml.foo).should eq(Int16)
+    assert yaml.foo == 21
+    assert typeof(yaml.foo) == Int16
 
-    yaml.bar.should eq(7)
-    typeof(yaml.bar).should eq(Int8)
+    assert yaml.bar == 7
+    assert typeof(yaml.bar) == Int8
   end
 
   describe "parses YAML with defaults" do
     it "mixed" do
       json = YAMLWithDefaults.from_yaml(%({"a":1,"b":"bla"}))
-      json.a.should eq 1
-      json.b.should eq "bla"
+      assert json.a == 1
+      assert json.b == "bla"
 
       json = YAMLWithDefaults.from_yaml(%({"a":1}))
-      json.a.should eq 1
-      json.b.should eq "Haha"
+      assert json.a == 1
+      assert json.b == "Haha"
 
       json = YAMLWithDefaults.from_yaml(%({"b":"bla"}))
-      json.a.should eq 11
-      json.b.should eq "bla"
+      assert json.a == 11
+      assert json.b == "bla"
 
       json = YAMLWithDefaults.from_yaml(%({}))
-      json.a.should eq 11
-      json.b.should eq "Haha"
+      assert json.a == 11
+      assert json.b == "Haha"
 
       # There's no "null" in YAML? Maybe we should support this eventually
       # json = YAMLWithDefaults.from_yaml(%({"a":null,"b":null}))
@@ -183,79 +183,79 @@ describe "YAML mapping" do
 
     it "bool" do
       json = YAMLWithDefaults.from_yaml(%({}))
-      json.c.should eq true
-      typeof(json.c).should eq Bool
-      json.d.should eq false
-      typeof(json.d).should eq Bool
+      assert json.c == true
+      assert typeof(json.c) == Bool
+      assert json.d == false
+      assert typeof(json.d) == Bool
 
       json = YAMLWithDefaults.from_yaml(%({"c":false}))
-      json.c.should eq false
+      assert json.c == false
       json = YAMLWithDefaults.from_yaml(%({"c":true}))
-      json.c.should eq true
+      assert json.c == true
 
       json = YAMLWithDefaults.from_yaml(%({"d":false}))
-      json.d.should eq false
+      assert json.d == false
       json = YAMLWithDefaults.from_yaml(%({"d":true}))
-      json.d.should eq true
+      assert json.d == true
     end
 
     it "with nilable" do
       json = YAMLWithDefaults.from_yaml(%({}))
 
-      json.e.should eq false
-      typeof(json.e).should eq(Bool | Nil)
+      assert json.e == false
+      assert typeof(json.e) == Bool | Nil
 
-      json.f.should eq 1
-      typeof(json.f).should eq(Int32 | Nil)
+      assert json.f == 1
+      assert typeof(json.f) == Int32 | Nil
 
-      json.g.should eq nil
-      typeof(json.g).should eq(Int32 | Nil)
+      assert json.g == nil
+      assert typeof(json.g) == Int32 | Nil
 
       json = YAMLWithDefaults.from_yaml(%({"e":false}))
-      json.e.should eq false
+      assert json.e == false
       json = YAMLWithDefaults.from_yaml(%({"e":true}))
-      json.e.should eq true
+      assert json.e == true
 
       json = YAMLWithDefaults.from_yaml(%({}))
-      json.i.should be_nil
+      assert json.i.nil?
 
       json = YAMLWithDefaults.from_yaml(%({"i":"bla"}))
-      json.i.should eq("bla")
+      assert json.i == "bla"
     end
 
     it "create new array every time" do
       json = YAMLWithDefaults.from_yaml(%({}))
-      json.h.should eq [1, 2, 3]
+      assert json.h == [1, 2, 3]
       json.h << 4
-      json.h.should eq [1, 2, 3, 4]
+      assert json.h == [1, 2, 3, 4]
 
       json = YAMLWithDefaults.from_yaml(%({}))
-      json.h.should eq [1, 2, 3]
+      assert json.h == [1, 2, 3]
     end
   end
 
   it "parses YAML with any" do
     yaml = YAMLWithAny.from_yaml("obj: hello")
-    yaml.obj.as_s.should eq("hello")
+    assert yaml.obj.as_s == "hello"
 
     yaml = YAMLWithAny.from_yaml({:obj => %w(foo bar)}.to_yaml)
-    yaml.obj[1].as_s.should eq("bar")
+    assert yaml.obj[1].as_s == "bar"
 
     yaml = YAMLWithAny.from_yaml({:obj => {:foo => :bar}}.to_yaml)
-    yaml.obj["foo"].as_s.should eq("bar")
+    assert yaml.obj["foo"].as_s == "bar"
   end
 
   it "uses Time::EpochConverter" do
     string = %({"value":1459859781})
     yaml = YAMLWithTimeEpoch.from_yaml(string)
-    yaml.value.should be_a(Time)
-    yaml.value.should eq(Time.epoch(1459859781))
+    assert yaml.value.is_a?(Time)
+    assert yaml.value == Time.epoch(1459859781)
   end
 
   it "uses Time::EpochMillisConverter" do
     string = %({"value":1459860483856})
     yaml = YAMLWithTimeEpochMillis.from_yaml(string)
-    yaml.value.should be_a(Time)
-    yaml.value.should eq(Time.epoch_ms(1459860483856))
+    assert yaml.value.is_a?(Time)
+    assert yaml.value == Time.epoch_ms(1459860483856)
   end
 end

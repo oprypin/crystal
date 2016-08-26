@@ -108,7 +108,7 @@ describe "Semantic: virtual" do
       ")
     result = semantic nodes
     mod, nodes = result.program, result.node.as(Expressions)
-    nodes.last.as(Call).target_defs.not_nil!.size.should eq(1)
+    assert nodes.last.as(Call).target_defs.not_nil!.size == 1
   end
 
   it "dispatches virtual method with overload" do
@@ -131,7 +131,7 @@ describe "Semantic: virtual" do
       ")
     result = semantic nodes
     mod, nodes = result.program, result.node.as(Expressions)
-    nodes.last.as(Call).target_defs.not_nil!.size.should eq(2)
+    assert nodes.last.as(Call).target_defs.not_nil!.size == 2
   end
 
   it "works with restriction alpha" do
@@ -202,10 +202,10 @@ describe "Semantic: virtual" do
     mod = result.program
 
     var = mod.types["Var"].as(InstanceVarContainer)
-    var.instance_vars.size.should eq(0)
+    assert var.instance_vars.size == 0
 
     base = mod.types["Base"].as(InstanceVarContainer)
-    base.instance_vars["@x"].type.should eq(mod.nilable(mod.int32))
+    assert base.instance_vars["@x"].type == mod.nilable(mod.int32)
   end
 
   it "types inspect" do

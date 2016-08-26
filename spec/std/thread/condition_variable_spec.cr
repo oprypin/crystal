@@ -73,10 +73,10 @@ describe Thread::ConditionVariable do
       end
     end
 
-    a.should eq(0)
+    assert a == 0
     3.times do |i|
       m.synchronize { cv1.signal; cv2.wait(m) }
-      a.should eq(i + 1)
+      assert a == i + 1
     end
 
     thread.join

@@ -8,64 +8,64 @@ describe "ENV" do
   end
 
   it "gets non existent key as nilable" do
-    ENV["NON-EXISTENT"]?.should be_nil
+    assert ENV["NON-EXISTENT"]?.nil?
   end
 
   it "set and gets" do
-    (ENV["FOO"] = "1").should eq("1")
-    ENV["FOO"].should eq("1")
-    ENV["FOO"]?.should eq("1")
+    assert (ENV["FOO"] = "1") == "1"
+    assert ENV["FOO"] == "1"
+    assert ENV["FOO"]? == "1"
   end
 
   it "sets to nil (same as delete)" do
     ENV["FOO"] = "1"
-    ENV["FOO"]?.should_not be_nil
+    assert ENV["FOO"]?
     ENV["FOO"] = nil
-    ENV["FOO"]?.should be_nil
+    assert ENV["FOO"]?.nil?
   end
 
   it "does has_key?" do
     ENV["FOO"] = "1"
-    ENV.has_key?("BAR").should be_false
-    ENV.has_key?("FOO").should be_true
+    assert ENV.has_key?("BAR") == false
+    assert ENV.has_key?("FOO") == true
   end
 
   it "deletes a key" do
     ENV["FOO"] = "1"
-    ENV.delete("FOO").should eq("1")
-    ENV.delete("FOO").should be_nil
-    ENV.has_key?("FOO").should be_false
+    assert ENV.delete("FOO") == "1"
+    assert ENV.delete("FOO").nil?
+    assert ENV.has_key?("FOO") == false
   end
 
   it "does .keys" do
-    %w(FOO BAR).each { |k| ENV.keys.should_not contain(k) }
+    %w(FOO BAR).each { |k| assert !ENV.keys.includes?(k) }
     ENV["FOO"] = ENV["BAR"] = "1"
-    %w(FOO BAR).each { |k| ENV.keys.should contain(k) }
+    %w(FOO BAR).each { |k| assert ENV.keys.includes?(k) }
   end
 
   it "does .values" do
-    [1, 2].each { |i| ENV.values.should_not contain("SOMEVALUE_#{i}") }
+    [1, 2].each { |i| assert !ENV.values.includes?("SOMEVALUE_#{i}") }
     ENV["FOO"] = "SOMEVALUE_1"
     ENV["BAR"] = "SOMEVALUE_2"
-    [1, 2].each { |i| ENV.values.should contain("SOMEVALUE_#{i}") }
+    [1, 2].each { |i| assert ENV.values.includes?("SOMEVALUE_#{i}") }
   end
 
   describe "fetch" do
     it "fetches with one argument" do
       ENV["1"] = "2"
-      ENV.fetch("1").should eq("2")
+      assert ENV.fetch("1") == "2"
     end
 
     it "fetches with default value" do
       ENV["1"] = "2"
-      ENV.fetch("1", "3").should eq("2")
-      ENV.fetch("2", "3").should eq("3")
+      assert ENV.fetch("1", "3") == "2"
+      assert ENV.fetch("2", "3") == "3"
     end
 
     it "fetches with block" do
       ENV["1"] = "2"
-      ENV.fetch("1") { |k| k + "block" }.should eq("2")
-      ENV.fetch("2") { |k| k + "block" }.should eq("2block")
+      assert ENV.fetch("1") { |k| k + "block" } == "2"
+      assert ENV.fetch("2") { |k| k + "block" } == "2block"
     end
 
     it "fetches and raises" do

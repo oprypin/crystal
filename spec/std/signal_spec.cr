@@ -16,7 +16,7 @@ describe "Signal" do
       break if ran
       sleep 0.1
     end
-    ran.should be_true
+    assert ran == true
   end
 
   it "ignores a signal" do

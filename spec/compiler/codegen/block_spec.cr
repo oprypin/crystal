@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: block" do
   it "generate inline" do
-    run("
+    assert run("
       def foo
         yield
       end
@@ -10,11 +10,11 @@ describe "Code gen: block" do
       foo do
         1
       end
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "passes yield arguments" do
-    run("
+    assert run("
       def foo
         yield 1
       end
@@ -22,11 +22,11 @@ describe "Code gen: block" do
       foo do |x|
         x + 1
       end
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "pass arguments to yielder function" do
-    run("
+    assert run("
       def foo(a)
         yield a
       end
@@ -34,11 +34,11 @@ describe "Code gen: block" do
       foo(3) do |x|
         x + 1
       end
-    ").to_i.should eq(4)
+    ").to_i == 4
   end
 
   it "pass self to yielder function" do
-    run("
+    assert run("
       struct Int
         def foo
           yield self
@@ -48,11 +48,11 @@ describe "Code gen: block" do
       3.foo do |x|
         x + 1
       end
-    ").to_i.should eq(4)
+    ").to_i == 4
   end
 
   it "pass self and arguments to yielder function" do
-    run("
+    assert run("
       struct Int
         def foo(i)
           yield self, i
@@ -62,11 +62,11 @@ describe "Code gen: block" do
       3.foo(2) do |x, i|
         x + i
       end
-    ").to_i.should eq(5)
+    ").to_i == 5
   end
 
   it "allows access to local variables" do
-    run("
+    assert run("
       def foo
         yield
       end
@@ -75,11 +75,11 @@ describe "Code gen: block" do
       foo do
         x + 1
       end
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "can access instance vars from yielder function" do
-    run("
+    assert run("
       class Foo
         def initialize
           @x = 1
@@ -92,11 +92,11 @@ describe "Code gen: block" do
       Foo.new.foo do |x|
         x + 1
       end
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "can set instance vars from yielder function" do
-    run("
+    assert run("
       class Foo
         def initialize
           @x = 1
@@ -113,11 +113,11 @@ describe "Code gen: block" do
       a = Foo.new
       a.foo { 2 }
       a.value
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "can use instance methods from yielder function" do
-    run("
+    assert run("
       class Foo
         def foo
           yield value
@@ -128,11 +128,11 @@ describe "Code gen: block" do
       end
 
       Foo.new.foo { |x| x + 1 }
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "can call methods from block when yielder is an instance method" do
-    run("
+    assert run("
       class Foo
         def foo
           yield
@@ -144,11 +144,11 @@ describe "Code gen: block" do
       end
 
       Foo.new.foo { bar }
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "nested yields" do
-    run("
+    assert run("
       def bar
         yield
       end
@@ -158,33 +158,33 @@ describe "Code gen: block" do
       end
 
       a = foo { 1 }
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "assigns yield to argument" do
-    run("
+    assert run("
       def foo(x)
         yield
         x = 1
       end
 
       foo(1) { 1 }
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "can use global constant" do
-    run("
+    assert run("
       FOO = 1
       def foo
         yield
         FOO
       end
       foo { }
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "return from yielder function" do
-    run("
+    assert run("
       def foo
         yield
         return 1
@@ -192,11 +192,11 @@ describe "Code gen: block" do
 
       foo { }
       2
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "return from block" do
-    run("
+    assert run("
       def foo
         yield
       end
@@ -207,11 +207,11 @@ describe "Code gen: block" do
       end
 
       bar
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "return from yielder function (2)" do
-    run("
+    assert run("
       def foo
         yield
         return 1 if true
@@ -223,11 +223,11 @@ describe "Code gen: block" do
       end
 
       bar
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "union value of yielder function" do
-    run("
+    assert run("
       def foo
         yield
         a = 1.1
@@ -236,11 +236,11 @@ describe "Code gen: block" do
       end
 
       foo {}.to_i
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "allow return from function called from yielder function" do
-    run("
+    assert run("
       def foo
         return 2
       end
@@ -252,22 +252,22 @@ describe "Code gen: block" do
       end
 
       bar {}
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "" do
-    run("
+    assert run("
       def foo
         yield
         true ? return 1 : return 1.1
       end
 
       foo {}.to_i
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "return from block that always returns from function that always yields inside if block" do
-    run("
+    assert run("
       def bar
         yield
         2
@@ -282,11 +282,11 @@ describe "Code gen: block" do
       end
 
       foo
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "return from block that always returns from function that conditionally yields" do
-    run("
+    assert run("
       def bar
         if true
           yield
@@ -299,11 +299,11 @@ describe "Code gen: block" do
       end
 
       foo
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "call block from dispatch" do
-    run("
+    assert run("
       def bar(y)
         yield y
       end
@@ -315,11 +315,11 @@ describe "Code gen: block" do
       end
 
       foo.to_i
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "call block from dispatch and use local vars" do
-    run("
+    assert run("
       def bar(y)
         yield y
       end
@@ -336,11 +336,11 @@ describe "Code gen: block" do
       end
 
       foo.to_i
-    ").to_i.should eq(4)
+    ").to_i == 4
   end
 
   it "break without value returns nil" do
-    run("
+    assert run("
       require \"nil\"
       require \"value\"
 
@@ -354,11 +354,11 @@ describe "Code gen: block" do
       end
 
       x.nil?
-    ").to_b.should be_true
+    ").to_b == true
   end
 
   it "break block with yielder inside while" do
-    run("
+    assert run("
       require \"prelude\"
       a = 0
       10.times do
@@ -366,11 +366,11 @@ describe "Code gen: block" do
         break if a > 5
       end
       a
-    ").to_i.should eq(6)
+    ").to_i == 6
   end
 
   it "break from block returns from yielder" do
-    run("
+    assert run("
       def foo
         yield
         yield
@@ -379,11 +379,11 @@ describe "Code gen: block" do
       a = 0
       foo { a += 1; break }
       a
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "break from block with value" do
-    run("
+    assert run("
       def foo
         while true
           yield
@@ -394,11 +394,11 @@ describe "Code gen: block" do
       foo do
         break 1
       end
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "returns from block with value" do
-    run("
+    assert run("
       require \"prelude\"
 
       def foo
@@ -415,11 +415,11 @@ describe "Code gen: block" do
       end
 
       bar.to_i
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "doesn't codegen after while that always yields and breaks" do
-    run("
+    assert run("
       def foo
         while true
           yield
@@ -430,18 +430,18 @@ describe "Code gen: block" do
       foo do
         break 2
       end
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "break from block with value" do
-    run("
+    assert run("
       require \"prelude\"
       10.times { break 20 }
-    ").to_i.should eq(20)
+    ").to_i == 20
   end
 
   it "doesn't codegen call if arg yields and always breaks" do
-    run("
+    assert run("
       require \"nil\"
 
       def foo
@@ -449,11 +449,11 @@ describe "Code gen: block" do
       end
 
       foo { break 2 }.to_i
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "codegens nested return" do
-    run("
+    assert run("
       def bar
         yield
         a = 1
@@ -468,11 +468,11 @@ describe "Code gen: block" do
       end
 
       z
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "codegens nested break" do
-    run("
+    assert run("
       def bar
         yield
         a = 1
@@ -483,11 +483,11 @@ describe "Code gen: block" do
       end
 
       foo { break 2 }
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "codegens call with block with call with arg that yields" do
-    run("
+    assert run("
       def bar
         yield
         a = 2
@@ -498,11 +498,11 @@ describe "Code gen: block" do
       end
 
       foo { break 3 }
-    ").to_i.should eq(3)
+    ").to_i == 3
   end
 
   it "can break without value from yielder that returns nilable (1)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       def foo
@@ -515,11 +515,11 @@ describe "Code gen: block" do
       end
 
       a.nil?
-    )).to_b.should be_true
+    )).to_b == true
   end
 
   it "can break without value from yielder that returns nilable (2)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       def foo
@@ -532,11 +532,11 @@ describe "Code gen: block" do
       end
 
       a.nil?
-    )).to_b.should be_true
+    )).to_b == true
   end
 
   it "break with value from yielder that returns a nilable" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       def foo
@@ -550,11 +550,11 @@ describe "Code gen: block" do
       end
 
       a.nil?
-    )).to_b.should be_false
+    )).to_b == false
   end
 
   it "can use self inside a block called from dispatch" do
-    run("
+    assert run("
       struct Nil; def to_i; 0; end; end
 
       class Foo
@@ -584,11 +584,11 @@ describe "Code gen: block" do
 
       123.foo
       Global.x.to_i
-    ").to_i.should eq(123)
+    ").to_i == 123
   end
 
   it "return from block called from dispatch" do
-    run("
+    assert run("
       class Foo
         def do; yield; end
       end
@@ -603,11 +603,11 @@ describe "Code gen: block" do
       end
 
       foo
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "breaks from while in function called from block" do
-    run("
+    assert run("
       def foo
         yield
       end
@@ -622,21 +622,21 @@ describe "Code gen: block" do
       foo do
         bar
       end
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "allows modifying yielded value (with literal)" do
-    run("
+    assert run("
       def foo
         yield 1
       end
 
       foo { |x| x = 2; x }
-    ").to_i.should eq(2)
+    ").to_i == 2
   end
 
   it "allows modifying yielded value (with variable)" do
-    run("
+    assert run("
       def foo
         a = 1
         yield a
@@ -644,7 +644,7 @@ describe "Code gen: block" do
       end
 
       foo { |x| x = 2; x }
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "it yields nil from another call" do
@@ -667,7 +667,7 @@ describe "Code gen: block" do
   end
 
   it "allows yield from dispatch call" do
-    run("
+    assert run("
       def foo(x : Value)
         yield 1
       end
@@ -686,7 +686,7 @@ describe "Code gen: block" do
       x = 0
       bar { |i| x = i }
       x
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "block with nilable type" do
@@ -731,7 +731,7 @@ describe "Code gen: block" do
   end
 
   it "codegens block with nilable type with return (1)" do
-    run("
+    assert run("
       def foo
         if yield
           return Reference.new
@@ -740,11 +740,11 @@ describe "Code gen: block" do
       end
 
       foo { false }.nil?
-      ").to_b.should be_true
+      ").to_b == true
   end
 
   it "codegens block with nilable type with return (2)" do
-    run("
+    assert run("
       def foo
         if yield
           return nil
@@ -753,7 +753,7 @@ describe "Code gen: block" do
       end
 
       foo { false }.nil?
-      ").to_b.should be_false
+      ").to_b == false
   end
 
   it "codegens block with union with return" do
@@ -772,7 +772,7 @@ describe "Code gen: block" do
   end
 
   it "codegens if with call with block (ssa issue)" do
-    run("
+    assert run("
       def bar
         yield
       end
@@ -788,11 +788,11 @@ describe "Code gen: block" do
       end
 
       foo
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "codegens block with return and yield and no return" do
-    run("
+    assert run("
       lib LibC
         fun exit : NoReturn
       end
@@ -809,11 +809,11 @@ describe "Code gen: block" do
       end
 
       foo 1
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens while/break inside block" do
-    run("
+    assert run("
       def foo
         yield
       end
@@ -824,21 +824,21 @@ describe "Code gen: block" do
         end
         1
       end
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "codegens block with union arg (1)" do
-    run("
+    assert run("
       def foo
         yield 1 || 1.5
       end
 
       foo { |x| x }.to_i
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens block with union arg (2)" do
-    run("
+    assert run("
       struct Number
         def abs
           self
@@ -859,11 +859,11 @@ describe "Code gen: block" do
       a.each do |x|
         x.abs
       end.to_i
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens block with virtual type arg" do
-    run("
+    assert run("
       class Var(T)
         def initialize(x : T)
           @x = x
@@ -890,22 +890,22 @@ describe "Code gen: block" do
       a.each do |x|
         x.bar
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens call with blocks of different type without args" do
-    run("
+    assert run("
       def foo
         yield
       end
 
       foo { 1.1 }
       foo { 1 }
-    ").to_i.should eq(1)
+    ").to_i == 1
   end
 
   it "codegens dispatch with block and break (1)" do
-    run("
+    assert run("
       class Foo(T)
         def initialize(@x : T)
         end
@@ -922,11 +922,11 @@ describe "Code gen: block" do
         n += x
       end
       n.to_i
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens dispatch with block and break (2)" do
-    run("
+    assert run("
       require \"prelude\"
 
       a = [1, 2, 3] || [1.5]
@@ -936,7 +936,7 @@ describe "Code gen: block" do
         n += x
       end
       n.to_i
-      ").to_i.should eq(3)
+      ").to_i == 3
   end
 
   it "codegens block call when argument type changes" do
@@ -968,7 +968,7 @@ describe "Code gen: block" do
   end
 
   it "executes yield expression if no arg is given for block" do
-    run("
+    assert run("
       def foo
         a = 1
         yield (a = 2)
@@ -976,11 +976,11 @@ describe "Code gen: block" do
       end
 
       foo { }
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens bug with block and arg and var" do
-    run("
+    assert run("
       def foo
         yield 1
       end
@@ -991,11 +991,11 @@ describe "Code gen: block" do
         a = 'A'
         a.ord
       end
-      ").to_i.should eq(65)
+      ").to_i == 65
   end
 
   it "allows using var as block arg with outer var" do
-    run("
+    assert run("
       def foo
         yield 'a'
       end
@@ -1003,11 +1003,11 @@ describe "Code gen: block" do
       a = foo do |a|
         1
       end
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "allows initialize with yield (#224)" do
-    run(%(
+    assert run(%(
       class Foo
         @x : Int32
 
@@ -1024,11 +1024,11 @@ describe "Code gen: block" do
         a + 1
       end
       foo.x
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "uses block inside array literal (bug)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       def foo
@@ -1037,7 +1037,7 @@ describe "Code gen: block" do
 
       ary = [foo { |x| x.abs }]
       ary[0]
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens method invocation on a object of a captured block with a type that was never instantiated" do
@@ -1101,7 +1101,7 @@ describe "Code gen: block" do
   end
 
   it "codegens bug with yield not_nil! that is never not nil" do
-    run(%(
+    assert run(%(
       lib LibC
         fun exit(Int32) : NoReturn
       end
@@ -1140,11 +1140,11 @@ describe "Code gen: block" do
       end
 
       extra.to_i
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "uses block var with same name as local var" do
-    run(%(
+    assert run(%(
       def foo
         yield "hello"
       end
@@ -1154,11 +1154,11 @@ describe "Code gen: block" do
         a
       end
       a
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "doesn't crash on untyped array to_s" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       class Bar(T)
@@ -1173,11 +1173,11 @@ describe "Code gen: block" do
       end
 
       Foo(Int32).new.foo { |k| k + 1 }.to_s
-      )).to_string.should eq("[]")
+      )).to_string == "[]"
   end
 
   it "codegens block which always breaks but never enters (#494)" do
-    run(%(
+    assert run(%(
       def foo
         while 1 == 2
           yield
@@ -1188,11 +1188,11 @@ describe "Code gen: block" do
       foo do
         break 10
       end
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "codegens block bug with conditional next and unconditional break (1)" do
-    run(%(
+    assert run(%(
       def foo
         yield 1
         yield 2
@@ -1206,11 +1206,11 @@ describe "Code gen: block" do
         break
       end
       a
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "codegens block bug with conditional next and unconditional break (2)" do
-    run(%(
+    assert run(%(
       def foo
         yield 1
         yield 2
@@ -1224,11 +1224,11 @@ describe "Code gen: block" do
         break
       end
       a
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "codegens block bug with conditional next and unconditional break (3)" do
-    run(%(
+    assert run(%(
       class Global
         @@x = 0
 
@@ -1252,11 +1252,11 @@ describe "Code gen: block" do
         break 0
       end
       Global.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens block bug with conditional next and unconditional break (4)" do
-    run(%(
+    assert run(%(
       class Global
         @@x = 0
 
@@ -1281,11 +1281,11 @@ describe "Code gen: block" do
         break 0
       end
       Global.x
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "returns from proc literal" do
-    run(%(
+    assert run(%(
       foo = ->{
         if 1 == 1
           return 10
@@ -1295,11 +1295,11 @@ describe "Code gen: block" do
       }
 
       foo.call
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "does next from captured block" do
-    run(%(
+    assert run(%(
       def foo(&block : -> T)
         block
       end
@@ -1313,11 +1313,11 @@ describe "Code gen: block" do
       end
 
       f.call
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "codegens captured block with next inside yielded block (#2097)" do
-    run(%(
+    assert run(%(
       def foo
         yield
       end
@@ -1332,11 +1332,11 @@ describe "Code gen: block" do
         end
         block.call
       end
-      )).to_i.should eq(123)
+      )).to_i == 123
   end
 
   it "codegens captured block that returns union, but proc only returns a single type" do
-    run(%(
+    assert run(%(
       def run_callbacks(&block : -> Int32 | String)
         block.call
       end
@@ -1347,11 +1347,11 @@ describe "Code gen: block" do
       else
         "oops"
       end
-      )).to_string.should eq("foo")
+      )).to_string == "foo"
   end
 
   it "yields inside yield (#682)" do
-    run(%(
+    assert run(%(
       def foo
         yield(1, (yield 3))
       end
@@ -1361,11 +1361,11 @@ describe "Code gen: block" do
         a += x
       end
       a
-      )).to_i.should eq(4)
+      )).to_i == 4
   end
 
   it "yields splat" do
-    run(%(
+    assert run(%(
       def foo
         tup = {1, 2, 3}
         yield *tup
@@ -1374,11 +1374,11 @@ describe "Code gen: block" do
       foo do |x, y, z|
         x + y + z
       end
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "yields more exps than block arg, through splat" do
-    run(%(
+    assert run(%(
       def foo
         yield *{1, 2}
       end
@@ -1386,11 +1386,11 @@ describe "Code gen: block" do
       foo do |x|
         x
       end
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "uses splat in block argument" do
-    run(%(
+    assert run(%(
       def foo
         yield 1, 2, 3
       end
@@ -1398,11 +1398,11 @@ describe "Code gen: block" do
       foo do |*args|
         args[0] + args[1] + args[2]
       end
-      )).to_i.should eq(6)
+      )).to_i == 6
   end
 
   it "uses splat in block argument, many args" do
-    run(%(
+    assert run(%(
       def foo
         yield 1, 2, 3, 4, 5, 6
       end
@@ -1410,11 +1410,11 @@ describe "Code gen: block" do
       foo do |x, y, *z, w|
         ((((x + y) * z[0]) - z[1]) * z[2]) - w
       end
-      )).to_i.should eq(((((1 + 2) * 3) - 4) * 5) - 6)
+      )).to_i == ((((1 + 2) * 3) - 4) * 5) - 6
   end
 
   it "uses block splat argument with union types" do
-    run(%(
+    assert run(%(
       def foo
         yield 1
         yield 2.5
@@ -1425,11 +1425,11 @@ describe "Code gen: block" do
         total += args[0].to_i
       end
       total
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "auto-unpacks tuple" do
-    run(%(
+    assert run(%(
       def foo
         tup = {1, 2, 4}
         yield tup
@@ -1438,11 +1438,11 @@ describe "Code gen: block" do
       foo do |x, y, z|
         (x + y) * z
       end
-      )).to_i.should eq((1 + 2) * 4)
+      )).to_i == (1 + 2) * 4
   end
 
   it "unpacks tuple but doesn't override local variables" do
-    run(%(
+    assert run(%(
       def foo
         yield({10, 20}, {30, 40})
       end
@@ -1454,11 +1454,11 @@ describe "Code gen: block" do
       foo do |(x, y), (z, w)|
       end
       x + y + z + w
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "codegens block with multiple underscores (#3054)" do
-    run(%(
+    assert run(%(
       def foo(&block : Int32, Int32 -> Int32)
         block.call(1, 2)
       end
@@ -1466,6 +1466,6 @@ describe "Code gen: block" do
       foo do |_, _|
         3
       end
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 end

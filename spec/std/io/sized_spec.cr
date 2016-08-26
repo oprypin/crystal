@@ -6,16 +6,16 @@ describe "IO::Sized" do
       io = MemoryIO.new "abcdefg"
       sized = IO::Sized.new(io, read_size: 5)
 
-      sized.read_char.should eq('a')
-      sized.read_char.should eq('b')
-      sized.read_char.should eq('c')
-      sized.read_remaining.should eq(2)
-      sized.read_char.should eq('d')
-      sized.read_char.should eq('e')
-      sized.read_remaining.should eq(0)
-      sized.read_char.should be_nil
-      sized.read_remaining.should eq(0)
-      sized.read_char.should be_nil
+      assert sized.read_char == 'a'
+      assert sized.read_char == 'b'
+      assert sized.read_char == 'c'
+      assert sized.read_remaining == 2
+      assert sized.read_char == 'd'
+      assert sized.read_char == 'e'
+      assert sized.read_remaining == 0
+      assert sized.read_char.nil?
+      assert sized.read_remaining == 0
+      assert sized.read_char.nil?
     end
 
     it "doesn't read past the limit when reading the correct size" do
@@ -23,11 +23,11 @@ describe "IO::Sized" do
       sized = IO::Sized.new(io, read_size: 5)
       slice = Bytes.new(5)
 
-      sized.read(slice).should eq(5)
-      String.new(slice).should eq("12345")
+      assert sized.read(slice) == 5
+      assert String.new(slice) == "12345"
 
-      sized.read(slice).should eq(0)
-      String.new(slice).should eq("12345")
+      assert sized.read(slice) == 0
+      assert String.new(slice) == "12345"
     end
 
     it "reads partially when supplied with a larger slice" do
@@ -35,8 +35,8 @@ describe "IO::Sized" do
       sized = IO::Sized.new(io, read_size: 5)
       slice = Bytes.new(10)
 
-      sized.read(slice).should eq(5)
-      String.new(slice).should eq("12345\0\0\0\0\0")
+      assert sized.read(slice) == 5
+      assert String.new(slice) == "12345\0\0\0\0\0"
     end
 
     it "raises on negative numbers" do
@@ -61,11 +61,11 @@ describe "IO::Sized" do
       io = MemoryIO.new "abcdefg"
       sized = IO::Sized.new(io, read_size: 5)
 
-      sized.read_char.should eq('a')
-      sized.read_char.should eq('b')
+      assert sized.read_char == 'a'
+      assert sized.read_char == 'b'
 
       sized.close
-      sized.closed?.should eq(true)
+      assert sized.closed? == true
       expect_raises(IO::Error, "closed stream") do
         sized.read_char
       end
@@ -74,11 +74,11 @@ describe "IO::Sized" do
     it "closes the underlying stream if sync_close is true" do
       io = MemoryIO.new "abcdefg"
       sized = IO::Sized.new(io, read_size: 5, sync_close: true)
-      sized.sync_close?.should eq(true)
+      assert sized.sync_close? == true
 
-      io.closed?.should eq(false)
+      assert io.closed? == false
       sized.close
-      io.closed?.should eq(true)
+      assert io.closed? == true
     end
   end
 end

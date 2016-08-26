@@ -11,7 +11,7 @@ describe "Subtle" do
     ]
 
     data.each do |test|
-      Crypto::Subtle.constant_time_compare(test["a"].as(Slice(Int32)), test["b"].as(Slice(Int32))).should eq(test["result"])
+      assert Crypto::Subtle.constant_time_compare(test["a"].as(Slice(Int32)), test["b"].as(Slice(Int32))) == test["result"]
     end
   end
 
@@ -25,14 +25,14 @@ describe "Subtle" do
     ]
 
     data.each do |test|
-      Crypto::Subtle.constant_time_byte_eq(test["a"], test["b"]).should eq(test["result"])
+      assert Crypto::Subtle.constant_time_byte_eq(test["a"], test["b"]) == test["result"]
     end
   end
 
   it "compares constant time bytes bug" do
     h1 = "$2a$05$LEC1XBXgXECzKUO2LBDhKOa9lH9zigNKnksVaDwViFNgPU4WkrD53J"
     h2 = "$2a$05$LEC1XBXgXECzKUO2LBDhKOaHlSGFuDDwMuVg6gOzdxQ0xN4rFOwMUn"
-    Crypto::Subtle.constant_time_compare(h1, h2).should eq(false)
+    assert Crypto::Subtle.constant_time_compare(h1, h2) == false
   end
 
   it "compares constant time and slices strings" do
@@ -40,6 +40,6 @@ describe "Subtle" do
     h2 = "$2a$05$LEC1XBXgXECzKUO2LBDhKOaHlSGFuDDwMuVg6gOzdxQ0xN4rFOwMUn"
 
     slice_result = Crypto::Subtle.constant_time_compare(h1.to_slice, h2.to_slice)
-    Crypto::Subtle.constant_time_compare(h1, h2).should eq(slice_result)
+    assert Crypto::Subtle.constant_time_compare(h1, h2) == slice_result
   end
 end

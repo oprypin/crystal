@@ -11,11 +11,11 @@ describe Readline do
   typeof(Readline.autocomplete { |s| %w(foo bar) })
 
   it "gets prefix in bytesize between two strings" do
-    Readline.common_prefix_bytesize("", "foo").should eq(0)
-    Readline.common_prefix_bytesize("foo", "").should eq(0)
-    Readline.common_prefix_bytesize("a", "a").should eq(1)
-    Readline.common_prefix_bytesize("open", "operate").should eq(3)
-    Readline.common_prefix_bytesize("operate", "open").should eq(3)
-    Readline.common_prefix_bytesize(["operate", "open", "optional"]).should eq(2)
+    assert Readline.common_prefix_bytesize("", "foo") == 0
+    assert Readline.common_prefix_bytesize("foo", "") == 0
+    assert Readline.common_prefix_bytesize("a", "a") == 1
+    assert Readline.common_prefix_bytesize("open", "operate") == 3
+    assert Readline.common_prefix_bytesize("operate", "open") == 3
+    assert Readline.common_prefix_bytesize(["operate", "open", "optional"]) == 2
   end
 end

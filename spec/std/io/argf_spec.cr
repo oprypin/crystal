@@ -6,9 +6,9 @@ describe IO::ARGF do
     stdin = MemoryIO.new("hello")
 
     argf = IO::ARGF.new argv, stdin
-    argf.path.should eq("-")
-    argf.gets_to_end.should eq("hello")
-    argf.read_byte.should be_nil
+    assert argf.path == "-"
+    assert argf.gets_to_end == "hello"
+    assert argf.read_byte.nil?
   end
 
   it "reads from ARGV if specified" do
@@ -18,23 +18,23 @@ describe IO::ARGF do
     argv = [path1, path2]
 
     argf = IO::ARGF.new argv, stdin
-    argf.path.should eq(path1)
-    argv.should eq([path1, path2])
+    assert argf.path == path1
+    assert argv == [path1, path2]
 
     str = argf.gets(5)
-    str.should eq("12345")
+    assert str == "12345"
 
-    argv.should eq([path2])
+    assert argv == [path2]
 
     str = argf.gets_to_end
-    str.should eq("\n67890\n")
+    assert str == "\n67890\n"
 
-    argv.empty?.should be_true
+    assert argv.empty? == true
 
-    argf.read_byte.should be_nil
+    assert argf.read_byte.nil?
 
     argv << path1
     str = argf.gets(5)
-    str.should eq("12345")
+    assert str == "12345"
   end
 end

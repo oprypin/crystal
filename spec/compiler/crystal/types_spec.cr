@@ -3,7 +3,7 @@ require "../../spec_helper"
 private def assert_type_to_s(expected)
   p = Program.new
   t = with p yield p
-  t.to_s.should eq(expected)
+  assert t.to_s == expected
 end
 
 describe "types to_s of" do
@@ -14,7 +14,7 @@ describe "types to_s of" do
         end
       end
     ))
-    result.program.types["Bar"].types["Foo"].to_s.should eq("Bar::Foo")
+    assert result.program.types["Bar"].types["Foo"].to_s == "Bar::Foo"
   end
 
   it "does for type contained in generic module" do
@@ -24,7 +24,7 @@ describe "types to_s of" do
         end
       end
     ))
-    result.program.types["Bar"].types["Foo"].to_s.should eq("Bar::Foo")
+    assert result.program.types["Bar"].types["Foo"].to_s == "Bar::Foo"
   end
 
   it "non-instantiated array" do

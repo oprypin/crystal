@@ -6,61 +6,61 @@ describe Socket do
   # http://repo.or.cz/libc-test.git/blob/master:/src/functional/inet_pton.c
   it "ip?" do
     # dotted-decimal notation
-    Socket.ip?("0.0.0.0").should be_true
-    Socket.ip?("127.0.0.1").should be_true
-    Socket.ip?("10.0.128.31").should be_true
-    Socket.ip?("255.255.255.255").should be_true
+    assert Socket.ip?("0.0.0.0") == true
+    assert Socket.ip?("127.0.0.1") == true
+    assert Socket.ip?("10.0.128.31") == true
+    assert Socket.ip?("255.255.255.255") == true
 
     # numbers-and-dots notation, but not dotted-decimal
     # Socket.ip?("1.2.03.4").should be_false # fails on darwin
-    Socket.ip?("1.2.0x33.4").should be_false
-    Socket.ip?("1.2.0XAB.4").should be_false
-    Socket.ip?("1.2.0xabcd").should be_false
-    Socket.ip?("1.0xabcdef").should be_false
-    Socket.ip?("00377.0x0ff.65534").should be_false
+    assert Socket.ip?("1.2.0x33.4") == false
+    assert Socket.ip?("1.2.0XAB.4") == false
+    assert Socket.ip?("1.2.0xabcd") == false
+    assert Socket.ip?("1.0xabcdef") == false
+    assert Socket.ip?("00377.0x0ff.65534") == false
 
     # invalid
-    Socket.ip?(".1.2.3").should be_false
-    Socket.ip?("1..2.3").should be_false
-    Socket.ip?("1.2.3.").should be_false
-    Socket.ip?("1.2.3.4.5").should be_false
-    Socket.ip?("1.2.3.a").should be_false
-    Socket.ip?("1.256.2.3").should be_false
-    Socket.ip?("1.2.4294967296.3").should be_false
-    Socket.ip?("1.2.-4294967295.3").should be_false
-    Socket.ip?("1.2. 3.4").should be_false
+    assert Socket.ip?(".1.2.3") == false
+    assert Socket.ip?("1..2.3") == false
+    assert Socket.ip?("1.2.3.") == false
+    assert Socket.ip?("1.2.3.4.5") == false
+    assert Socket.ip?("1.2.3.a") == false
+    assert Socket.ip?("1.256.2.3") == false
+    assert Socket.ip?("1.2.4294967296.3") == false
+    assert Socket.ip?("1.2.-4294967295.3") == false
+    assert Socket.ip?("1.2. 3.4") == false
 
     # ipv6
-    Socket.ip?(":").should be_false
-    Socket.ip?("::").should be_true
-    Socket.ip?("::1").should be_true
-    Socket.ip?(":::").should be_false
-    Socket.ip?(":192.168.1.1").should be_false
-    Socket.ip?("::192.168.1.1").should be_true
-    Socket.ip?("0:0:0:0:0:0:192.168.1.1").should be_true
-    Socket.ip?("0:0::0:0:0:192.168.1.1").should be_true
+    assert Socket.ip?(":") == false
+    assert Socket.ip?("::") == true
+    assert Socket.ip?("::1") == true
+    assert Socket.ip?(":::") == false
+    assert Socket.ip?(":192.168.1.1") == false
+    assert Socket.ip?("::192.168.1.1") == true
+    assert Socket.ip?("0:0:0:0:0:0:192.168.1.1") == true
+    assert Socket.ip?("0:0::0:0:0:192.168.1.1") == true
     # Socket.ip?("::012.34.56.78").should be_false # fails on darwin
-    Socket.ip?(":ffff:192.168.1.1").should be_false
-    Socket.ip?("::ffff:192.168.1.1").should be_true
-    Socket.ip?(".192.168.1.1").should be_false
-    Socket.ip?(":.192.168.1.1").should be_false
-    Socket.ip?("a:0b:00c:000d:E:F::").should be_true
+    assert Socket.ip?(":ffff:192.168.1.1") == false
+    assert Socket.ip?("::ffff:192.168.1.1") == true
+    assert Socket.ip?(".192.168.1.1") == false
+    assert Socket.ip?(":.192.168.1.1") == false
+    assert Socket.ip?("a:0b:00c:000d:E:F::") == true
     # Socket.ip?("a:0b:00c:000d:0000e:f::").should be_false # fails on GNU libc
-    Socket.ip?("1:2:3:4:5:6::").should be_true
-    Socket.ip?("1:2:3:4:5:6:7::").should be_true
-    Socket.ip?("1:2:3:4:5:6:7:8::").should be_false
-    Socket.ip?("1:2:3:4:5:6:7::9").should be_false
-    Socket.ip?("::1:2:3:4:5:6").should be_true
-    Socket.ip?("::1:2:3:4:5:6:7").should be_true
-    Socket.ip?("::1:2:3:4:5:6:7:8").should be_false
-    Socket.ip?("a:b::c:d:e:f").should be_true
-    Socket.ip?("ffff:c0a8:5e4").should be_false
-    Socket.ip?(":ffff:c0a8:5e4").should be_false
-    Socket.ip?("0:0:0:0:0:ffff:c0a8:5e4").should be_true
-    Socket.ip?("0:0:0:0:ffff:c0a8:5e4").should be_false
-    Socket.ip?("0::ffff:c0a8:5e4").should be_true
-    Socket.ip?("::0::ffff:c0a8:5e4").should be_false
-    Socket.ip?("c0a8").should be_false
+    assert Socket.ip?("1:2:3:4:5:6::") == true
+    assert Socket.ip?("1:2:3:4:5:6:7::") == true
+    assert Socket.ip?("1:2:3:4:5:6:7:8::") == false
+    assert Socket.ip?("1:2:3:4:5:6:7::9") == false
+    assert Socket.ip?("::1:2:3:4:5:6") == true
+    assert Socket.ip?("::1:2:3:4:5:6:7") == true
+    assert Socket.ip?("::1:2:3:4:5:6:7:8") == false
+    assert Socket.ip?("a:b::c:d:e:f") == true
+    assert Socket.ip?("ffff:c0a8:5e4") == false
+    assert Socket.ip?(":ffff:c0a8:5e4") == false
+    assert Socket.ip?("0:0:0:0:0:ffff:c0a8:5e4") == true
+    assert Socket.ip?("0:0:0:0:ffff:c0a8:5e4") == false
+    assert Socket.ip?("0::ffff:c0a8:5e4") == true
+    assert Socket.ip?("::0::ffff:c0a8:5e4") == false
+    assert Socket.ip?("c0a8") == false
   end
 end
 
@@ -69,26 +69,26 @@ describe Socket::IPAddress do
     addr1 = Socket::IPAddress.new(Socket::Family::INET, "127.0.0.1", 8080.to_i16)
     addr2 = Socket::IPAddress.new(addr1.sockaddr, addr1.addrlen)
 
-    addr1.family.should eq(addr2.family)
-    addr1.port.should eq(addr2.port)
-    addr1.address.should eq(addr2.address)
-    addr1.to_s.should eq("127.0.0.1:8080")
+    assert addr1.family == addr2.family
+    assert addr1.port == addr2.port
+    assert addr1.address == addr2.address
+    assert addr1.to_s == "127.0.0.1:8080"
   end
 
   it "transforms an IPv6 address into a C struct and back again" do
     addr1 = Socket::IPAddress.new(Socket::Family::INET6, "2001:db8:8714:3a90::12", 8080.to_i16)
     addr2 = Socket::IPAddress.new(addr1.sockaddr, addr1.addrlen)
 
-    addr1.family.should eq(addr2.family)
-    addr1.port.should eq(addr2.port)
-    addr1.address.should eq(addr2.address)
-    addr1.to_s.should eq("2001:db8:8714:3a90::12:8080")
+    assert addr1.family == addr2.family
+    assert addr1.port == addr2.port
+    assert addr1.address == addr2.address
+    assert addr1.to_s == "2001:db8:8714:3a90::12:8080"
   end
 end
 
 describe Socket::UNIXAddress do
   it "does to_s" do
-    Socket::UNIXAddress.new("some_path").to_s.should eq("some_path")
+    assert Socket::UNIXAddress.new("some_path").to_s == "some_path"
   end
 end
 
@@ -96,17 +96,17 @@ describe UNIXServer do
   it "raises when path is too long" do
     path = "/tmp/crystal-test-too-long-unix-socket-#{("a" * 2048)}.sock"
     expect_raises(ArgumentError, "Path size exceeds the maximum size") { UNIXServer.new(path) }
-    File.exists?(path).should be_false
+    assert File.exists?(path) == false
   end
 
   it "creates the socket file" do
     path = "/tmp/crystal-test-unix-sock"
 
     UNIXServer.open(path) do
-      File.exists?(path).should be_true
+      assert File.exists?(path) == true
     end
 
-    File.exists?(path).should be_false
+    assert File.exists?(path) == false
   end
 
   it "deletes socket file on close" do
@@ -115,7 +115,7 @@ describe UNIXServer do
     begin
       server = UNIXServer.new(path)
       server.close
-      File.exists?(path).should be_false
+      assert File.exists?(path) == false
     rescue
       File.delete(path) if File.exists?(path)
     end
@@ -137,7 +137,7 @@ describe UNIXServer do
       UNIXServer.open("/tmp/crystal-test-unix-sock") do |server|
         UNIXSocket.open("/tmp/crystal-test-unix-sock") do |_|
           client = server.accept
-          client.should be_a(UNIXSocket)
+          assert client.is_a?(UNIXSocket)
           client.close
         end
       end
@@ -160,8 +160,8 @@ describe UNIXServer do
         Fiber.yield
       end
 
-      exception.should be_a(IO::Error)
-      exception.try(&.message).should eq("closed stream")
+      assert exception.is_a?(IO::Error)
+      assert exception.try(&.message) == "closed stream"
     end
   end
 
@@ -170,7 +170,7 @@ describe UNIXServer do
       UNIXServer.open("/tmp/crystal-test-unix-sock") do |server|
         UNIXSocket.open("/tmp/crystal-test-unix-sock") do |_|
           client = server.accept?.not_nil!
-          client.should be_a(UNIXSocket)
+          assert client.is_a?(UNIXSocket)
           client.close
         end
       end
@@ -187,7 +187,7 @@ describe UNIXServer do
         Fiber.yield
       end
 
-      ret.should be_nil
+      assert ret.nil?
     end
   end
 end
@@ -196,33 +196,33 @@ describe UNIXSocket do
   it "raises when path is too long" do
     path = "/tmp/crystal-test-too-long-unix-socket-#{("a" * 2048)}.sock"
     expect_raises(ArgumentError, "Path size exceeds the maximum size") { UNIXSocket.new(path) }
-    File.exists?(path).should be_false
+    assert File.exists?(path) == false
   end
 
   it "sends and receives messages" do
     path = "/tmp/crystal-test-unix-sock"
 
     UNIXServer.open(path) do |server|
-      server.local_address.family.should eq(Socket::Family::UNIX)
-      server.local_address.path.should eq(path)
+      assert server.local_address.family == Socket::Family::UNIX
+      assert server.local_address.path == path
 
       UNIXSocket.open(path) do |client|
-        client.local_address.family.should eq(Socket::Family::UNIX)
-        client.local_address.path.should eq(path)
+        assert client.local_address.family == Socket::Family::UNIX
+        assert client.local_address.path == path
 
         server.accept do |sock|
-          sock.sync?.should eq(server.sync?)
+          assert sock.sync? == server.sync?
 
-          sock.local_address.family.should eq(Socket::Family::UNIX)
-          sock.local_address.path.should eq("")
+          assert sock.local_address.family == Socket::Family::UNIX
+          assert sock.local_address.path == ""
 
-          sock.remote_address.family.should eq(Socket::Family::UNIX)
-          sock.remote_address.path.should eq("")
+          assert sock.remote_address.family == Socket::Family::UNIX
+          assert sock.remote_address.path == ""
 
           client << "ping"
-          sock.gets(4).should eq("ping")
+          assert sock.gets(4) == "ping"
           sock << "pong"
-          client.gets(4).should eq("pong")
+          assert client.gets(4) == "pong"
         end
       end
 
@@ -231,7 +231,7 @@ describe UNIXSocket do
 
       UNIXSocket.open(path) do |client|
         server.accept do |sock|
-          sock.sync?.should eq(server.sync?)
+          assert sock.sync? == server.sync?
         end
       end
     end
@@ -239,13 +239,13 @@ describe UNIXSocket do
 
   it "creates a pair of sockets" do
     UNIXSocket.pair do |left, right|
-      left.local_address.family.should eq(Socket::Family::UNIX)
-      left.local_address.path.should eq("")
+      assert left.local_address.family == Socket::Family::UNIX
+      assert left.local_address.path == ""
 
       left << "ping"
-      right.gets(4).should eq("ping")
+      assert right.gets(4) == "ping"
       right << "pong"
-      left.gets(4).should eq("pong")
+      assert left.gets(4) == "pong"
     end
   end
 
@@ -272,11 +272,11 @@ describe UNIXSocket do
       # linux returns size * 2
       sizes = [size, size * 2]
 
-      (left.send_buffer_size = size).should eq(size)
-      sizes.should contain(left.send_buffer_size)
+      assert (left.send_buffer_size = size) == size
+      assert sizes.includes?(left.send_buffer_size)
 
-      (left.recv_buffer_size = size).should eq(size)
-      sizes.should contain(left.recv_buffer_size)
+      assert (left.recv_buffer_size = size) == size
+      assert sizes.includes?(left.recv_buffer_size)
     end
   end
 end
@@ -296,29 +296,29 @@ describe TCPSocket do
     port = TCPServer.open("::", 0) do |server|
       server.local_address.port
     end
-    port.should be > 0
+    assert port > 0
 
     TCPServer.open("::", port) do |server|
-      server.local_address.family.should eq(Socket::Family::INET6)
-      server.local_address.port.should eq(port)
-      server.local_address.address.should eq("::")
+      assert server.local_address.family == Socket::Family::INET6
+      assert server.local_address.port == port
+      assert server.local_address.address == "::"
 
       # test protocol specific socket options
-      server.reuse_address?.should be_true # defaults to true
-      (server.reuse_address = false).should be_false
-      server.reuse_address?.should be_false
-      (server.reuse_address = true).should be_true
-      server.reuse_address?.should be_true
+      assert server.reuse_address? == true # defaults to true
+      assert (server.reuse_address = false) == false
+      assert server.reuse_address? == false
+      assert (server.reuse_address = true) == true
+      assert server.reuse_address? == true
 
-      (server.keepalive = false).should be_false
-      server.keepalive?.should be_false
-      (server.keepalive = true).should be_true
-      server.keepalive?.should be_true
+      assert (server.keepalive = false) == false
+      assert server.keepalive? == false
+      assert (server.keepalive = true) == true
+      assert server.keepalive? == true
 
-      (server.linger = nil).should be_nil
-      server.linger.should be_nil
-      (server.linger = 42).should eq 42
-      server.linger.should eq 42
+      assert (server.linger = nil).nil?
+      assert server.linger.nil?
+      assert (server.linger = 42) == 42
+      assert server.linger == 42
 
       TCPSocket.open("::", server.local_address.port) do |client|
         # The commented lines are actually dependent on the system configuration,
@@ -329,7 +329,7 @@ describe TCPSocket do
         # client.local_address.address.should eq("127.0.0.1")
 
         sock = server.accept
-        sock.sync?.should eq(server.sync?)
+        assert sock.sync? == server.sync?
 
         # sock.local_address.family.should eq(Socket::Family::INET6)
         # sock.local_address.port.should eq(12345)
@@ -339,22 +339,22 @@ describe TCPSocket do
         # sock.remote_address.address.should eq("::ffff:127.0.0.1")
 
         # test protocol specific socket options
-        (client.tcp_nodelay = true).should be_true
-        client.tcp_nodelay?.should be_true
-        (client.tcp_nodelay = false).should be_false
-        client.tcp_nodelay?.should be_false
+        assert (client.tcp_nodelay = true) == true
+        assert client.tcp_nodelay? == true
+        assert (client.tcp_nodelay = false) == false
+        assert client.tcp_nodelay? == false
 
-        (client.tcp_keepalive_idle = 42).should eq 42
-        client.tcp_keepalive_idle.should eq 42
-        (client.tcp_keepalive_interval = 42).should eq 42
-        client.tcp_keepalive_interval.should eq 42
-        (client.tcp_keepalive_count = 42).should eq 42
-        client.tcp_keepalive_count.should eq 42
+        assert (client.tcp_keepalive_idle = 42) == 42
+        assert client.tcp_keepalive_idle == 42
+        assert (client.tcp_keepalive_interval = 42) == 42
+        assert client.tcp_keepalive_interval == 42
+        assert (client.tcp_keepalive_count = 42) == 42
+        assert client.tcp_keepalive_count == 42
 
         client << "ping"
-        sock.gets(4).should eq("ping")
+        assert sock.gets(4) == "ping"
         sock << "pong"
-        client.gets(4).should eq("pong")
+        assert client.gets(4) == "pong"
       end
 
       # test sync flag propagation after accept
@@ -362,7 +362,7 @@ describe TCPSocket do
 
       TCPSocket.open("localhost", server.local_address.port) do |client|
         sock = server.accept
-        sock.sync?.should eq(server.sync?)
+        assert sock.sync? == server.sync?
       end
     end
   end
@@ -391,21 +391,21 @@ describe UDPSocket do
     server = UDPSocket.new(Socket::Family::INET6)
     server.bind("::", port)
 
-    server.local_address.family.should eq(Socket::Family::INET6)
-    server.local_address.port.should eq(port)
-    server.local_address.address.should eq("::")
+    assert server.local_address.family == Socket::Family::INET6
+    assert server.local_address.port == port
+    assert server.local_address.address == "::"
 
     client = UDPSocket.new(Socket::Family::INET6)
     client.connect("::1", port)
 
-    client.local_address.family.should eq(Socket::Family::INET6)
-    client.local_address.address.should eq("::1")
-    client.remote_address.family.should eq(Socket::Family::INET6)
-    client.remote_address.port.should eq(port)
-    client.remote_address.address.should eq("::1")
+    assert client.local_address.family == Socket::Family::INET6
+    assert client.local_address.address == "::1"
+    assert client.remote_address.family == Socket::Family::INET6
+    assert client.remote_address.port == port
+    assert client.remote_address.address == "::1"
 
     client << "message"
-    server.gets(7).should eq("message")
+    assert server.gets(7) == "message"
 
     client.close
     server.close
@@ -422,16 +422,16 @@ describe UDPSocket do
     client.send("message equal to buffer", server.local_address)
     bytes_read, addr1 = server.receive(buffer.to_slice[0, 23])
     message1 = String.new(buffer.to_slice[0, bytes_read])
-    message1.should eq("message equal to buffer")
-    addr1.family.should eq(server.local_address.family)
-    addr1.address.should eq(server.local_address.address)
+    assert message1 == "message equal to buffer"
+    assert addr1.family == server.local_address.family
+    assert addr1.address == server.local_address.address
 
     client.send("message less than buffer", server.local_address)
     bytes_read, addr2 = server.receive(buffer.to_slice)
     message2 = String.new(buffer.to_slice[0, bytes_read])
-    message2.should eq("message less than buffer")
-    addr2.family.should eq(server.local_address.family)
-    addr2.address.should eq(server.local_address.address)
+    assert message2 == "message less than buffer"
+    assert addr2.family == server.local_address.family
+    assert addr2.address == server.local_address.address
 
     server.close
     client.close
@@ -447,9 +447,9 @@ describe UDPSocket do
 
     client.send("message", server.local_address)
     bytes_read, addr = server.receive(buffer.to_slice)
-    String.new(buffer.to_slice[0, bytes_read]).should eq("message")
-    addr.family.should eq(server.local_address.family)
-    addr.address.should eq(server.local_address.address)
+    assert String.new(buffer.to_slice[0, bytes_read]) == "message"
+    assert addr.family == server.local_address.family
+    assert addr.address == server.local_address.address
 
     server.close
     client.close
@@ -460,9 +460,9 @@ describe UDPSocket do
 
     client = UDPSocket.new(Socket::Family::INET)
     client.broadcast = true
-    client.broadcast?.should be_true
+    assert client.broadcast? == true
     client.connect("255.255.255.255", port)
-    client.send("broadcast").should eq(9)
+    assert client.send("broadcast") == 9
     client.close
   end
 end
@@ -472,6 +472,6 @@ private def free_udp_socket_port
   server.bind("::", 0)
   port = server.local_address.port
   server.close
-  port.should be > 0
+  assert port > 0
   port
 end

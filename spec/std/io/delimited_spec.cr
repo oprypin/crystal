@@ -29,70 +29,70 @@ describe "IO::Delimited" do
       io = MemoryIO.new("abcderzzrfgzr")
       delimited = IO::Delimited.new(io, read_delimiter: "zr")
 
-      delimited.gets_to_end.should eq("abcderz")
-      io.gets_to_end.should eq("fgzr")
+      assert delimited.gets_to_end == "abcderz"
+      assert io.gets_to_end == "fgzr"
     end
 
     it "doesn't read past the limit (char-by-char)" do
       io = MemoryIO.new("abcderzzrfg")
       delimited = IO::Delimited.new(io, read_delimiter: "zr")
 
-      delimited.read_char.should eq('a')
-      delimited.read_char.should eq('b')
-      delimited.read_char.should eq('c')
-      delimited.read_char.should eq('d')
-      delimited.read_char.should eq('e')
-      delimited.read_char.should eq('r')
-      delimited.read_char.should eq('z')
-      delimited.read_char.should eq(nil)
-      delimited.read_char.should eq(nil)
-      delimited.read_char.should eq(nil)
-      delimited.read_char.should eq(nil)
+      assert delimited.read_char == 'a'
+      assert delimited.read_char == 'b'
+      assert delimited.read_char == 'c'
+      assert delimited.read_char == 'd'
+      assert delimited.read_char == 'e'
+      assert delimited.read_char == 'r'
+      assert delimited.read_char == 'z'
+      assert delimited.read_char == nil
+      assert delimited.read_char == nil
+      assert delimited.read_char == nil
+      assert delimited.read_char == nil
 
-      io.read_char.should eq('f')
-      io.read_char.should eq('g')
+      assert io.read_char == 'f'
+      assert io.read_char == 'g'
     end
 
     it "doesn't clobber active_delimiter_buffer" do
       io = MemoryIO.new("ab12312")
       delimited = IO::Delimited.new(io, read_delimiter: "12345")
 
-      delimited.gets_to_end.should eq("ab12312")
+      assert delimited.gets_to_end == "ab12312"
     end
 
     it "handles the delimiter at the start" do
       io = MemoryIO.new("ab12312")
       delimited = IO::Delimited.new(io, read_delimiter: "ab1")
 
-      delimited.read_char.should eq(nil)
+      assert delimited.read_char == nil
     end
 
     it "handles the delimiter at the end" do
       io = MemoryIO.new("ab12312z")
       delimited = IO::Delimited.new(io, read_delimiter: "z")
 
-      delimited.gets_to_end.should eq("ab12312")
+      assert delimited.gets_to_end == "ab12312"
     end
 
     it "handles nearly a delimiter at the end" do
       io = MemoryIO.new("ab12312")
       delimited = IO::Delimited.new(io, read_delimiter: "122")
 
-      delimited.gets_to_end.should eq("ab12312")
+      assert delimited.gets_to_end == "ab12312"
     end
 
     it "doesn't clobber the buffer on closely-offset partial matches" do
       io = MemoryIO.new("abab1234abcdefgh")
       delimited = IO::Delimited.new(io, read_delimiter: "abcdefgh")
 
-      delimited.gets_to_end.should eq("abab1234")
+      assert delimited.gets_to_end == "abab1234"
     end
 
     it "handles partial reads" do
       io = PartialReaderIO.new("abab1234abcdefgh")
       delimited = IO::Delimited.new(io, read_delimiter: "abcdefgh")
 
-      delimited.gets_to_end.should eq("abab1234")
+      assert delimited.gets_to_end == "abab1234"
     end
   end
 
@@ -110,11 +110,11 @@ describe "IO::Delimited" do
       io = MemoryIO.new "abcdefg"
       delimited = IO::Delimited.new(io, read_delimiter: "zr")
 
-      delimited.read_char.should eq('a')
-      delimited.read_char.should eq('b')
+      assert delimited.read_char == 'a'
+      assert delimited.read_char == 'b'
 
       delimited.close
-      delimited.closed?.should eq(true)
+      assert delimited.closed? == true
       expect_raises(IO::Error, "closed stream") do
         delimited.read_char
       end
@@ -123,11 +123,11 @@ describe "IO::Delimited" do
     it "closes the underlying stream if sync_close is true" do
       io = MemoryIO.new "abcdefg"
       delimited = IO::Delimited.new(io, read_delimiter: "zr", sync_close: true)
-      delimited.sync_close?.should eq(true)
+      assert delimited.sync_close? == true
 
-      io.closed?.should eq(false)
+      assert io.closed? == false
       delimited.close
-      io.closed?.should eq(true)
+      assert io.closed? == true
     end
   end
 end

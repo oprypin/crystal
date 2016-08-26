@@ -22,10 +22,10 @@ describe IO::Hexdump do
         w.write(slice)
 
         buf = uninitialized UInt8[101]
-        r.read_fully(buf.to_slice).should eq(101)
-        buf.to_slice.should eq(slice)
+        assert r.read_fully(buf.to_slice) == 101
+        assert buf.to_slice == slice
 
-        io.to_s.should eq("#{ascii_table}\n")
+        assert io.to_s == "#{ascii_table}\n"
       end
     end
   end
@@ -49,10 +49,10 @@ describe IO::Hexdump do
         w.write(slice)
 
         buf = uninitialized UInt8[96]
-        r.read_fully(buf.to_slice).should eq(96)
-        buf.to_slice.should eq(slice)
+        assert r.read_fully(buf.to_slice) == 96
+        assert buf.to_slice == slice
 
-        io.to_s.should eq("#{ascii_table}\n")
+        assert io.to_s == "#{ascii_table}\n"
       end
     end
   end

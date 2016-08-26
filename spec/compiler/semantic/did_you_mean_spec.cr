@@ -114,7 +114,7 @@ describe "Semantic: did you mean" do
       semantic nodes
       fail "TypeException wasn't raised"
     rescue ex : Crystal::TypeException
-      ex.to_s.includes?("did you mean").should be_false
+      assert ex.to_s.includes?("did you mean") == false
     end
   end
 

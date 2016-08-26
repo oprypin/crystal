@@ -2,11 +2,11 @@ require "../../spec_helper"
 
 describe "Code gen: sizeof" do
   it "gets sizeof int" do
-    run("sizeof(Int32)").to_i.should eq(4)
+    assert run("sizeof(Int32)").to_i == 4
   end
 
   it "gets sizeof struct" do
-    run("
+    assert run("
       struct Foo
         def initialize(@x : Int32, @y : Int32, @z : Int32)
         end
@@ -15,12 +15,12 @@ describe "Code gen: sizeof" do
       Foo.new(1, 2, 3)
 
       sizeof(Foo)
-      ").to_i.should eq(12)
+      ").to_i == 12
   end
 
   it "gets sizeof class" do
     # A class is represented as a pointer to its data
-    run("
+    assert run("
       class Foo
         def initialize(@x : Int32, @y : Int32, @z : Int32)
         end
@@ -29,7 +29,7 @@ describe "Code gen: sizeof" do
       Foo.new(1, 2, 3)
 
       sizeof(Foo)
-      ").to_i.should eq(sizeof(Void*))
+      ").to_i == sizeof(Void*)
   end
 
   it "gets sizeof union" do
@@ -56,7 +56,7 @@ describe "Code gen: sizeof" do
   end
 
   it "gets instance_sizeof class" do
-    run("
+    assert run("
       class Foo
         def initialize(@x : Int32, @y : Int32, @z : Int32)
         end
@@ -65,7 +65,7 @@ describe "Code gen: sizeof" do
       Foo.new(1, 2, 3)
 
       instance_sizeof(Foo)
-      ").to_i.should eq(16)
+      ").to_i == 16
   end
 
   it "gives error if using instance_sizeof on something that's not a class" do
@@ -74,16 +74,16 @@ describe "Code gen: sizeof" do
 
   it "gets sizeof Void" do
     # Same as the size of a byte
-    run("sizeof(Void)").to_i.should eq(1)
+    assert run("sizeof(Void)").to_i == 1
   end
 
   it "gets sizeof NoReturn" do
     # Same as the size of a byte
-    run("sizeof(NoReturn)").to_i.should eq(1)
+    assert run("sizeof(NoReturn)").to_i == 1
   end
 
   it "can use sizeof in type argument (1)" do
-    run(%(
+    assert run(%(
       struct StaticArray
         def size
           N
@@ -92,11 +92,11 @@ describe "Code gen: sizeof" do
 
       x = uninitialized UInt8[sizeof(Int32)]
       x.size
-      )).to_i.should eq(4)
+      )).to_i == 4
   end
 
   it "can use sizeof in type argument (2)" do
-    run(%(
+    assert run(%(
       struct StaticArray
         def size
           N
@@ -105,11 +105,11 @@ describe "Code gen: sizeof" do
 
       x = uninitialized UInt8[sizeof(Float64)]
       x.size
-      )).to_i.should eq(8)
+      )).to_i == 8
   end
 
   it "can use instance_sizeof in type argument" do
-    run(%(
+    assert run(%(
       struct StaticArray
         def size
           N
@@ -125,6 +125,6 @@ describe "Code gen: sizeof" do
 
       x = uninitialized UInt8[instance_sizeof(Foo)]
       x.size
-      )).to_i.should eq(12)
+      )).to_i == 12
   end
 end

@@ -4,17 +4,17 @@ require "file_utils"
 describe "FileUtils" do
   describe "cmp" do
     it "compares two equal files" do
-      FileUtils.cmp(
+      assert FileUtils.cmp(
         File.join(__DIR__, "data/test_file.txt"),
         File.join(__DIR__, "data/test_file.txt")
-      ).should be_true
+      ) == true
     end
 
     it "compares two different files" do
-      FileUtils.cmp(
+      assert FileUtils.cmp(
         File.join(__DIR__, "data/test_file.txt"),
         File.join(__DIR__, "data/test_file.ini")
-      ).should be_false
+      ) == false
     end
   end
 
@@ -24,8 +24,8 @@ describe "FileUtils" do
       out_path = File.join(__DIR__, "data/test_file_cp.txt")
       begin
         FileUtils.cp(src_path, out_path)
-        File.exists?(out_path).should be_true
-        FileUtils.cmp(src_path, out_path).should be_true
+        assert File.exists?(out_path) == true
+        assert FileUtils.cmp(src_path, out_path) == true
       ensure
         File.delete(out_path) if File.exists?(out_path)
       end
@@ -46,10 +46,10 @@ describe "FileUtils" do
       begin
         Dir.mkdir(out_path) rescue nil
         FileUtils.cp({File.join(src_path, src_name1), File.join(src_path, src_name2)}, out_path)
-        File.exists?(File.join(out_path, src_name1)).should be_true
-        File.exists?(File.join(out_path, src_name2)).should be_true
-        FileUtils.cmp(File.join(src_path, src_name1), File.join(out_path, src_name1)).should be_true
-        FileUtils.cmp(File.join(src_path, src_name2), File.join(out_path, src_name2)).should be_true
+        assert File.exists?(File.join(out_path, src_name1)) == true
+        assert File.exists?(File.join(out_path, src_name2)) == true
+        assert FileUtils.cmp(File.join(src_path, src_name1), File.join(out_path, src_name1)) == true
+        assert FileUtils.cmp(File.join(src_path, src_name2), File.join(out_path, src_name2)) == true
       ensure
         FileUtils.rm_r(out_path) if File.exists?(out_path)
       end
@@ -69,8 +69,8 @@ describe "FileUtils" do
         File.write(File.join(src_path, "b/c"), "")
 
         FileUtils.cp_r(src_path, dest_path)
-        File.exists?(File.join(dest_path, "a")).should be_true
-        File.exists?(File.join(dest_path, "b/c")).should be_true
+        assert File.exists?(File.join(dest_path, "a")) == true
+        assert File.exists?(File.join(dest_path, "b/c")) == true
       ensure
         FileUtils.rm_r(src_path) if File.exists?(src_path)
         FileUtils.rm_r(dest_path) if File.exists?(dest_path)
@@ -90,7 +90,7 @@ describe "FileUtils" do
         File.write(File.join(path, "b/c"), "")
 
         FileUtils.rm_r(path)
-        Dir.exists?(path).should be_false
+        assert Dir.exists?(path) == false
       ensure
         File.delete(File.join(path, "b/c")) if File.exists?(File.join(path, "b/c"))
         File.delete(File.join(path, "a")) if File.exists?(File.join(path, "a"))
@@ -113,9 +113,9 @@ describe "FileUtils" do
         File.write(file_path, "")
 
         FileUtils.rm_r(removed_path)
-        Dir.exists?(removed_path).should be_false
-        Dir.exists?(linked_path).should be_true
-        File.exists?(file_path).should be_true
+        assert Dir.exists?(removed_path) == false
+        assert Dir.exists?(linked_path) == true
+        assert File.exists?(file_path) == true
       ensure
         File.delete(file_path) if File.exists?(file_path)
         File.delete(link_path) if File.exists?(link_path)

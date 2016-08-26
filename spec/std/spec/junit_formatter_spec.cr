@@ -16,7 +16,7 @@ describe "JUnit Formatter" do
                  </testsuite>
                  XML
 
-    output.should eq(expected)
+    assert output == expected
   end
 
   it "reports failures" do
@@ -32,7 +32,7 @@ describe "JUnit Formatter" do
                  </testsuite>
                  XML
 
-    output.should eq(expected)
+    assert output == expected
   end
 
   it "reports errors" do
@@ -48,7 +48,7 @@ describe "JUnit Formatter" do
                  </testsuite>
                  XML
 
-    output.should eq(expected)
+    assert output == expected
   end
 
   it "reports mixed results" do
@@ -75,7 +75,7 @@ describe "JUnit Formatter" do
                  </testsuite>
                  XML
 
-    output.should eq(expected)
+    assert output == expected
   end
 
   it "escapes spec names" do
@@ -84,7 +84,7 @@ describe "JUnit Formatter" do
     end
 
     name = XML.parse(output).xpath_string("string(//testsuite/testcase[1]/@name)")
-    name.should eq("complicated \" <n>'&ame")
+    assert name == "complicated \" <n>'&ame"
   end
 
   it "report failure stacktrace if present" do
@@ -96,10 +96,10 @@ describe "JUnit Formatter" do
 
     xml = XML.parse(output)
     name = xml.xpath_string("string(//testsuite/testcase[1]/failure/@message)")
-    name.should eq("Something happened")
+    assert name == "Something happened"
 
     backtrace = xml.xpath_string("string(//testsuite/testcase[1]/failure/text())")
-    backtrace.should eq(cause.backtrace.join("\n"))
+    assert backtrace == cause.backtrace.join("\n")
   end
 
   it "report error stacktrace if present" do
@@ -111,10 +111,10 @@ describe "JUnit Formatter" do
 
     xml = XML.parse(output)
     name = xml.xpath_string("string(//testsuite/testcase[1]/error/@message)")
-    name.should eq("Something happened")
+    assert name == "Something happened"
 
     backtrace = xml.xpath_string("string(//testsuite/testcase[1]/error/text())")
-    backtrace.should eq(cause.backtrace.join("\n"))
+    assert backtrace == cause.backtrace.join("\n")
   end
 end
 

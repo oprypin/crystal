@@ -9,7 +9,7 @@ describe OpenSSL::PKCS5 do
       {2**16, 16, "1b345dd55f62a35aecdb9229bc7ae95b"},
       {2**16, 32, "1b345dd55f62a35aecdb9229bc7ae95b305a8d538940134627e46f82d3a41e5e"},
     ].each do |(iterations, key_size, expected)|
-      OpenSSL::PKCS5.pbkdf2_hmac_sha1("password", "salt", iterations, key_size).hexstring.should eq expected
+      assert OpenSSL::PKCS5.pbkdf2_hmac_sha1("password", "salt", iterations, key_size).hexstring == expected
     end
   end
 end

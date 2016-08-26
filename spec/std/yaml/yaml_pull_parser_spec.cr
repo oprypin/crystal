@@ -6,7 +6,7 @@ private def assert_raw(string, expected = string, file = __FILE__, line = __LINE
     pull = YAML::PullParser.new(string)
     pull.read_stream do
       pull.read_document do
-        pull.read_raw.should eq(expected)
+        assert pull.read_raw == expected
       end
     end
   end
@@ -16,16 +16,16 @@ module YAML
   describe PullParser do
     it "reads empty stream" do
       parser = PullParser.new("")
-      parser.kind.should eq(EventKind::STREAM_START)
-      parser.read_next.should eq(EventKind::STREAM_END)
-      parser.kind.should eq(EventKind::STREAM_END)
+      assert parser.kind == EventKind::STREAM_START
+      assert parser.read_next == EventKind::STREAM_END
+      assert parser.kind == EventKind::STREAM_END
     end
 
     it "reads an empty document" do
       parser = PullParser.new("---\n...\n")
       parser.read_stream do
         parser.read_document do
-          parser.read_scalar.should eq("")
+          assert parser.read_scalar == ""
         end
       end
     end
@@ -34,7 +34,7 @@ module YAML
       parser = PullParser.new("--- foo\n...\n")
       parser.read_stream do
         parser.read_document do
-          parser.read_scalar.should eq("foo")
+          assert parser.read_scalar == "foo"
         end
       end
     end
@@ -44,9 +44,9 @@ module YAML
       parser.read_stream do
         parser.read_document do
           parser.read_sequence do
-            parser.read_scalar.should eq("1")
-            parser.read_scalar.should eq("2")
-            parser.read_scalar.should eq("3")
+            assert parser.read_scalar == "1"
+            assert parser.read_scalar == "2"
+            assert parser.read_scalar == "3"
           end
         end
       end
@@ -56,8 +56,8 @@ module YAML
       parser = PullParser.new("--- &foo bar\n...\n")
       parser.read_stream do
         parser.read_document do
-          parser.anchor.should eq("foo")
-          parser.read_scalar.should eq("bar")
+          assert parser.anchor == "foo"
+          assert parser.read_scalar == "bar"
         end
       end
     end
@@ -66,7 +66,7 @@ module YAML
       parser = PullParser.new("--- &foo []\n")
       parser.read_stream do
         parser.read_document do
-          parser.anchor.should eq("foo")
+          assert parser.anchor == "foo"
           parser.read_sequence do
           end
         end
@@ -78,10 +78,10 @@ module YAML
       parser.read_stream do
         parser.read_document do
           parser.read_mapping do
-            parser.read_scalar.should eq("foo")
-            parser.read_scalar.should eq("1")
-            parser.read_scalar.should eq("bar")
-            parser.read_scalar.should eq("2")
+            assert parser.read_scalar == "foo"
+            assert parser.read_scalar == "1"
+            assert parser.read_scalar == "bar"
+            assert parser.read_scalar == "2"
           end
         end
       end
@@ -91,7 +91,7 @@ module YAML
       parser = PullParser.new(%(---\n&lala {}\n))
       parser.read_stream do
         parser.read_document do
-          parser.anchor.should eq("lala")
+          assert parser.anchor == "lala"
           parser.read_mapping do
           end
         end
@@ -102,7 +102,7 @@ module YAML
       parser = PullParser.new("--- *foo\n")
       parser.read_stream do
         parser.read_document do
-          parser.read_alias.should eq("foo")
+          assert parser.read_alias == "foo"
         end
       end
     end

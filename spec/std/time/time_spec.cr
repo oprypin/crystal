@@ -15,26 +15,26 @@ end
 describe Time do
   it "initialize" do
     t1 = Time.new 2002, 2, 25
-    t1.ticks.should eq(TimeSpecTicks[0])
+    assert t1.ticks == TimeSpecTicks[0]
 
     t2 = Time.new 2002, 2, 25, 15, 25, 13, 8
-    t2.ticks.should eq(TimeSpecTicks[1])
+    assert t2.ticks == TimeSpecTicks[1]
 
-    t2.date.ticks.should eq(TimeSpecTicks[0])
-    t2.year.should eq(2002)
-    t2.month.should eq(2)
-    t2.day.should eq(25)
-    t2.hour.should eq(15)
-    t2.minute.should eq(25)
-    t2.second.should eq(13)
-    t2.millisecond.should eq(8)
+    assert t2.date.ticks == TimeSpecTicks[0]
+    assert t2.year == 2002
+    assert t2.month == 2
+    assert t2.day == 25
+    assert t2.hour == 15
+    assert t2.minute == 25
+    assert t2.second == 13
+    assert t2.millisecond == 8
 
     t3 = Time.new 2002, 2, 25, 5, 25, 13, 8
-    t3.ticks.should eq(TimeSpecTicks[2])
+    assert t3.ticks == TimeSpecTicks[2]
   end
 
   it "initialize max" do
-    Time.new(9999, 12, 31, 23, 59, 59, 999).ticks.should eq(3155378975999990000)
+    assert Time.new(9999, 12, 31, 23, 59, 59, 999).ticks == 3155378975999990000
   end
 
   it "initialize millisecond negative" do
@@ -52,20 +52,20 @@ describe Time do
   it "initialize with .epoch" do
     seconds = 1439404155
     time = Time.epoch(seconds)
-    time.should eq(Time.new(2015, 8, 12, 18, 29, 15, kind: Time::Kind::Utc))
-    time.epoch.should eq(seconds)
+    assert time == Time.new(2015, 8, 12, 18, 29, 15, kind: Time::Kind::Utc)
+    assert time.epoch == seconds
   end
 
   it "initialize with .epoch_ms" do
     milliseconds = 1439404155000
     time = Time.epoch_ms(milliseconds)
-    time.should eq(Time.new(2015, 8, 12, 18, 29, 15, kind: Time::Kind::Utc))
-    time.epoch_ms.should eq(milliseconds)
+    assert time == Time.new(2015, 8, 12, 18, 29, 15, kind: Time::Kind::Utc)
+    assert time.epoch_ms == milliseconds
   end
 
   it "fields" do
-    Time::MaxValue.ticks.should eq(3155378975999999999)
-    Time::MinValue.ticks.should eq(0)
+    assert Time::MaxValue.ticks == 3155378975999999999
+    assert Time::MinValue.ticks == 0
   end
 
   it "add" do
@@ -73,15 +73,15 @@ describe Time do
     span = Time::Span.new 3, 54, 1
     t2 = t1 + span
 
-    t2.day.should eq(25)
-    t2.hour.should eq(19)
-    t2.minute.should eq(19)
-    t2.second.should eq(14)
+    assert t2.day == 25
+    assert t2.hour == 19
+    assert t2.minute == 19
+    assert t2.second == 14
 
-    t1.day.should eq(25)
-    t1.hour.should eq(15)
-    t1.minute.should eq(25)
-    t1.second.should eq(13)
+    assert t1.day == 25
+    assert t1.hour == 15
+    assert t1.minute == 25
+    assert t1.second == 13
   end
 
   it "add out of range 1" do
@@ -104,22 +104,22 @@ describe Time do
     t1 = Time.new TimeSpecTicks[1]
     t1 = t1 + 3.days
 
-    t1.day.should eq(28)
-    t1.hour.should eq(15)
-    t1.minute.should eq(25)
-    t1.second.should eq(13)
+    assert t1.day == 28
+    assert t1.hour == 15
+    assert t1.minute == 25
+    assert t1.second == 13
 
     t1 = t1 + 1.9.days
-    t1.day.should eq(2)
-    t1.hour.should eq(13)
-    t1.minute.should eq(1)
-    t1.second.should eq(13)
+    assert t1.day == 2
+    assert t1.hour == 13
+    assert t1.minute == 1
+    assert t1.second == 13
 
     t1 = t1 + 0.2.days
-    t1.day.should eq(2)
-    t1.hour.should eq(17)
-    t1.minute.should eq(49)
-    t1.second.should eq(13)
+    assert t1.day == 2
+    assert t1.hour == 17
+    assert t1.minute == 49
+    assert t1.second == 13
   end
 
   it "add days out of range 1" do
@@ -139,194 +139,194 @@ describe Time do
   it "add months" do
     t = Time.new 2014, 10, 30, 21, 18, 13
     t2 = t + 1.month
-    t2.to_s.should eq("2014-11-30 21:18:13")
+    assert t2.to_s == "2014-11-30 21:18:13"
 
     t2 = t + 1.months
-    t2.to_s.should eq("2014-11-30 21:18:13")
+    assert t2.to_s == "2014-11-30 21:18:13"
 
     t = Time.new 2014, 10, 31, 21, 18, 13
     t2 = t + 1.month
-    t2.to_s.should eq("2014-11-30 21:18:13")
+    assert t2.to_s == "2014-11-30 21:18:13"
 
     t = Time.new 2014, 10, 31, 21, 18, 13
     t2 = t - 1.month
-    t2.to_s.should eq("2014-09-30 21:18:13")
+    assert t2.to_s == "2014-09-30 21:18:13"
   end
 
   it "add years" do
     t = Time.new 2014, 10, 30, 21, 18, 13
     t2 = t + 1.year
-    t2.to_s.should eq("2015-10-30 21:18:13")
+    assert t2.to_s == "2015-10-30 21:18:13"
 
     t = Time.new 2014, 10, 30, 21, 18, 13
     t2 = t - 2.years
-    t2.to_s.should eq("2012-10-30 21:18:13")
+    assert t2.to_s == "2012-10-30 21:18:13"
   end
 
   it "add hours" do
     t1 = Time.new TimeSpecTicks[1]
     t1 = t1 + 10.hours
 
-    t1.day.should eq(26)
-    t1.hour.should eq(1)
-    t1.minute.should eq(25)
-    t1.second.should eq(13)
+    assert t1.day == 26
+    assert t1.hour == 1
+    assert t1.minute == 25
+    assert t1.second == 13
 
     t1 = t1 - 3.7.hours
-    t1.day.should eq(25)
-    t1.hour.should eq(21)
-    t1.minute.should eq(43)
-    t1.second.should eq(13)
+    assert t1.day == 25
+    assert t1.hour == 21
+    assert t1.minute == 43
+    assert t1.second == 13
 
     t1 = t1 + 3.732.hours
-    t1.day.should eq(26)
-    t1.hour.should eq(1)
-    t1.minute.should eq(27)
-    t1.second.should eq(8)
+    assert t1.day == 26
+    assert t1.hour == 1
+    assert t1.minute == 27
+    assert t1.second == 8
   end
 
   it "add milliseconds" do
     t1 = Time.new TimeSpecTicks[1]
     t1 = t1 + 1e10.milliseconds
 
-    t1.day.should eq(21)
-    t1.hour.should eq(9)
-    t1.minute.should eq(11)
-    t1.second.should eq(53)
+    assert t1.day == 21
+    assert t1.hour == 9
+    assert t1.minute == 11
+    assert t1.second == 53
 
     t1 = t1 - 19e10.milliseconds
-    t1.day.should eq(13)
-    t1.hour.should eq(7)
-    t1.minute.should eq(25)
-    t1.second.should eq(13)
+    assert t1.day == 13
+    assert t1.hour == 7
+    assert t1.minute == 25
+    assert t1.second == 13
 
     t1 = t1 + 15.623.milliseconds
-    t1.day.should eq(13)
-    t1.hour.should eq(7)
-    t1.minute.should eq(25)
-    t1.second.should eq(13)
+    assert t1.day == 13
+    assert t1.hour == 7
+    assert t1.minute == 25
+    assert t1.second == 13
   end
 
   it "gets time of day" do
     t = Time.new 2014, 10, 30, 21, 18, 13
-    t.time_of_day.should eq(Time::Span.new(21, 18, 13))
+    assert t.time_of_day == Time::Span.new(21, 18, 13)
   end
 
   it "gets day of week" do
     t = Time.new 2014, 10, 30, 21, 18, 13
-    t.day_of_week.should eq(Time::DayOfWeek::Thursday)
+    assert t.day_of_week == Time::DayOfWeek::Thursday
   end
 
   it "gets day of year" do
     t = Time.new 2014, 10, 30, 21, 18, 13
-    t.day_of_year.should eq(303)
+    assert t.day_of_year == 303
   end
 
   it "compares" do
     t1 = Time.new 2014, 10, 30, 21, 18, 13
     t2 = Time.new 2014, 10, 30, 21, 18, 14
 
-    (t1 <=> t2).should eq(-1)
-    (t1 == t2).should be_false
-    (t1 < t2).should be_true
+    assert (t1 <=> t2) == -1
+    assert (t1 == t2) == false
+    assert (t1 < t2) == true
   end
 
   it "gets unix epoch seconds" do
     t1 = Time.new 2014, 10, 30, 21, 18, 13, 0, Time::Kind::Utc
-    t1.epoch.should eq(1414703893)
-    t1.epoch_f.should be_close(1414703893, 1e-01)
+    assert t1.epoch == 1414703893
+    assert t1.epoch_f.close?(1414703893, 1e-01)
   end
 
   it "gets unix epoch seconds at GMT" do
     t1 = Time.now
-    t1.epoch.should eq(t1.to_utc.epoch)
-    t1.epoch_f.should be_close(t1.to_utc.epoch_f, 1e-01)
+    assert t1.epoch == t1.to_utc.epoch
+    assert t1.epoch_f.close?(t1.to_utc.epoch_f, 1e-01)
   end
 
   it "to_s" do
     t = Time.new 2014, 10, 30, 21, 18, 13
-    t.to_s.should eq("2014-10-30 21:18:13")
+    assert t.to_s == "2014-10-30 21:18:13"
 
     t = Time.new 2014, 1, 30, 21, 18, 13
-    t.to_s.should eq("2014-01-30 21:18:13")
+    assert t.to_s == "2014-01-30 21:18:13"
 
     t = Time.new 2014, 10, 1, 21, 18, 13
-    t.to_s.should eq("2014-10-01 21:18:13")
+    assert t.to_s == "2014-10-01 21:18:13"
 
     t = Time.new 2014, 10, 30, 1, 18, 13
-    t.to_s.should eq("2014-10-30 01:18:13")
+    assert t.to_s == "2014-10-30 01:18:13"
 
     t = Time.new 2014, 10, 30, 21, 1, 13
-    t.to_s.should eq("2014-10-30 21:01:13")
+    assert t.to_s == "2014-10-30 21:01:13"
 
     t = Time.new 2014, 10, 30, 21, 18, 1
-    t.to_s.should eq("2014-10-30 21:18:01")
+    assert t.to_s == "2014-10-30 21:18:01"
   end
 
   it "formats" do
     t = Time.new 2014, 1, 2, 3, 4, 5, 6
     t2 = Time.new 2014, 1, 2, 15, 4, 5, 6
 
-    t.to_s("%Y").should eq("2014")
-    Time.new(1, 1, 2, 3, 4, 5, 6).to_s("%Y").should eq("0001")
+    assert t.to_s("%Y") == "2014"
+    assert Time.new(1, 1, 2, 3, 4, 5, 6).to_s("%Y") == "0001"
 
-    t.to_s("%C").should eq("20")
-    t.to_s("%y").should eq("14")
-    t.to_s("%m").should eq("01")
-    t.to_s("%_m").should eq(" 1")
-    t.to_s("%_%_m2").should eq("%_ 12")
-    t.to_s("%-m").should eq("1")
-    t.to_s("%-%-m2").should eq("%-12")
-    t.to_s("%B").should eq("January")
-    t.to_s("%^B").should eq("JANUARY")
-    t.to_s("%^%^B2").should eq("%^JANUARY2")
-    t.to_s("%b").should eq("Jan")
-    t.to_s("%^b").should eq("JAN")
-    t.to_s("%h").should eq("Jan")
-    t.to_s("%^h").should eq("JAN")
-    t.to_s("%d").should eq("02")
-    t.to_s("%-d").should eq("2")
-    t.to_s("%e").should eq(" 2")
-    t.to_s("%j").should eq("002")
-    t.to_s("%H").should eq("03")
+    assert t.to_s("%C") == "20"
+    assert t.to_s("%y") == "14"
+    assert t.to_s("%m") == "01"
+    assert t.to_s("%_m") == " 1"
+    assert t.to_s("%_%_m2") == "%_ 12"
+    assert t.to_s("%-m") == "1"
+    assert t.to_s("%-%-m2") == "%-12"
+    assert t.to_s("%B") == "January"
+    assert t.to_s("%^B") == "JANUARY"
+    assert t.to_s("%^%^B2") == "%^JANUARY2"
+    assert t.to_s("%b") == "Jan"
+    assert t.to_s("%^b") == "JAN"
+    assert t.to_s("%h") == "Jan"
+    assert t.to_s("%^h") == "JAN"
+    assert t.to_s("%d") == "02"
+    assert t.to_s("%-d") == "2"
+    assert t.to_s("%e") == " 2"
+    assert t.to_s("%j") == "002"
+    assert t.to_s("%H") == "03"
 
-    t.to_s("%k").should eq(" 3")
-    t2.to_s("%k").should eq("15")
+    assert t.to_s("%k") == " 3"
+    assert t2.to_s("%k") == "15"
 
-    t.to_s("%I").should eq("03")
-    t2.to_s("%I").should eq("03")
+    assert t.to_s("%I") == "03"
+    assert t2.to_s("%I") == "03"
 
-    t.to_s("%l").should eq(" 3")
-    t2.to_s("%l").should eq(" 3")
+    assert t.to_s("%l") == " 3"
+    assert t2.to_s("%l") == " 3"
 
     # Note: we purposely match %p to am/pm and %P to AM/PM (makes more sense)
-    t.to_s("%p").should eq("am")
-    t2.to_s("%p").should eq("pm")
+    assert t.to_s("%p") == "am"
+    assert t2.to_s("%p") == "pm"
 
-    t.to_s("%P").should eq("AM")
-    t2.to_s("%P").should eq("PM")
+    assert t.to_s("%P") == "AM"
+    assert t2.to_s("%P") == "PM"
 
-    t.to_s("%M").to_s.should eq("04")
-    t.to_s("%S").to_s.should eq("05")
-    t.to_s("%L").to_s.should eq("006")
+    assert t.to_s("%M").to_s == "04"
+    assert t.to_s("%S").to_s == "05"
+    assert t.to_s("%L").to_s == "006"
 
-    Time.utc_now.to_s("%z").should eq("+0000")
-    Time.utc_now.to_s("%:z").should eq("+00:00")
-    Time.utc_now.to_s("%::z").should eq("+00:00:00")
+    assert Time.utc_now.to_s("%z") == "+0000"
+    assert Time.utc_now.to_s("%:z") == "+00:00"
+    assert Time.utc_now.to_s("%::z") == "+00:00:00"
 
     # TODO %N
     # TODO %Z
 
-    t.to_s("%A").to_s.should eq("Thursday")
-    t.to_s("%^A").to_s.should eq("THURSDAY")
-    t.to_s("%a").to_s.should eq("Thu")
-    t.to_s("%^a").to_s.should eq("THU")
-    t.to_s("%u").to_s.should eq("4")
-    t.to_s("%w").to_s.should eq("4")
+    assert t.to_s("%A").to_s == "Thursday"
+    assert t.to_s("%^A").to_s == "THURSDAY"
+    assert t.to_s("%a").to_s == "Thu"
+    assert t.to_s("%^a").to_s == "THU"
+    assert t.to_s("%u").to_s == "4"
+    assert t.to_s("%w").to_s == "4"
 
     t3 = Time.new 2014, 1, 5 # A Sunday
-    t3.to_s("%u").to_s.should eq("7")
-    t3.to_s("%w").to_s.should eq("0")
+    assert t3.to_s("%u").to_s == "7"
+    assert t3.to_s("%w").to_s == "0"
 
     # TODO %G
     # TODO %g
@@ -338,77 +338,77 @@ describe Time do
     # TODO %t
     # TODO %%
 
-    t.to_s("%%").should eq("%")
-    t.to_s("%c").should eq(t.to_s("%a %b %e %T %Y"))
-    t.to_s("%D").should eq(t.to_s("%m/%d/%y"))
-    t.to_s("%F").should eq(t.to_s("%Y-%m-%d"))
+    assert t.to_s("%%") == "%"
+    assert t.to_s("%c") == t.to_s("%a %b %e %T %Y")
+    assert t.to_s("%D") == t.to_s("%m/%d/%y")
+    assert t.to_s("%F") == t.to_s("%Y-%m-%d")
     # TODO %v
-    t.to_s("%x").should eq(t.to_s("%D"))
-    t.to_s("%X").should eq(t.to_s("%T"))
-    t.to_s("%r").should eq(t.to_s("%I:%M:%S %P"))
-    t.to_s("%R").should eq(t.to_s("%H:%M"))
-    t.to_s("%T").should eq(t.to_s("%H:%M:%S"))
+    assert t.to_s("%x") == t.to_s("%D")
+    assert t.to_s("%X") == t.to_s("%T")
+    assert t.to_s("%r") == t.to_s("%I:%M:%S %P")
+    assert t.to_s("%R") == t.to_s("%H:%M")
+    assert t.to_s("%T") == t.to_s("%H:%M:%S")
 
-    t.to_s("%Y-%m-hello").should eq("2014-01-hello")
+    assert t.to_s("%Y-%m-hello") == "2014-01-hello"
 
     t = Time.new 2014, 1, 2, 3, 4, 5, 6, kind: Time::Kind::Utc
-    t.to_s("%s").should eq("1388631845")
+    assert t.to_s("%s") == "1388631845"
   end
 
   it "parses empty" do
     t = Time.parse("", "")
-    t.year.should eq(1)
-    t.month.should eq(1)
-    t.day.should eq(1)
-    t.hour.should eq(0)
-    t.minute.should eq(0)
-    t.second.should eq(0)
-    t.millisecond.should eq(0)
+    assert t.year == 1
+    assert t.month == 1
+    assert t.day == 1
+    assert t.hour == 0
+    assert t.minute == 0
+    assert t.second == 0
+    assert t.millisecond == 0
   end
 
-  assert { Time.parse("2014", "%Y").year.should eq(2014) }
-  assert { Time.parse("19", "%C").year.should eq(1900) }
-  assert { Time.parse("14", "%y").year.should eq(2014) }
-  assert { Time.parse("09", "%m").month.should eq(9) }
-  assert { Time.parse(" 9", "%_m").month.should eq(9) }
-  assert { Time.parse("9", "%-m").month.should eq(9) }
-  assert { Time.parse("February", "%B").month.should eq(2) }
-  assert { Time.parse("March", "%B").month.should eq(3) }
-  assert { Time.parse("MaRcH", "%B").month.should eq(3) }
-  assert { Time.parse("MaR", "%B").month.should eq(3) }
-  assert { Time.parse("MARCH", "%^B").month.should eq(3) }
-  assert { Time.parse("Mar", "%b").month.should eq(3) }
-  assert { Time.parse("Mar", "%^b").month.should eq(3) }
-  assert { Time.parse("MAR", "%^b").month.should eq(3) }
-  assert { Time.parse("MAR", "%h").month.should eq(3) }
-  assert { Time.parse("MAR", "%^h").month.should eq(3) }
-  assert { Time.parse("2", "%d").day.should eq(2) }
-  assert { Time.parse("02", "%d").day.should eq(2) }
-  assert { Time.parse("02", "%-d").day.should eq(2) }
-  assert { Time.parse(" 2", "%e").day.should eq(2) }
-  assert { Time.parse("9", "%H").hour.should eq(9) }
-  assert { Time.parse(" 9", "%k").hour.should eq(9) }
-  assert { Time.parse("09", "%I").hour.should eq(9) }
-  assert { Time.parse(" 9", "%l").hour.should eq(9) }
-  assert { Time.parse("9pm", "%l%p").hour.should eq(21) }
-  assert { Time.parse("9PM", "%l%P").hour.should eq(21) }
-  assert { Time.parse("09", "%M").minute.should eq(9) }
-  assert { Time.parse("09", "%S").second.should eq(9) }
-  assert { Time.parse("123", "%L").millisecond.should eq(123) }
-  assert { Time.parse("Fri Oct 31 23:00:24 2014", "%c").to_s.should eq("2014-10-31 23:00:24") }
-  assert { Time.parse("10/31/14", "%D").to_s.should eq("2014-10-31 00:00:00") }
-  assert { Time.parse("10/31/69", "%D").to_s.should eq("1969-10-31 00:00:00") }
-  assert { Time.parse("2014-10-31", "%F").to_s.should eq("2014-10-31 00:00:00") }
-  assert { Time.parse("2014-10-31", "%F").to_s.should eq("2014-10-31 00:00:00") }
-  assert { Time.parse("10/31/14", "%x").to_s.should eq("2014-10-31 00:00:00") }
-  assert { Time.parse("10:11:12", "%X").to_s.should eq("0001-01-01 10:11:12") }
-  assert { Time.parse("11:14:01 PM", "%r").to_s.should eq("0001-01-01 23:14:01") }
-  assert { Time.parse("11:14", "%R").to_s.should eq("0001-01-01 11:14:00") }
-  assert { Time.parse("11:12:13", "%T").to_s.should eq("0001-01-01 11:12:13") }
-  assert { Time.parse("This was done on Friday, October 31, 2014", "This was done on %A, %B %d, %Y").to_s.should eq("2014-10-31 00:00:00") }
-  assert { Time.parse("今は Friday, October 31, 2014", "今は %A, %B %d, %Y").to_s.should eq("2014-10-31 00:00:00") }
-  assert { Time.parse("epoch: 1459864667", "epoch: %s").epoch.should eq(1459864667) }
-  assert { Time.parse("epoch: -1459864667", "epoch: %s").epoch.should eq(-1459864667) }
+  it { assert Time.parse("2014", "%Y").year == 2014 }
+  it { assert Time.parse("19", "%C").year == 1900 }
+  it { assert Time.parse("14", "%y").year == 2014 }
+  it { assert Time.parse("09", "%m").month == 9 }
+  it { assert Time.parse(" 9", "%_m").month == 9 }
+  it { assert Time.parse("9", "%-m").month == 9 }
+  it { assert Time.parse("February", "%B").month == 2 }
+  it { assert Time.parse("March", "%B").month == 3 }
+  it { assert Time.parse("MaRcH", "%B").month == 3 }
+  it { assert Time.parse("MaR", "%B").month == 3 }
+  it { assert Time.parse("MARCH", "%^B").month == 3 }
+  it { assert Time.parse("Mar", "%b").month == 3 }
+  it { assert Time.parse("Mar", "%^b").month == 3 }
+  it { assert Time.parse("MAR", "%^b").month == 3 }
+  it { assert Time.parse("MAR", "%h").month == 3 }
+  it { assert Time.parse("MAR", "%^h").month == 3 }
+  it { assert Time.parse("2", "%d").day == 2 }
+  it { assert Time.parse("02", "%d").day == 2 }
+  it { assert Time.parse("02", "%-d").day == 2 }
+  it { assert Time.parse(" 2", "%e").day == 2 }
+  it { assert Time.parse("9", "%H").hour == 9 }
+  it { assert Time.parse(" 9", "%k").hour == 9 }
+  it { assert Time.parse("09", "%I").hour == 9 }
+  it { assert Time.parse(" 9", "%l").hour == 9 }
+  it { assert Time.parse("9pm", "%l%p").hour == 21 }
+  it { assert Time.parse("9PM", "%l%P").hour == 21 }
+  it { assert Time.parse("09", "%M").minute == 9 }
+  it { assert Time.parse("09", "%S").second == 9 }
+  it { assert Time.parse("123", "%L").millisecond == 123 }
+  it { assert Time.parse("Fri Oct 31 23:00:24 2014", "%c").to_s == "2014-10-31 23:00:24" }
+  it { assert Time.parse("10/31/14", "%D").to_s == "2014-10-31 00:00:00" }
+  it { assert Time.parse("10/31/69", "%D").to_s == "1969-10-31 00:00:00" }
+  it { assert Time.parse("2014-10-31", "%F").to_s == "2014-10-31 00:00:00" }
+  it { assert Time.parse("2014-10-31", "%F").to_s == "2014-10-31 00:00:00" }
+  it { assert Time.parse("10/31/14", "%x").to_s == "2014-10-31 00:00:00" }
+  it { assert Time.parse("10:11:12", "%X").to_s == "0001-01-01 10:11:12" }
+  it { assert Time.parse("11:14:01 PM", "%r").to_s == "0001-01-01 23:14:01" }
+  it { assert Time.parse("11:14", "%R").to_s == "0001-01-01 11:14:00" }
+  it { assert Time.parse("11:12:13", "%T").to_s == "0001-01-01 11:12:13" }
+  it { assert Time.parse("This was done on Friday, October 31, 2014", "This was done on %A, %B %d, %Y").to_s == "2014-10-31 00:00:00" }
+  it { assert Time.parse("今は Friday, October 31, 2014", "今は %A, %B %d, %Y").to_s == "2014-10-31 00:00:00" }
+  it { assert Time.parse("epoch: 1459864667", "epoch: %s").epoch == 1459864667 }
+  it { assert Time.parse("epoch: -1459864667", "epoch: %s").epoch == -1459864667 }
 
   # TODO %N
   # TODO %Z
@@ -423,178 +423,178 @@ describe Time do
   # TODO %%
   # TODO %v
 
-  assert do
+  it do
     time = Time.parse("2014-10-31 10:11:12 Z hi", "%F %T %z hi")
-    time.utc?.should be_true
-    time.to_utc.to_s.should eq("2014-10-31 10:11:12 UTC")
+    assert time.utc? == true
+    assert time.to_utc.to_s == "2014-10-31 10:11:12 UTC"
   end
 
-  assert do
+  it do
     time = Time.parse("2014-10-31 10:11:12 UTC hi", "%F %T %z hi")
-    time.utc?.should be_true
-    time.to_utc.to_s.should eq("2014-10-31 10:11:12 UTC")
+    assert time.utc? == true
+    assert time.to_utc.to_s == "2014-10-31 10:11:12 UTC"
   end
 
-  assert do
+  it do
     time = Time.parse("2014-10-31 10:11:12 -06:00 hi", "%F %T %z hi")
-    time.local?.should be_true
-    time.to_utc.to_s.should eq("2014-10-31 16:11:12 UTC")
+    assert time.local? == true
+    assert time.to_utc.to_s == "2014-10-31 16:11:12 UTC"
   end
 
-  assert do
+  it do
     time = Time.parse("2014-10-31 10:11:12 +05:00 hi", "%F %T %z hi")
-    time.local?.should be_true
-    time.to_utc.to_s.should eq("2014-10-31 05:11:12 UTC")
+    assert time.local? == true
+    assert time.to_utc.to_s == "2014-10-31 05:11:12 UTC"
   end
 
-  assert do
+  it do
     time = Time.parse("2014-10-31 10:11:12 -06:00:00 hi", "%F %T %z hi")
-    time.local?.should be_true
-    time.to_utc.to_s.should eq("2014-10-31 16:11:12 UTC")
+    assert time.local? == true
+    assert time.to_utc.to_s == "2014-10-31 16:11:12 UTC"
   end
 
-  assert do
+  it do
     time = Time.parse("2014-10-31 10:11:12 -060000 hi", "%F %T %z hi")
-    time.local?.should be_true
-    time.to_utc.to_s.should eq("2014-10-31 16:11:12 UTC")
+    assert time.local? == true
+    assert time.to_utc.to_s == "2014-10-31 16:11:12 UTC"
   end
 
   it "parses the correct amount of digits (#853)" do
     time = Time.parse("20150624", "%Y%m%d")
-    time.year.should eq(2015)
-    time.month.should eq(6)
-    time.day.should eq(24)
+    assert time.year == 2015
+    assert time.month == 6
+    assert time.day == 24
   end
 
   it "parses month blank padded" do
     time = Time.parse("2015 624", "%Y%_m%d")
-    time.year.should eq(2015)
-    time.month.should eq(6)
-    time.day.should eq(24)
+    assert time.year == 2015
+    assert time.month == 6
+    assert time.day == 24
   end
 
   it "parses day of month blank padded" do
     time = Time.parse("201506 4", "%Y%m%e")
-    time.year.should eq(2015)
-    time.month.should eq(6)
-    time.day.should eq(4)
+    assert time.year == 2015
+    assert time.month == 6
+    assert time.day == 4
   end
 
   it "parses hour 24 blank padded" do
     time = Time.parse(" 31112", "%k%M%S")
-    time.hour.should eq(3)
-    time.minute.should eq(11)
-    time.second.should eq(12)
+    assert time.hour == 3
+    assert time.minute == 11
+    assert time.second == 12
   end
 
   it "parses hour 12 blank padded" do
     time = Time.parse(" 31112", "%l%M%S")
-    time.hour.should eq(3)
-    time.minute.should eq(11)
-    time.second.should eq(12)
+    assert time.hour == 3
+    assert time.minute == 11
+    assert time.second == 12
   end
 
   it "can parse in UTC" do
     time = Time.parse("2014-10-31 11:12:13", "%F %T", Time::Kind::Utc)
-    time.kind.should eq(Time::Kind::Utc)
+    assert time.kind == Time::Kind::Utc
   end
 
   it "at" do
     t1 = Time.new 2014, 11, 25, 10, 11, 12, 13
     t2 = Time.new 2014, 6, 25, 10, 11, 12, 13
 
-    t1.at_beginning_of_year.to_s.should eq("2014-01-01 00:00:00")
+    assert t1.at_beginning_of_year.to_s == "2014-01-01 00:00:00"
 
     1.upto(3) do |i|
-      Time.new(2014, i, 10).at_beginning_of_quarter.to_s.should eq("2014-01-01 00:00:00")
-      Time.new(2014, i, 10).at_end_of_quarter.to_s.should eq("2014-03-31 23:59:59")
+      assert Time.new(2014, i, 10).at_beginning_of_quarter.to_s == "2014-01-01 00:00:00"
+      assert Time.new(2014, i, 10).at_end_of_quarter.to_s == "2014-03-31 23:59:59"
     end
     4.upto(6) do |i|
-      Time.new(2014, i, 10).at_beginning_of_quarter.to_s.should eq("2014-04-01 00:00:00")
-      Time.new(2014, i, 10).at_end_of_quarter.to_s.should eq("2014-06-30 23:59:59")
+      assert Time.new(2014, i, 10).at_beginning_of_quarter.to_s == "2014-04-01 00:00:00"
+      assert Time.new(2014, i, 10).at_end_of_quarter.to_s == "2014-06-30 23:59:59"
     end
     7.upto(9) do |i|
-      Time.new(2014, i, 10).at_beginning_of_quarter.to_s.should eq("2014-07-01 00:00:00")
-      Time.new(2014, i, 10).at_end_of_quarter.to_s.should eq("2014-09-30 23:59:59")
+      assert Time.new(2014, i, 10).at_beginning_of_quarter.to_s == "2014-07-01 00:00:00"
+      assert Time.new(2014, i, 10).at_end_of_quarter.to_s == "2014-09-30 23:59:59"
     end
     10.upto(12) do |i|
-      Time.new(2014, i, 10).at_beginning_of_quarter.to_s.should eq("2014-10-01 00:00:00")
-      Time.new(2014, i, 10).at_end_of_quarter.to_s.should eq("2014-12-31 23:59:59")
+      assert Time.new(2014, i, 10).at_beginning_of_quarter.to_s == "2014-10-01 00:00:00"
+      assert Time.new(2014, i, 10).at_end_of_quarter.to_s == "2014-12-31 23:59:59"
     end
 
-    t1.at_beginning_of_quarter.to_s.should eq("2014-10-01 00:00:00")
-    t1.at_beginning_of_month.to_s.should eq("2014-11-01 00:00:00")
+    assert t1.at_beginning_of_quarter.to_s == "2014-10-01 00:00:00"
+    assert t1.at_beginning_of_month.to_s == "2014-11-01 00:00:00"
 
     3.upto(9) do |i|
-      Time.new(2014, 11, i).at_beginning_of_week.to_s.should eq("2014-11-03 00:00:00")
+      assert Time.new(2014, 11, i).at_beginning_of_week.to_s == "2014-11-03 00:00:00"
     end
 
-    t1.at_beginning_of_day.to_s.should eq("2014-11-25 00:00:00")
-    t1.at_beginning_of_hour.to_s.should eq("2014-11-25 10:00:00")
-    t1.at_beginning_of_minute.to_s.should eq("2014-11-25 10:11:00")
+    assert t1.at_beginning_of_day.to_s == "2014-11-25 00:00:00"
+    assert t1.at_beginning_of_hour.to_s == "2014-11-25 10:00:00"
+    assert t1.at_beginning_of_minute.to_s == "2014-11-25 10:11:00"
 
-    t1.at_end_of_year.to_s.should eq("2014-12-31 23:59:59")
+    assert t1.at_end_of_year.to_s == "2014-12-31 23:59:59"
 
-    t1.at_end_of_quarter.to_s.should eq("2014-12-31 23:59:59")
-    t2.at_end_of_quarter.to_s.should eq("2014-06-30 23:59:59")
+    assert t1.at_end_of_quarter.to_s == "2014-12-31 23:59:59"
+    assert t2.at_end_of_quarter.to_s == "2014-06-30 23:59:59"
 
-    t1.at_end_of_month.to_s.should eq("2014-11-30 23:59:59")
-    t1.at_end_of_week.to_s.should eq("2014-11-30 23:59:59")
+    assert t1.at_end_of_month.to_s == "2014-11-30 23:59:59"
+    assert t1.at_end_of_week.to_s == "2014-11-30 23:59:59"
 
-    Time.new(2014, 11, 2).at_end_of_week.to_s.should eq("2014-11-02 23:59:59")
+    assert Time.new(2014, 11, 2).at_end_of_week.to_s == "2014-11-02 23:59:59"
     3.upto(9) do |i|
-      Time.new(2014, 11, i).at_end_of_week.to_s.should eq("2014-11-09 23:59:59")
+      assert Time.new(2014, 11, i).at_end_of_week.to_s == "2014-11-09 23:59:59"
     end
 
-    t1.at_end_of_day.to_s.should eq("2014-11-25 23:59:59")
-    t1.at_end_of_hour.to_s.should eq("2014-11-25 10:59:59")
-    t1.at_end_of_minute.to_s.should eq("2014-11-25 10:11:59")
+    assert t1.at_end_of_day.to_s == "2014-11-25 23:59:59"
+    assert t1.at_end_of_hour.to_s == "2014-11-25 10:59:59"
+    assert t1.at_end_of_minute.to_s == "2014-11-25 10:11:59"
 
-    t1.at_midday.to_s.should eq("2014-11-25 12:00:00")
+    assert t1.at_midday.to_s == "2014-11-25 12:00:00"
 
-    t1.at_beginning_of_semester.to_s.should eq("2014-07-01 00:00:00")
-    t2.at_beginning_of_semester.to_s.should eq("2014-01-01 00:00:00")
+    assert t1.at_beginning_of_semester.to_s == "2014-07-01 00:00:00"
+    assert t2.at_beginning_of_semester.to_s == "2014-01-01 00:00:00"
 
-    t1.at_end_of_semester.to_s.should eq("2014-12-31 23:59:59")
-    t2.at_end_of_semester.to_s.should eq("2014-06-30 23:59:59")
+    assert t1.at_end_of_semester.to_s == "2014-12-31 23:59:59"
+    assert t2.at_end_of_semester.to_s == "2014-06-30 23:59:59"
   end
 
   it "does time span units" do
-    1.millisecond.ticks.should eq(Time::Span::TicksPerMillisecond)
-    1.milliseconds.ticks.should eq(Time::Span::TicksPerMillisecond)
-    1.second.ticks.should eq(Time::Span::TicksPerSecond)
-    1.seconds.ticks.should eq(Time::Span::TicksPerSecond)
-    1.minute.ticks.should eq(Time::Span::TicksPerMinute)
-    1.minutes.ticks.should eq(Time::Span::TicksPerMinute)
-    1.hour.ticks.should eq(Time::Span::TicksPerHour)
-    1.hours.ticks.should eq(Time::Span::TicksPerHour)
-    1.week.should eq(7.days)
-    2.weeks.should eq(14.days)
+    assert 1.millisecond.ticks == Time::Span::TicksPerMillisecond
+    assert 1.milliseconds.ticks == Time::Span::TicksPerMillisecond
+    assert 1.second.ticks == Time::Span::TicksPerSecond
+    assert 1.seconds.ticks == Time::Span::TicksPerSecond
+    assert 1.minute.ticks == Time::Span::TicksPerMinute
+    assert 1.minutes.ticks == Time::Span::TicksPerMinute
+    assert 1.hour.ticks == Time::Span::TicksPerHour
+    assert 1.hours.ticks == Time::Span::TicksPerHour
+    assert 1.week == 7.days
+    assert 2.weeks == 14.days
   end
 
   it "preserves kind when adding" do
     time = Time.utc_now
-    time.kind.should eq(Time::Kind::Utc)
+    assert time.kind == Time::Kind::Utc
 
-    (time + 5.minutes).kind.should eq(Time::Kind::Utc)
+    assert (time + 5.minutes).kind == Time::Kind::Utc
   end
 
   it "asks for day name" do
     7.times do |i|
       time = Time.new(2015, 2, 15 + i)
-      time.sunday?.should eq(i == 0)
-      time.monday?.should eq(i == 1)
-      time.tuesday?.should eq(i == 2)
-      time.wednesday?.should eq(i == 3)
-      time.thursday?.should eq(i == 4)
-      time.friday?.should eq(i == 5)
-      time.saturday?.should eq(i == 6)
+      assert time.sunday? == i == 0
+      assert time.monday? == i == 1
+      assert time.tuesday? == i == 2
+      assert time.wednesday? == i == 3
+      assert time.thursday? == i == 4
+      assert time.friday? == i == 5
+      assert time.saturday? == i == 6
     end
   end
 
   it "compares different kinds" do
     time = Time.now
-    (time.to_utc <=> time).should eq(0)
+    assert (time.to_utc <=> time) == 0
   end
 
   it %(changes timezone with ENV["TZ"]) do
@@ -607,7 +607,7 @@ describe Time do
       ENV["TZ"] = "Europe/Berlin"
       offset2 = Time.local_offset_in_minutes
 
-      offset1.should_not eq(offset2)
+      assert offset1 != offset2
     ensure
       ENV["TZ"] = old_tz
     end

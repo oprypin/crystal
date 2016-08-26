@@ -2,181 +2,181 @@ require "spec"
 
 describe "Char" do
   describe "upcase" do
-    assert { 'a'.upcase.should eq('A') }
-    assert { '1'.upcase.should eq('1') }
+    it { assert 'a'.upcase == 'A' }
+    it { assert '1'.upcase == '1' }
   end
 
   describe "downcase" do
-    assert { 'A'.downcase.should eq('a') }
-    assert { '1'.downcase.should eq('1') }
+    it { assert 'A'.downcase == 'a' }
+    it { assert '1'.downcase == '1' }
   end
 
   describe "succ" do
-    assert { 'a'.succ.should eq('b') }
-    assert { 'あ'.succ.should eq('ぃ') }
+    it { assert 'a'.succ == 'b' }
+    it { assert 'あ'.succ == 'ぃ' }
   end
 
   describe "pred" do
-    assert { 'b'.pred.should eq('a') }
-    assert { 'ぃ'.pred.should eq('あ') }
+    it { assert 'b'.pred == 'a' }
+    it { assert 'ぃ'.pred == 'あ' }
   end
 
   describe "uppercase?" do
-    assert { 'a'.uppercase?.should be_false }
-    assert { 'A'.uppercase?.should be_true }
-    assert { '1'.uppercase?.should be_false }
-    assert { ' '.uppercase?.should be_false }
+    it { assert 'a'.uppercase? == false }
+    it { assert 'A'.uppercase? == true }
+    it { assert '1'.uppercase? == false }
+    it { assert ' '.uppercase? == false }
   end
 
   describe "lowercase?" do
-    assert { 'a'.lowercase?.should be_true }
-    assert { 'A'.lowercase?.should be_false }
-    assert { '1'.lowercase?.should be_false }
-    assert { ' '.lowercase?.should be_false }
+    it { assert 'a'.lowercase? == true }
+    it { assert 'A'.lowercase? == false }
+    it { assert '1'.lowercase? == false }
+    it { assert ' '.lowercase? == false }
   end
 
   describe "alpha?" do
-    assert { 'a'.alpha?.should be_true }
-    assert { 'A'.alpha?.should be_true }
-    assert { '1'.alpha?.should be_false }
-    assert { ' '.alpha?.should be_false }
+    it { assert 'a'.alpha? == true }
+    it { assert 'A'.alpha? == true }
+    it { assert '1'.alpha? == false }
+    it { assert ' '.alpha? == false }
   end
 
   describe "alphanumeric?" do
-    assert { 'a'.alphanumeric?.should be_true }
-    assert { 'A'.alphanumeric?.should be_true }
-    assert { '1'.alphanumeric?.should be_true }
-    assert { ' '.alphanumeric?.should be_false }
+    it { assert 'a'.alphanumeric? == true }
+    it { assert 'A'.alphanumeric? == true }
+    it { assert '1'.alphanumeric? == true }
+    it { assert ' '.alphanumeric? == false }
   end
 
   describe "whitespace?" do
     [' ', '\t', '\n', '\v', '\f', '\r'].each do |char|
-      assert { char.whitespace?.should be_true }
+      it { assert char.whitespace? == true }
     end
-    assert { 'A'.whitespace?.should be_false }
+    it { assert 'A'.whitespace? == false }
   end
 
   describe "hex?" do
     "0123456789abcdefABCDEF".each_char do |char|
-      assert { char.hex?.should be_true }
+      it { assert char.hex? == true }
     end
     ('g'..'z').each do |char|
-      assert { char.hex?.should be_false }
+      it { assert char.hex? == false }
     end
     [' ', '-', '\0'].each do |char|
-      assert { char.hex?.should be_false }
+      it { assert char.hex? == false }
     end
   end
 
   it "dumps" do
-    'a'.dump.should eq("'a'")
-    '\\'.dump.should eq("'\\\\'")
-    '\e'.dump.should eq("'\\e'")
-    '\f'.dump.should eq("'\\f'")
-    '\n'.dump.should eq("'\\n'")
-    '\r'.dump.should eq("'\\r'")
-    '\t'.dump.should eq("'\\t'")
-    '\v'.dump.should eq("'\\v'")
-    'á'.dump.should eq("'\\u{e1}'")
-    '\u{81}'.dump.should eq("'\\u{81}'")
+    assert 'a'.dump == "'a'"
+    assert '\\'.dump == "'\\\\'"
+    assert '\e'.dump == "'\\e'"
+    assert '\f'.dump == "'\\f'"
+    assert '\n'.dump == "'\\n'"
+    assert '\r'.dump == "'\\r'"
+    assert '\t'.dump == "'\\t'"
+    assert '\v'.dump == "'\\v'"
+    assert 'á'.dump == "'\\u{e1}'"
+    assert '\u{81}'.dump == "'\\u{81}'"
   end
 
   it "inspects" do
-    'a'.inspect.should eq("'a'")
-    '\\'.inspect.should eq("'\\\\'")
-    '\e'.inspect.should eq("'\\e'")
-    '\f'.inspect.should eq("'\\f'")
-    '\n'.inspect.should eq("'\\n'")
-    '\r'.inspect.should eq("'\\r'")
-    '\t'.inspect.should eq("'\\t'")
-    '\v'.inspect.should eq("'\\v'")
-    'á'.inspect.should eq("'á'")
-    '\u{81}'.inspect.should eq("'\\u{81}'")
+    assert 'a'.inspect == "'a'"
+    assert '\\'.inspect == "'\\\\'"
+    assert '\e'.inspect == "'\\e'"
+    assert '\f'.inspect == "'\\f'"
+    assert '\n'.inspect == "'\\n'"
+    assert '\r'.inspect == "'\\r'"
+    assert '\t'.inspect == "'\\t'"
+    assert '\v'.inspect == "'\\v'"
+    assert 'á'.inspect == "'á'"
+    assert '\u{81}'.inspect == "'\\u{81}'"
   end
 
   it "escapes" do
-    '\b'.ord.should eq(8)
-    '\t'.ord.should eq(9)
-    '\n'.ord.should eq(10)
-    '\v'.ord.should eq(11)
-    '\f'.ord.should eq(12)
-    '\r'.ord.should eq(13)
-    '\e'.ord.should eq(27)
-    '\''.ord.should eq(39)
-    '\\'.ord.should eq(92)
+    assert '\b'.ord == 8
+    assert '\t'.ord == 9
+    assert '\n'.ord == 10
+    assert '\v'.ord == 11
+    assert '\f'.ord == 12
+    assert '\r'.ord == 13
+    assert '\e'.ord == 27
+    assert '\''.ord == 39
+    assert '\\'.ord == 92
   end
 
   it "escapes with octal" do
-    '\0'.ord.should eq(0)
-    '\3'.ord.should eq(3)
-    '\23'.ord.should eq((2 * 8) + 3)
-    '\123'.ord.should eq((1 * 8 * 8) + (2 * 8) + 3)
-    '\033'.ord.should eq((3 * 8) + 3)
+    assert '\0'.ord == 0
+    assert '\3'.ord == 3
+    assert '\23'.ord == (2 * 8) + 3
+    assert '\123'.ord == (1 * 8 * 8) + (2 * 8) + 3
+    assert '\033'.ord == (3 * 8) + 3
   end
 
   it "escapes with unicode" do
-    '\u{12}'.ord.should eq(1 * 16 + 2)
-    '\u{A}'.ord.should eq(10)
-    '\u{AB}'.ord.should eq(10 * 16 + 11)
+    assert '\u{12}'.ord == 1 * 16 + 2
+    assert '\u{A}'.ord == 10
+    assert '\u{AB}'.ord == 10 * 16 + 11
   end
 
   it "does to_i without a base" do
     ('0'..'9').each_with_index do |c, i|
-      c.to_i.should eq(i)
+      assert c.to_i == i
     end
     expect_raises(ArgumentError) { 'a'.to_i }
-    'a'.to_i?.should be_nil
+    assert 'a'.to_i?.nil?
 
-    '1'.to_i8.should eq(1i8)
-    '1'.to_i16.should eq(1i16)
-    '1'.to_i32.should eq(1i32)
-    '1'.to_i64.should eq(1i64)
+    assert '1'.to_i8 == 1i8
+    assert '1'.to_i16 == 1i16
+    assert '1'.to_i32 == 1i32
+    assert '1'.to_i64 == 1i64
 
     expect_raises(ArgumentError) { 'a'.to_i8 }
     expect_raises(ArgumentError) { 'a'.to_i16 }
     expect_raises(ArgumentError) { 'a'.to_i32 }
     expect_raises(ArgumentError) { 'a'.to_i64 }
 
-    'a'.to_i8?.should be_nil
-    'a'.to_i16?.should be_nil
-    'a'.to_i32?.should be_nil
-    'a'.to_i64?.should be_nil
+    assert 'a'.to_i8?.nil?
+    assert 'a'.to_i16?.nil?
+    assert 'a'.to_i32?.nil?
+    assert 'a'.to_i64?.nil?
 
-    '1'.to_u8.should eq(1u8)
-    '1'.to_u16.should eq(1u16)
-    '1'.to_u32.should eq(1u32)
-    '1'.to_u64.should eq(1u64)
+    assert '1'.to_u8 == 1u8
+    assert '1'.to_u16 == 1u16
+    assert '1'.to_u32 == 1u32
+    assert '1'.to_u64 == 1u64
 
     expect_raises(ArgumentError) { 'a'.to_u8 }
     expect_raises(ArgumentError) { 'a'.to_u16 }
     expect_raises(ArgumentError) { 'a'.to_u32 }
     expect_raises(ArgumentError) { 'a'.to_u64 }
 
-    'a'.to_u8?.should be_nil
-    'a'.to_u16?.should be_nil
-    'a'.to_u32?.should be_nil
-    'a'.to_u64?.should be_nil
+    assert 'a'.to_u8?.nil?
+    assert 'a'.to_u16?.nil?
+    assert 'a'.to_u32?.nil?
+    assert 'a'.to_u64?.nil?
   end
 
   it "does to_i with 16 base" do
     ('0'..'9').each_with_index do |c, i|
-      c.to_i(16).should eq(i)
+      assert c.to_i(16) == i
     end
     ('a'..'f').each_with_index do |c, i|
-      c.to_i(16).should eq(10 + i)
+      assert c.to_i(16) == 10 + i
     end
     ('A'..'F').each_with_index do |c, i|
-      c.to_i(16).should eq(10 + i)
+      assert c.to_i(16) == 10 + i
     end
     expect_raises(ArgumentError) { 'Z'.to_i(16) }
-    'Z'.to_i?(16).should be_nil
+    assert 'Z'.to_i?(16).nil?
   end
 
   it "does to_i with base 36" do
     letters = ('0'..'9').each.chain(('a'..'z').each).chain(('A'..'Z').each)
     nums = (0..9).each.chain((10..35).each).chain((10..35).each)
     letters.zip(nums).each do |(letter, num)|
-      letter.to_i(36).should eq(num)
+      assert letter.to_i(36) == num
     end
   end
 
@@ -194,61 +194,61 @@ describe "Char" do
 
   it "does to_f" do
     ('0'..'9').each.zip((0..9).each).each do |c, i|
-      c.to_f.should eq(i.to_f)
+      assert c.to_f == i.to_f
     end
     expect_raises(ArgumentError) { 'A'.to_f }
-    '1'.to_f32.should eq(1.0f32)
-    '1'.to_f64.should eq(1.0f64)
-    'a'.to_f?.should be_nil
-    'a'.to_f32?.should be_nil
-    'a'.to_f64?.should be_nil
+    assert '1'.to_f32 == 1.0f32
+    assert '1'.to_f64 == 1.0f64
+    assert 'a'.to_f?.nil?
+    assert 'a'.to_f32?.nil?
+    assert 'a'.to_f64?.nil?
   end
 
   it "does ord for multibyte char" do
-    '日'.ord.should eq(26085)
+    assert '日'.ord == 26085
   end
 
   it "does to_s for single-byte char" do
-    'a'.to_s.should eq("a")
+    assert 'a'.to_s == "a"
   end
 
   it "does to_s for multibyte char" do
-    '日'.to_s.should eq("日")
+    assert '日'.to_s == "日"
   end
 
   describe "index" do
-    assert { "foo".index('o').should eq(1) }
-    assert { "foo".index('x').should be_nil }
+    it { assert "foo".index('o') == 1 }
+    it { assert "foo".index('x').nil? }
   end
 
   it "does <=>" do
-    ('a' <=> 'b').should be < 0
-    ('a' <=> 'a').should eq(0)
-    ('b' <=> 'a').should be > 0
+    assert ('a' <=> 'b') < 0
+    assert ('a' <=> 'a') == 0
+    assert ('b' <=> 'a') > 0
   end
 
   describe "+" do
     it "does for both ascii" do
       str = 'f' + "oo"
-      str.bytesize.should eq(3)
-      str.@length.should eq(3)
-      str.should eq("foo")
+      assert str.bytesize == 3
+      assert str.@length == 3
+      assert str == "foo"
     end
 
     it "does for both unicode" do
       str = '青' + "旅路"
-      str.@length.should eq(3)
-      str.should eq("青旅路")
+      assert str.@length == 3
+      assert str == "青旅路"
     end
   end
 
   describe "bytesize" do
     it "does for ascii" do
-      'a'.bytesize.should eq(1)
+      assert 'a'.bytesize == 1
     end
 
     it "does for unicode" do
-      '青'.bytesize.should eq(3)
+      assert '青'.bytesize == 3
     end
 
     it "raises on codepoint bigger than 0x10ffff" do
@@ -259,41 +259,41 @@ describe "Char" do
   end
 
   describe "in_set?" do
-    assert { 'a'.in_set?("a").should be_true }
-    assert { 'a'.in_set?("b").should be_false }
-    assert { 'a'.in_set?("a-c").should be_true }
-    assert { 'b'.in_set?("a-c").should be_true }
-    assert { 'c'.in_set?("a-c").should be_true }
-    assert { 'c'.in_set?("a-bc").should be_true }
-    assert { 'b'.in_set?("a-bc").should be_true }
-    assert { 'd'.in_set?("a-c").should be_false }
-    assert { 'b'.in_set?("^a-c").should be_false }
-    assert { 'd'.in_set?("^a-c").should be_true }
-    assert { 'a'.in_set?("ab-c").should be_true }
-    assert { 'a'.in_set?("\\^ab-c").should be_true }
-    assert { '^'.in_set?("\\^ab-c").should be_true }
-    assert { '^'.in_set?("a^b-c").should be_true }
-    assert { '^'.in_set?("ab-c^").should be_true }
-    assert { '^'.in_set?("a0-^").should be_true }
-    assert { '^'.in_set?("^-c").should be_true }
-    assert { '^'.in_set?("a^-c").should be_true }
-    assert { '\\'.in_set?("ab-c\\").should be_true }
-    assert { '\\'.in_set?("a\\b-c").should be_false }
-    assert { '\\'.in_set?("a0-\\c").should be_true }
-    assert { '\\'.in_set?("a\\-c").should be_false }
-    assert { '-'.in_set?("a-c").should be_false }
-    assert { '-'.in_set?("a-c").should be_false }
-    assert { '-'.in_set?("a\\-c").should be_true }
-    assert { '-'.in_set?("-c").should be_true }
-    assert { '-'.in_set?("a-").should be_true }
-    assert { '-'.in_set?("^-c").should be_false }
-    assert { '-'.in_set?("^\\-c").should be_false }
-    assert { 'b'.in_set?("^\\-c").should be_true }
-    assert { '-'.in_set?("a^-c").should be_false }
-    assert { 'a'.in_set?("a", "ab").should be_true }
-    assert { 'a'.in_set?("a", "^b").should be_true }
-    assert { 'a'.in_set?("a", "b").should be_false }
-    assert { 'a'.in_set?("ab", "ac", "ad").should be_true }
+    it { assert 'a'.in_set?("a") == true }
+    it { assert 'a'.in_set?("b") == false }
+    it { assert 'a'.in_set?("a-c") == true }
+    it { assert 'b'.in_set?("a-c") == true }
+    it { assert 'c'.in_set?("a-c") == true }
+    it { assert 'c'.in_set?("a-bc") == true }
+    it { assert 'b'.in_set?("a-bc") == true }
+    it { assert 'd'.in_set?("a-c") == false }
+    it { assert 'b'.in_set?("^a-c") == false }
+    it { assert 'd'.in_set?("^a-c") == true }
+    it { assert 'a'.in_set?("ab-c") == true }
+    it { assert 'a'.in_set?("\\^ab-c") == true }
+    it { assert '^'.in_set?("\\^ab-c") == true }
+    it { assert '^'.in_set?("a^b-c") == true }
+    it { assert '^'.in_set?("ab-c^") == true }
+    it { assert '^'.in_set?("a0-^") == true }
+    it { assert '^'.in_set?("^-c") == true }
+    it { assert '^'.in_set?("a^-c") == true }
+    it { assert '\\'.in_set?("ab-c\\") == true }
+    it { assert '\\'.in_set?("a\\b-c") == false }
+    it { assert '\\'.in_set?("a0-\\c") == true }
+    it { assert '\\'.in_set?("a\\-c") == false }
+    it { assert '-'.in_set?("a-c") == false }
+    it { assert '-'.in_set?("a-c") == false }
+    it { assert '-'.in_set?("a\\-c") == true }
+    it { assert '-'.in_set?("-c") == true }
+    it { assert '-'.in_set?("a-") == true }
+    it { assert '-'.in_set?("^-c") == false }
+    it { assert '-'.in_set?("^\\-c") == false }
+    it { assert 'b'.in_set?("^\\-c") == true }
+    it { assert '-'.in_set?("a^-c") == false }
+    it { assert 'a'.in_set?("a", "ab") == true }
+    it { assert 'a'.in_set?("a", "^b") == true }
+    it { assert 'a'.in_set?("a", "b") == false }
+    it { assert 'a'.in_set?("ab", "ac", "ad") == true }
 
     it "rejects invalid ranges" do
       expect_raises do
@@ -309,27 +309,27 @@ describe "Char" do
   end
 
   it "does bytes" do
-    '\u{FF}'.bytes.should eq([195, 191])
+    assert '\u{FF}'.bytes == [195, 191]
   end
 
   it "#===(:Int)" do
-    ('c'.ord).should eq(99)
-    ('c' === 99_u8).should be_true
-    ('c' === 99).should be_true
-    ('z' === 99).should be_false
+    assert ('c'.ord) == 99
+    assert ('c' === 99_u8) == true
+    assert ('c' === 99) == true
+    assert ('z' === 99) == false
 
-    ('酒'.ord).should eq(37202)
-    ('酒' === 37202).should be_true
+    assert ('酒'.ord) == 37202
+    assert ('酒' === 37202) == true
   end
 
   it "does digit?" do
     256.times do |i|
       chr = i.chr
-      ("01".chars.includes?(chr) == chr.digit?(2)).should be_true
-      ("01234567".chars.includes?(chr) == chr.digit?(8)).should be_true
-      ("0123456789".chars.includes?(chr) == chr.digit?).should be_true
-      ("0123456789".chars.includes?(chr) == chr.digit?(10)).should be_true
-      ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".includes?(chr) == chr.digit?(36)).should be_true
+      assert ("01".chars.includes?(chr) == chr.digit?(2)) == true
+      assert ("01234567".chars.includes?(chr) == chr.digit?(8)) == true
+      assert ("0123456789".chars.includes?(chr) == chr.digit?) == true
+      assert ("0123456789".chars.includes?(chr) == chr.digit?(10)) == true
+      assert ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".includes?(chr) == chr.digit?(36)) == true
       unless 2 <= i <= 36
         expect_raises ArgumentError do
           '0'.digit?(i)
@@ -339,19 +339,19 @@ describe "Char" do
   end
 
   it "does control?" do
-    'ù'.control?.should be_false
-    'a'.control?.should be_false
-    '\u0019'.control?.should be_true
+    assert 'ù'.control? == false
+    assert 'a'.control? == false
+    assert '\u0019'.control? == true
   end
 
   it "does ascii?" do
-    'a'.ascii?.should be_true
-    127.chr.ascii?.should be_true
-    128.chr.ascii?.should be_false
-    '酒'.ascii?.should be_false
+    assert 'a'.ascii? == true
+    assert 127.chr.ascii? == true
+    assert 128.chr.ascii? == false
+    assert '酒'.ascii? == false
   end
 
   describe "clone" do
-    assert { 'a'.clone.should eq('a') }
+    it { assert 'a'.clone == 'a' }
   end
 end

@@ -37,7 +37,7 @@ describe "Semantic: macro" do
   end
 
   it "allows subclasses of return type for macro def" do
-    run(%{
+    assert run(%{
       class Foo
         def foo
           1
@@ -55,11 +55,11 @@ describe "Semantic: macro" do
       end
 
       foobar.foo
-    }).to_i.should eq(2)
+    }).to_i == 2
   end
 
   it "allows return values that include the return type of the macro def" do
-    run(%{
+    assert run(%{
       module Foo
         def foo
           1
@@ -79,11 +79,11 @@ describe "Semantic: macro" do
       end
 
       foobar.foo
-    }).to_i.should eq(2)
+    }).to_i == 2
   end
 
   it "allows generic return types for macro def" do
-    run(%{
+    assert run(%{
       class Foo(T)
         def foo
           @foo
@@ -98,7 +98,7 @@ describe "Semantic: macro" do
       end
 
       foobar.foo
-    }).to_i.should eq(2)
+    }).to_i == 2
 
     assert_error %{
       class Foo(T)
@@ -402,7 +402,7 @@ describe "Semantic: macro" do
     begin
       semantic nodes
     rescue ex : TypeException
-      ex.to_s.should_not match(/did you mean/)
+      assert ex.to_s !~ /did you mean/
     end
   end
 

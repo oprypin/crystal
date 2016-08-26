@@ -16,27 +16,27 @@ describe XML do
     ))
 
     html = doc.children[1]
-    html.name.should eq("html")
+    assert html.name == "html"
 
     head = html.children.find { |node| node.name == "head" }.not_nil!
-    head.name.should eq("head")
+    assert head.name == "head"
 
     title = head.children.find { |node| node.name == "title" }.not_nil!
-    title.text.should eq("Samantha")
+    assert title.text == "Samantha"
 
     body = html.children.find { |node| node.name == "body" }.not_nil!
 
     h1 = body.children.find { |node| node.name == "h1" }.not_nil!
 
     attrs = h1.attributes
-    attrs.empty?.should be_false
-    attrs.size.should eq(1)
+    assert attrs.empty? == false
+    assert attrs.size == 1
 
     attr = attrs[0]
-    attr.name.should eq("class")
-    attr.content.should eq("large")
-    attr.text.should eq("large")
-    attr.inner_text.should eq("large")
+    assert attr.name == "class"
+    assert attr.content == "large"
+    assert attr.text == "large"
+    assert attr.inner_text == "large"
   end
 
   it "parses HTML from IO" do
@@ -54,14 +54,14 @@ describe XML do
 
     doc = XML.parse_html(io)
     html = doc.children[1]
-    html.name.should eq("html")
+    assert html.name == "html"
   end
 
   it "parses html5 (#1404)" do
     html5 = "<html><body><nav>Test</nav></body></html>"
     xml = XML.parse_html(html5)
-    xml.errors.should_not be_nil
-    xml.xpath_node("//html/body/nav").should_not be_nil
+    assert xml.errors
+    assert xml.xpath_node("//html/body/nav")
   end
 
   it "raises error when parsing empty string (#2752)" do

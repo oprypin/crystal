@@ -21,46 +21,46 @@ module XML
       doc = doc()
 
       nodes = doc.xpath("//people/person").as(NodeSet)
-      nodes.size.should eq(2)
+      assert nodes.size == 2
 
-      nodes[0].name.should eq("person")
-      nodes[0]["id"].should eq("1")
+      assert nodes[0].name == "person"
+      assert nodes[0]["id"] == "1"
 
-      nodes[1].name.should eq("person")
-      nodes[1]["id"].should eq("2")
+      assert nodes[1].name == "person"
+      assert nodes[1]["id"] == "2"
 
       nodes = doc.xpath_nodes("//people/person")
-      nodes.size.should eq(2)
+      assert nodes.size == 2
     end
 
     it "finds string" do
       doc = doc()
 
       id = doc.xpath("string(//people/person[1]/@id)").as(String)
-      id.should eq("1")
+      assert id == "1"
 
       id = doc.xpath_string("string(//people/person[1]/@id)")
-      id.should eq("1")
+      assert id == "1"
     end
 
     it "finds number" do
       doc = doc()
 
       count = doc.xpath("count(//people/person)").as(Float64)
-      count.should eq(2)
+      assert count == 2
 
       count = doc.xpath_float("count(//people/person)")
-      count.should eq(2)
+      assert count == 2
     end
 
     it "finds boolean" do
       doc = doc()
 
       id = doc.xpath("boolean(//people/person[1]/@id)").as(Bool)
-      id.should be_true
+      assert id == true
 
       id = doc.xpath_bool("boolean(//people/person[1]/@id)")
-      id.should be_true
+      assert id == true
     end
 
     it "raises on invalid xpath" do
@@ -72,7 +72,7 @@ module XML
 
     it "returns nil with invalid xpath" do
       doc = doc()
-      doc.xpath_node("//invalid").should be_nil
+      assert doc.xpath_node("//invalid").nil?
     end
 
     it "finds with namespace" do
@@ -82,11 +82,11 @@ module XML
         </feed>
         ))
       nodes = doc.xpath("//atom:feed", namespaces: {"atom" => "http://www.w3.org/2005/Atom"}).as(NodeSet)
-      nodes.size.should eq(1)
-      nodes[0].name.should eq("feed")
+      assert nodes.size == 1
+      assert nodes[0].name == "feed"
       ns = nodes[0].namespace.not_nil!
-      ns.href.should eq("http://www.w3.org/2005/Atom")
-      ns.prefix.should be_nil
+      assert ns.href == "http://www.w3.org/2005/Atom"
+      assert ns.prefix.nil?
     end
 
     it "finds with root namespaces" do
@@ -96,11 +96,11 @@ module XML
         </feed>
         ))
       nodes = doc.xpath("//xmlns:feed", namespaces: doc.root.not_nil!.namespaces).as(NodeSet)
-      nodes.size.should eq(1)
-      nodes[0].name.should eq("feed")
+      assert nodes.size == 1
+      assert nodes[0].name == "feed"
       ns = nodes[0].namespace.not_nil!
-      ns.href.should eq("http://www.w3.org/2005/Atom")
-      ns.prefix.should be_nil
+      assert ns.href == "http://www.w3.org/2005/Atom"
+      assert ns.prefix.nil?
     end
 
     it "finds with variable binding" do
@@ -112,8 +112,8 @@ module XML
         </feed>
         ))
       nodes = doc.xpath("//feed/person[@id=$value]", variables: {"value" => 2}).as(NodeSet)
-      nodes.size.should eq(1)
-      nodes[0]["id"].should eq("2")
+      assert nodes.size == 1
+      assert nodes[0]["id"] == "2"
     end
   end
 end

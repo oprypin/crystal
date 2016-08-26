@@ -53,7 +53,7 @@ module HTTP
         io = MemoryIO.new
         response = Response.new(io)
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
       end
 
       it "prints less then buffer's size" do
@@ -61,7 +61,7 @@ module HTTP
         response = Response.new(io)
         response.print("Hello")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello"
       end
 
       it "prints less then buffer's size to output" do
@@ -69,7 +69,7 @@ module HTTP
         response = Response.new(io)
         response.output.print("Hello")
         response.output.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHello"
       end
 
       it "prints more then buffer's size" do
@@ -82,7 +82,7 @@ module HTTP
         response.close
         first_chunk = str * 819
         second_chunk = str * 181
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n1ffe\r\n#{first_chunk}\r\n712\r\n#{second_chunk}\r\n0\r\n\r\n")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n1ffe\r\n#{first_chunk}\r\n712\r\n#{second_chunk}\r\n0\r\n\r\n"
       end
 
       it "prints with content length" do
@@ -92,7 +92,7 @@ module HTTP
         response.print("1234")
         response.print("567890")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n1234567890")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n1234567890"
       end
 
       it "prints with content length (method)" do
@@ -102,7 +102,7 @@ module HTTP
         response.print("1234")
         response.print("567890")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n1234567890")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n1234567890"
       end
 
       it "adds header" do
@@ -111,7 +111,7 @@ module HTTP
         response.headers["Content-Type"] = "text/plain"
         response.print("Hello")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nHello")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nHello"
       end
 
       it "sets content type" do
@@ -120,7 +120,7 @@ module HTTP
         response.content_type = "text/plain"
         response.print("Hello")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nHello")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nHello"
       end
 
       it "changes status and others" do
@@ -129,7 +129,7 @@ module HTTP
         response.status_code = 404
         response.version = "HTTP/1.0"
         response.close
-        io.to_s.should eq("HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n")
+        assert io.to_s == "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n"
       end
 
       it "flushes" do
@@ -137,9 +137,9 @@ module HTTP
         response = Response.new(io)
         response.print("Hello")
         response.flush
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nHello\r\n")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nHello\r\n"
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nHello\r\n0\r\n\r\n")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nHello\r\n0\r\n\r\n"
       end
 
       it "wraps output" do
@@ -148,7 +148,7 @@ module HTTP
         response.output = ReverseResponseOutput.new(response.output)
         response.print("1234")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n4321")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n4321"
       end
 
       it "writes and flushes with HTTP 1.0" do
@@ -156,7 +156,7 @@ module HTTP
         response = Response.new(io, "HTTP/1.0")
         response.print("1234")
         response.flush
-        io.to_s.should eq("HTTP/1.0 200 OK\r\n\r\n1234")
+        assert io.to_s == "HTTP/1.0 200 OK\r\n\r\n1234"
       end
 
       it "resets and clears headers and cookies" do
@@ -165,8 +165,8 @@ module HTTP
         response.headers["Foo"] = "Bar"
         response.cookies["Bar"] = "Foo"
         response.reset
-        response.headers.empty?.should be_true
-        response.cookies.empty?.should be_true
+        assert response.headers.empty? == true
+        assert response.cookies.empty? == true
       end
 
       it "writes cookie headers" do
@@ -174,14 +174,14 @@ module HTTP
         response = Response.new(io)
         response.cookies["Bar"] = "Foo"
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 0\r\nSet-Cookie: Bar=Foo; path=/\r\n\r\n")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nSet-Cookie: Bar=Foo; path=/\r\n\r\n"
 
         io = MemoryIO.new
         response = Response.new(io)
         response.cookies["Bar"] = "Foo"
         response.print("Hello")
         response.close
-        io.to_s.should eq("HTTP/1.1 200 OK\r\nContent-Length: 5\r\nSet-Cookie: Bar=Foo; path=/\r\n\r\nHello")
+        assert io.to_s == "HTTP/1.1 200 OK\r\nContent-Length: 5\r\nSet-Cookie: Bar=Foo; path=/\r\n\r\nHello"
       end
 
       it "responds with an error" do
@@ -189,12 +189,12 @@ module HTTP
         response = Response.new(io)
         response.content_type = "text/html"
         response.respond_with_error
-        io.to_s.should eq("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n1a\r\n500 Internal Server Error\n\r\n")
+        assert io.to_s == "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n1a\r\n500 Internal Server Error\n\r\n"
 
         io = MemoryIO.new
         response = Response.new(io)
         response.respond_with_error("Bad Request", 400)
-        io.to_s.should eq("HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n10\r\n400 Bad Request\n\r\n")
+        assert io.to_s == "HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n10\r\n400 Bad Request\n\r\n"
       end
     end
   end
@@ -203,14 +203,14 @@ module HTTP
     it "re-sets special port zero after bind" do
       server = Server.new(0) { |ctx| }
       server.bind
-      server.port.should_not eq(0)
+      assert server.port != 0
     end
 
     it "re-sets port to zero after close" do
       server = Server.new(0) { |ctx| }
       server.bind
       server.close
-      server.port.should eq(0)
+      assert server.port == 0
     end
 
     it "doesn't raise on accept after close #2692" do
@@ -236,7 +236,7 @@ module HTTP
       output = MemoryIO.new
       processor.process(input, output)
       output.rewind
-      output.gets_to_end.should eq(requestize(<<-RESPONSE
+      assert output.gets_to_end == requestize(<<-RESPONSE
         HTTP/1.1 200 OK
         Connection: keep-alive
         Content-Type: text/plain
@@ -244,7 +244,7 @@ module HTTP
 
         Hello world
         RESPONSE
-      ))
+      )
     end
 
     it "handles Errno" do
@@ -252,7 +252,7 @@ module HTTP
       input = IO::RaiseErrno.new(Errno::ECONNRESET)
       output = MemoryIO.new
       processor.process(input, output)
-      output.rewind.gets_to_end.empty?.should be_true
+      assert output.rewind.gets_to_end.empty? == true
     end
 
     it "catches raised error on handler" do
@@ -261,7 +261,7 @@ module HTTP
       output = MemoryIO.new
       error = MemoryIO.new
       processor.process(input, output, error)
-      output.rewind.gets_to_end.should match(/Internal Server Error/)
+      assert output.rewind.gets_to_end =~ /Internal Server Error/
     end
   end
 

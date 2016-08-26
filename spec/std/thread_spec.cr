@@ -5,7 +5,7 @@ describe Thread do
     a = 0
     thread = Thread.new { a = 1; 10 }
     thread.join
-    a.should eq(1)
+    assert a == 1
   end
 
   it "raises inside thread and gets it on join" do

@@ -14,8 +14,8 @@ end
 describe Comparable do
   it "can compare against Int (#2461)" do
     obj = ComparableTestClass.new(4)
-    (obj == 3).should be_false
-    (obj < 3).should be_false
-    (obj > 3).should be_true
+    assert (obj == 3) == false
+    assert (obj < 3) == false
+    assert (obj > 3) == true
   end
 end

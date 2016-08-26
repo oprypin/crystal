@@ -2,7 +2,7 @@ require "spec"
 
 private def assert_dir_glob(expected_result, *patterns)
   result = Dir[*patterns]
-  result.sort.should eq(expected_result.sort)
+  assert result.sort == expected_result.sort
 end
 
 private def it_raises_on_null_byte(operation, &block)
@@ -15,27 +15,27 @@ end
 
 describe "Dir" do
   it "tests exists? on existing directory" do
-    Dir.exists?(File.join([__DIR__, "../"])).should be_true
+    assert Dir.exists?(File.join([__DIR__, "../"])) == true
   end
 
   it "tests exists? on existing file" do
-    Dir.exists?(__FILE__).should be_false
+    assert Dir.exists?(__FILE__) == false
   end
 
   it "tests exists? on nonexistent directory" do
-    Dir.exists?(File.join([__DIR__, "/foo/bar/"])).should be_false
+    assert Dir.exists?(File.join([__DIR__, "/foo/bar/"])) == false
   end
 
   it "tests exists? on a directory path to a file" do
-    Dir.exists?("#{__FILE__}/").should be_false
+    assert Dir.exists?("#{__FILE__}/") == false
   end
 
   it "tests mkdir and rmdir with a new path" do
     path = "/tmp/crystal_mkdir_test_#{Process.pid}/"
-    Dir.mkdir(path, 0o700).should eq(0)
-    Dir.exists?(path).should be_true
-    Dir.rmdir(path).should eq(0)
-    Dir.exists?(path).should be_false
+    assert Dir.mkdir(path, 0o700) == 0
+    assert Dir.exists?(path) == true
+    assert Dir.rmdir(path) == 0
+    assert Dir.exists?(path) == false
   end
 
   it "tests mkdir with an existing path" do
@@ -46,15 +46,15 @@ describe "Dir" do
 
   it "tests mkdir_p with a new path" do
     path = "/tmp/crystal_mkdir_ptest_#{Process.pid}/"
-    Dir.mkdir_p(path).should eq(0)
-    Dir.exists?(path).should be_true
+    assert Dir.mkdir_p(path) == 0
+    assert Dir.exists?(path) == true
     path = File.join({path, "a", "b", "c"})
-    Dir.mkdir_p(path).should eq(0)
-    Dir.exists?(path).should be_true
+    assert Dir.mkdir_p(path) == 0
+    assert Dir.exists?(path) == true
   end
 
   it "tests mkdir_p with an existing path" do
-    Dir.mkdir_p(__DIR__).should eq(0)
+    assert Dir.mkdir_p(__DIR__) == 0
     expect_raises Errno do
       Dir.mkdir_p(__FILE__)
     end
@@ -95,11 +95,11 @@ describe "Dir" do
       Dir.glob("#{__DIR__}/data/dir/*.txt") do |filename|
         result << filename
       end
-      result.sort.should eq([
+      assert result.sort == [
         "#{__DIR__}/data/dir/f1.txt",
         "#{__DIR__}/data/dir/f2.txt",
         "#{__DIR__}/data/dir/g2.txt",
-      ].sort)
+      ].sort
     end
 
     it "tests a recursive glob" do
@@ -190,9 +190,9 @@ describe "Dir" do
     it "should work" do
       cwd = Dir.current
       Dir.cd("..")
-      Dir.current.should_not eq(cwd)
+      assert Dir.current != cwd
       Dir.cd(cwd)
-      Dir.current.should eq(cwd)
+      assert Dir.current == cwd
     end
 
     it "raises" do
@@ -205,10 +205,10 @@ describe "Dir" do
       cwd = Dir.current
 
       Dir.cd("..") do
-        Dir.current.should_not eq(cwd)
+        assert Dir.current != cwd
       end
 
-      Dir.current.should eq(cwd)
+      assert Dir.current == cwd
     end
   end
 
@@ -221,7 +221,7 @@ describe "Dir" do
     end
     dir.close
 
-    filenames.includes?("dir_spec.cr").should be_true
+    assert filenames.includes?("dir_spec.cr") == true
   end
 
   it "opens with open" do
@@ -233,16 +233,16 @@ describe "Dir" do
       end
     end
 
-    filenames.includes?("dir_spec.cr").should be_true
+    assert filenames.includes?("dir_spec.cr") == true
   end
 
   it "lists entries" do
     filenames = Dir.entries(__DIR__)
-    filenames.includes?("dir_spec.cr").should be_true
+    assert filenames.includes?("dir_spec.cr") == true
   end
 
   it "does to_s" do
-    Dir.new(__DIR__).to_s.should eq("#<Dir:#{__DIR__}>")
+    assert Dir.new(__DIR__).to_s == "#<Dir:#{__DIR__}>"
   end
 
   it "gets dir iterator" do
@@ -253,7 +253,7 @@ describe "Dir" do
       filenames << filename
     end
 
-    filenames.includes?("dir_spec.cr").should be_true
+    assert filenames.includes?("dir_spec.cr") == true
   end
 
   it "double close doesn't error" do

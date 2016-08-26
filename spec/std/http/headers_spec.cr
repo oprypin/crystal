@@ -4,18 +4,18 @@ require "http/headers"
 describe HTTP::Headers do
   it "is empty" do
     headers = HTTP::Headers.new
-    headers.empty?.should be_true
+    assert headers.empty? == true
   end
 
   it "is case insensitive" do
     headers = HTTP::Headers{"Foo" => "bar"}
-    headers["foo"].should eq("bar")
+    assert headers["foo"] == "bar"
   end
 
   it "it allows indifferent access for underscore and dash separated keys" do
     headers = HTTP::Headers{"foo_Bar" => "bar", "Foobar-foo" => "baz"}
-    headers["foo-bar"].should eq("bar")
-    headers["foobar_foo"].should eq("baz")
+    assert headers["foo-bar"] == "bar"
+    assert headers["foobar_foo"] == "baz"
   end
 
   it "raises an error if header value contains invalid character" do
@@ -32,133 +32,133 @@ describe HTTP::Headers do
       end
     end
 
-    serialized.should eq("FOO_BAR: bar;Foobar-foo: baz;")
+    assert serialized == "FOO_BAR: bar;Foobar-foo: baz;"
   end
 
   it "is gets with []?" do
     headers = HTTP::Headers.new
-    headers["foo"]?.should be_nil
+    assert headers["foo"]?.nil?
 
     headers["Foo"] = "bar"
-    headers["foo"]?.should eq("bar")
+    assert headers["foo"]? == "bar"
   end
 
   it "fetches" do
     headers = HTTP::Headers{"Foo" => "bar"}
-    headers.fetch("foo").should eq("bar")
+    assert headers.fetch("foo") == "bar"
   end
 
   it "fetches with default value" do
     headers = HTTP::Headers.new
-    headers.fetch("foo", "baz").should eq("baz")
+    assert headers.fetch("foo", "baz") == "baz"
 
     headers["Foo"] = "bar"
-    headers.fetch("foo", "baz").should eq("bar")
+    assert headers.fetch("foo", "baz") == "bar"
   end
 
   it "fetches with block" do
     headers = HTTP::Headers.new
-    headers.fetch("foo") { |k| "#{k}baz" }.should eq("foobaz")
+    assert headers.fetch("foo") { |k| "#{k}baz" } == "foobaz"
 
     headers["Foo"] = "bar"
-    headers.fetch("foo") { "baz" }.should eq("bar")
+    assert headers.fetch("foo") { "baz" } == "bar"
   end
 
   it "has key" do
     headers = HTTP::Headers{"Foo" => "bar"}
-    headers.has_key?("foo").should be_true
-    headers.has_key?("bar").should be_false
+    assert headers.has_key?("foo") == true
+    assert headers.has_key?("bar") == false
   end
 
   it "deletes" do
     headers = HTTP::Headers{"Foo" => "bar"}
-    headers.delete("foo").should eq("bar")
-    headers.empty?.should be_true
+    assert headers.delete("foo") == "bar"
+    assert headers.empty? == true
   end
 
   it "equals another hash" do
     headers = HTTP::Headers{"Foo" => "bar"}
-    headers.should eq({"foo" => "bar"})
+    assert headers == {"foo" => "bar"}
   end
 
   it "dups" do
     headers = HTTP::Headers{"Foo" => "bar"}
     other = headers.dup
-    other.should be_a(HTTP::Headers)
-    other["foo"].should eq("bar")
+    assert other.is_a?(HTTP::Headers)
+    assert other["foo"] == "bar"
 
     other["Baz"] = "Qux"
-    headers["baz"]?.should be_nil
+    assert headers["baz"]?.nil?
   end
 
   it "clones" do
     headers = HTTP::Headers{"Foo" => "bar"}
     other = headers.clone
-    other.should be_a(HTTP::Headers)
-    other["foo"].should eq("bar")
+    assert other.is_a?(HTTP::Headers)
+    assert other["foo"] == "bar"
 
     other["Baz"] = "Qux"
-    headers["baz"]?.should be_nil
+    assert headers["baz"]?.nil?
   end
 
   it "adds string" do
     headers = HTTP::Headers.new
     headers.add("foo", "bar")
     headers.add("foo", "baz")
-    headers["foo"].should eq("bar,baz")
+    assert headers["foo"] == "bar,baz"
   end
 
   it "adds array of string" do
     headers = HTTP::Headers.new
     headers.add("foo", "bar")
     headers.add("foo", ["baz", "qux"])
-    headers["foo"].should eq("bar,baz,qux")
+    assert headers["foo"] == "bar,baz,qux"
   end
 
   it "gets all values" do
     headers = HTTP::Headers{"foo" => "bar"}
-    headers.get("foo").should eq(["bar"])
+    assert headers.get("foo") == ["bar"]
 
-    headers.get?("foo").should eq(["bar"])
-    headers.get?("qux").should be_nil
+    assert headers.get?("foo") == ["bar"]
+    assert headers.get?("qux").nil?
   end
 
   it "does to_s" do
     headers = HTTP::Headers{"Foo_quux" => "bar", "Baz-Quux" => ["a", "b"]}
-    headers.to_s.should eq(%(HTTP::Headers{"Foo_quux" => "bar", "Baz-Quux" => ["a", "b"]}))
+    assert headers.to_s == %(HTTP::Headers{"Foo_quux" => "bar", "Baz-Quux" => ["a", "b"]})
   end
 
   it "merges and return self" do
     headers = HTTP::Headers.new
-    headers.should be headers.merge!({"foo" => "bar"})
+    assert headers.same? headers.merge!({"foo" => "bar"})
   end
 
   it "matches word" do
     headers = HTTP::Headers{"foo" => "bar"}
-    headers.includes_word?("foo", "bar").should be_true
-    headers.includes_word?("foo", "ba").should be_false
-    headers.includes_word?("foo", "ar").should be_false
+    assert headers.includes_word?("foo", "bar") == true
+    assert headers.includes_word?("foo", "ba") == false
+    assert headers.includes_word?("foo", "ar") == false
   end
 
   it "matches word with comma separated value" do
     headers = HTTP::Headers{"foo" => "bar, baz"}
-    headers.includes_word?("foo", "bar").should be_true
-    headers.includes_word?("foo", "baz").should be_true
-    headers.includes_word?("foo", "ba").should be_false
+    assert headers.includes_word?("foo", "bar") == true
+    assert headers.includes_word?("foo", "baz") == true
+    assert headers.includes_word?("foo", "ba") == false
   end
 
   it "matches word among headers" do
     headers = HTTP::Headers.new
     headers.add("foo", "bar")
     headers.add("foo", "baz")
-    headers.includes_word?("foo", "bar").should be_true
-    headers.includes_word?("foo", "baz").should be_true
+    assert headers.includes_word?("foo", "bar") == true
+    assert headers.includes_word?("foo", "baz") == true
   end
 
   it "does not matches word if missing header" do
     headers = HTTP::Headers.new
-    headers.includes_word?("foo", "bar").should be_false
-    headers.includes_word?("foo", "").should be_false
+    assert headers.includes_word?("foo", "bar") == false
+    assert headers.includes_word?("foo", "") == false
   end
 
   it "can create header value with all US-ASCII visible chars (#2999)" do

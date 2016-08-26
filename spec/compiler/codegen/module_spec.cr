@@ -2,7 +2,7 @@ require "../../spec_helper"
 
 describe "Code gen: module" do
   it "codegens pointer of module with method" do
-    run("
+    assert run("
       module Moo
       end
 
@@ -17,11 +17,11 @@ describe "Code gen: module" do
       p = Pointer(Moo).malloc(1_u64)
       p.value = Foo.new
       p.value.foo
-      ").to_i.should eq(1)
+      ").to_i == 1
   end
 
   it "codegens pointer of module with method with two including types" do
-    run("
+    assert run("
       module Moo
       end
 
@@ -45,11 +45,11 @@ describe "Code gen: module" do
       p.value = Foo.new
       p.value = Bar.new
       p.value.foo
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens pointer of module with method with two including types with one struct" do
-    run("
+    assert run("
       module Foo
       end
 
@@ -73,11 +73,11 @@ describe "Code gen: module" do
       p.value = Bar.new
       p.value = Coco.new
       p.value.foo
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens pointer of module with method with two including types with one struct (2)" do
-    run("
+    assert run("
       module Foo
       end
 
@@ -102,11 +102,11 @@ describe "Code gen: module" do
       p.value = Coco.new
       x = p.value
       x.foo
-      ").to_i.should eq(2)
+      ").to_i == 2
   end
 
   it "codegens pointer of module and pass value to method" do
-    run(%(
+    assert run(%(
       module Foo
       end
 
@@ -125,11 +125,11 @@ describe "Code gen: module" do
       p = Pointer(Foo).malloc(1_u64)
       p.value = Bar.new
       foo p.value
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens pointer of module with block" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       module Moo
@@ -156,11 +156,11 @@ describe "Code gen: module" do
         x = io
       end
       x.not_nil!.foo
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "codegens module with virtual type" do
-    run(%(
+    assert run(%(
       module Moo
       end
 
@@ -181,11 +181,11 @@ describe "Code gen: module" do
       p = Pointer(Moo).malloc(1_u64)
       p.value = Bar.new
       p.value.foo
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "declares proc with module type" do
-    run(%(
+    assert run(%(
       module Moo
         def moo
           1
@@ -202,7 +202,7 @@ describe "Code gen: module" do
 
       foo = ->(x : Moo) { x.moo }
       foo.call(Bar.new)
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "declares proc with module type and invoke it with two different types that return themselves" do
@@ -240,7 +240,7 @@ describe "Code gen: module" do
   end
 
   it "codegens proc of module when generic type includes it" do
-    run(%(
+    assert run(%(
       module Moo
       end
 
@@ -254,11 +254,11 @@ describe "Code gen: module" do
 
       z = ->(x : Moo) { x.foo }
       z.call(Foo(Int32).new)
-      )).to_i.should eq(3)
+      )).to_i == 3
   end
 
   it "invokes method on yielded module that has no instances (#1079)" do
-    run(%(
+    assert run(%(
       require "prelude"
 
       module Mod
@@ -273,11 +273,11 @@ describe "Code gen: module" do
       end
 
       foo { |x| x.coco }
-      )).to_i.should eq(456)
+      )).to_i == 456
   end
 
   it "expands modules to its including types (#1916)" do
-    run(%(
+    assert run(%(
       class Reference
         def method(other : Reference)
           1
@@ -303,11 +303,11 @@ describe "Code gen: module" do
       y = x.as(Moo)
 
       x.method(y)
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "expands modules to its including types (2) (#1916)" do
-    run(%(
+    assert run(%(
       class Reference
         def method(other : Reference)
           1
@@ -333,11 +333,11 @@ describe "Code gen: module" do
       file2 = file.as(IO2)
 
       file.method(file2)
-      )).to_i.should eq(1)
+      )).to_i == 1
   end
 
   it "expands modules to its including types (3) (#1916)" do
-    run(%(
+    assert run(%(
       class Object
         def method(other : Reference)
           1
@@ -363,11 +363,11 @@ describe "Code gen: module" do
       y = x.as(Moo)
 
       x.method(y)
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "codegens cast to module with class and struct to nilable module" do
-    run(%(
+    assert run(%(
       module Moo
         def bar
           10
@@ -393,11 +393,11 @@ describe "Code gen: module" do
       else
         20
       end
-      )).to_i.should eq(10)
+      )).to_i == 10
   end
 
   it "codegens cast to module that includes bool" do
-    run(%(
+    assert run(%(
       module Moo
       end
 
@@ -416,11 +416,11 @@ describe "Code gen: module" do
       else
         2
       end
-      )).to_i.should eq(2)
+      )).to_i == 2
   end
 
   it "declares and includes generic module, in macros T is a tuple literal" do
-    run(%(
+    assert run(%(
       module Moo(*T)
         def t
           {{T.class_name}}
@@ -432,6 +432,6 @@ describe "Code gen: module" do
       end
 
       Foo.new.t
-      )).to_string.should eq("TupleLiteral")
+      )).to_string == "TupleLiteral"
   end
 end

@@ -16,9 +16,9 @@ describe HTTP::ErrorHandler do
 
     io.rewind
     response2 = HTTP::Client::Response.from_io(io)
-    response2.status_code.should eq(500)
-    response2.status_message.should eq("Internal Server Error")
-    (response2.body =~ /ERROR: OH NO!/).should be_truthy
+    assert response2.status_code == 500
+    assert response2.status_message == "Internal Server Error"
+    assert response2.body =~ /ERROR: OH NO!/
   end
 
   it "can return a generic error message" do
@@ -30,7 +30,7 @@ describe HTTP::ErrorHandler do
     handler = HTTP::ErrorHandler.new
     handler.next = ->(ctx : HTTP::Server::Context) { raise "OH NO!" }
     handler.call(context)
-    io.to_s.match(/500 Internal Server Error/).should_not be_nil
-    io.to_s.match(/OH NO/).should be_nil
+    assert io.to_s.match(/500 Internal Server Error/)
+    assert io.to_s.match(/OH NO/).nil?
   end
 end

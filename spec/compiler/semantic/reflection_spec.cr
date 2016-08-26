@@ -27,6 +27,6 @@ describe "Semantic: reflection" do
     result = semantic input
     mod = result.program
 
-    mod.types["Bar"].metaclass.as(ClassType).superclass.should eq(mod.types["Foo"].metaclass)
+    assert mod.types["Bar"].metaclass.as(ClassType).superclass == mod.types["Foo"].metaclass
   end
 end

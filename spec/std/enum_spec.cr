@@ -21,109 +21,109 @@ end
 describe Enum do
   describe "to_s" do
     it "for simple enum" do
-      SpecEnum::One.to_s.should eq("One")
-      SpecEnum::Two.to_s.should eq("Two")
-      SpecEnum::Three.to_s.should eq("Three")
+      assert SpecEnum::One.to_s == "One"
+      assert SpecEnum::Two.to_s == "Two"
+      assert SpecEnum::Three.to_s == "Three"
     end
 
     it "for flags enum" do
-      SpecEnumFlags::None.to_s.should eq("None")
-      SpecEnumFlags::All.to_s.should eq("One, Two, Three")
-      (SpecEnumFlags::One | SpecEnumFlags::Two).to_s.should eq("One, Two")
+      assert SpecEnumFlags::None.to_s == "None"
+      assert SpecEnumFlags::All.to_s == "One, Two, Three"
+      assert (SpecEnumFlags::One | SpecEnumFlags::Two).to_s == "One, Two"
     end
   end
 
   it "gets value" do
-    SpecEnum::Two.value.should eq(1)
-    SpecEnum::Two.value.should be_a(Int8)
+    assert SpecEnum::Two.value == 1
+    assert SpecEnum::Two.value.is_a?(Int8)
   end
 
   it "gets value with to_i" do
-    SpecEnum::Two.to_i.should eq(1)
-    SpecEnum::Two.to_i.should be_a(Int32)
+    assert SpecEnum::Two.to_i == 1
+    assert SpecEnum::Two.to_i.is_a?(Int32)
 
-    SpecEnum::Two.to_i64.should eq(1)
-    SpecEnum::Two.to_i64.should be_a(Int64)
+    assert SpecEnum::Two.to_i64 == 1
+    assert SpecEnum::Two.to_i64.is_a?(Int64)
   end
 
   it "does +" do
-    (SpecEnum::One + 1).should eq(SpecEnum::Two)
+    assert (SpecEnum::One + 1) == SpecEnum::Two
   end
 
   it "does -" do
-    (SpecEnum::Two - 1).should eq(SpecEnum::One)
+    assert (SpecEnum::Two - 1) == SpecEnum::One
   end
 
   it "sorts" do
-    [SpecEnum::Three, SpecEnum::One, SpecEnum::Two].sort.should eq([SpecEnum::One, SpecEnum::Two, SpecEnum::Three])
+    assert [SpecEnum::Three, SpecEnum::One, SpecEnum::Two].sort == [SpecEnum::One, SpecEnum::Two, SpecEnum::Three]
   end
 
   it "does includes?" do
-    (SpecEnumFlags::One | SpecEnumFlags::Two).includes?(SpecEnumFlags::One).should be_true
-    (SpecEnumFlags::One | SpecEnumFlags::Two).includes?(SpecEnumFlags::Three).should be_false
+    assert (SpecEnumFlags::One | SpecEnumFlags::Two).includes?(SpecEnumFlags::One) == true
+    assert (SpecEnumFlags::One | SpecEnumFlags::Two).includes?(SpecEnumFlags::Three) == false
   end
 
   describe "names" do
     it "for simple enum" do
-      SpecEnum.names.should eq(%w(One Two Three))
+      assert SpecEnum.names == %w(One Two Three)
     end
 
     it "for flags enum" do
-      SpecEnumFlags.names.should eq(%w(One Two Three))
+      assert SpecEnumFlags.names == %w(One Two Three)
     end
   end
 
   describe "values" do
     it "for simple enum" do
-      SpecEnum.values.should eq([SpecEnum::One, SpecEnum::Two, SpecEnum::Three])
+      assert SpecEnum.values == [SpecEnum::One, SpecEnum::Two, SpecEnum::Three]
     end
 
     it "for flags enum" do
-      SpecEnumFlags.values.should eq([SpecEnumFlags::One, SpecEnumFlags::Two, SpecEnumFlags::Three])
+      assert SpecEnumFlags.values == [SpecEnumFlags::One, SpecEnumFlags::Two, SpecEnumFlags::Three]
     end
   end
 
   it "does from_value?" do
-    SpecEnum.from_value?(0).should eq(SpecEnum::One)
-    SpecEnum.from_value?(1).should eq(SpecEnum::Two)
-    SpecEnum.from_value?(2).should eq(SpecEnum::Three)
-    SpecEnum.from_value?(3).should be_nil
+    assert SpecEnum.from_value?(0) == SpecEnum::One
+    assert SpecEnum.from_value?(1) == SpecEnum::Two
+    assert SpecEnum.from_value?(2) == SpecEnum::Three
+    assert SpecEnum.from_value?(3).nil?
   end
 
   it "does from_value" do
-    SpecEnum.from_value(0).should eq(SpecEnum::One)
-    SpecEnum.from_value(1).should eq(SpecEnum::Two)
-    SpecEnum.from_value(2).should eq(SpecEnum::Three)
+    assert SpecEnum.from_value(0) == SpecEnum::One
+    assert SpecEnum.from_value(1) == SpecEnum::Two
+    assert SpecEnum.from_value(2) == SpecEnum::Three
     expect_raises { SpecEnum.from_value(3) }
   end
 
   it "has hash" do
-    SpecEnum::Two.hash.should eq(1.hash)
+    assert SpecEnum::Two.hash == 1.hash
   end
 
   it "parses" do
-    SpecEnum.parse("Two").should eq(SpecEnum::Two)
-    SpecEnum2.parse("FourtyTwo").should eq(SpecEnum2::FourtyTwo)
-    SpecEnum2.parse("fourty_two").should eq(SpecEnum2::FourtyTwo)
+    assert SpecEnum.parse("Two") == SpecEnum::Two
+    assert SpecEnum2.parse("FourtyTwo") == SpecEnum2::FourtyTwo
+    assert SpecEnum2.parse("fourty_two") == SpecEnum2::FourtyTwo
     expect_raises(ArgumentError, "Unknown enum SpecEnum value: Four") { SpecEnum.parse("Four") }
 
-    SpecEnum.parse("TWO").should eq(SpecEnum::Two)
-    SpecEnum.parse("TwO").should eq(SpecEnum::Two)
-    SpecEnum2.parse("FOURTY_TWO").should eq(SpecEnum2::FourtyTwo)
+    assert SpecEnum.parse("TWO") == SpecEnum::Two
+    assert SpecEnum.parse("TwO") == SpecEnum::Two
+    assert SpecEnum2.parse("FOURTY_TWO") == SpecEnum2::FourtyTwo
 
-    SpecEnum2.parse("FOURTY_FOUR").should eq(SpecEnum2::FOURTY_FOUR)
-    SpecEnum2.parse("fourty_four").should eq(SpecEnum2::FOURTY_FOUR)
-    SpecEnum2.parse("FourtyFour").should eq(SpecEnum2::FOURTY_FOUR)
-    SpecEnum2.parse("FOURTYFOUR").should eq(SpecEnum2::FOURTY_FOUR)
-    SpecEnum2.parse("fourtyfour").should eq(SpecEnum2::FOURTY_FOUR)
+    assert SpecEnum2.parse("FOURTY_FOUR") == SpecEnum2::FOURTY_FOUR
+    assert SpecEnum2.parse("fourty_four") == SpecEnum2::FOURTY_FOUR
+    assert SpecEnum2.parse("FourtyFour") == SpecEnum2::FOURTY_FOUR
+    assert SpecEnum2.parse("FOURTYFOUR") == SpecEnum2::FOURTY_FOUR
+    assert SpecEnum2.parse("fourtyfour") == SpecEnum2::FOURTY_FOUR
   end
 
   it "parses?" do
-    SpecEnum.parse?("Two").should eq(SpecEnum::Two)
-    SpecEnum.parse?("Four").should be_nil
+    assert SpecEnum.parse?("Two") == SpecEnum::Two
+    assert SpecEnum.parse?("Four").nil?
   end
 
   it "clones" do
-    SpecEnum::One.clone.should eq(SpecEnum::One)
+    assert SpecEnum::One.clone == SpecEnum::One
   end
 end

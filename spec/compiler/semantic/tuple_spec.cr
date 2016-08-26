@@ -73,7 +73,7 @@ describe "Semantic: tuples" do
       x.types
       ") do
       meta = tuple_of([int32, float64, char]).metaclass
-      meta.metaclass?.should be_true
+      assert meta.metaclass? == true
       meta
     end
   end
