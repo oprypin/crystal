@@ -4,7 +4,7 @@ require "socket"
 describe Socket do
   # Tests from libc-test:
   # http://repo.or.cz/libc-test.git/blob/master:/src/functional/inet_pton.c
-  assert "ip?" do
+  it "ip?" do
     # dotted-decimal notation
     Socket.ip?("0.0.0.0").should be_true
     Socket.ip?("127.0.0.1").should be_true
