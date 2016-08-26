@@ -2044,7 +2044,153 @@ module Crystal
       false
     end
 
+    def skip_should
+      skip_space_or_newline
+      next_token_skip_space_or_newline # .
+      next_token_skip_space            # should
+      skip_brackets do
+        next_token # eq
+        while @token.type == :SPACE
+          next_token
+        end
+        slash_is_regex!
+        yield
+      end
+    end
+
+    def skip_brackets(write : String? = nil)
+      if br = @token.type == :"("
+        next_token_skip_space_or_newline
+        write "(" if write
+      else
+        write write if write
+      end
+      yield
+      if br
+        skip_space_or_newline
+        next_token_skip_space
+        write ")" if write
+      end
+    end
+
+    # Replace specs with assert
+    def convert_specs(node : Call)
+      bool = case node.name
+             when "should"
+               true
+             when "should_not"
+               false
+             else
+               return
+             end
+
+      return unless (obj = node.obj)
+      return unless node.args.size == 1
+      sub = node.args[0]
+      return unless sub.is_a?(Call)
+
+      if sub.obj
+        return unless sub.obj.as?(Call).try(&.name) == "be"
+
+        write "assert "
+        write "!" if !bool
+        accept obj
+        skip_should do
+          write " #{@token} "
+          next_token_skip_space_or_newline
+          skip_brackets { format_call_args sub, false }
+        end
+
+        return true
+      end
+
+      case sub.name
+      when "eq"
+        write "assert "
+        accept obj
+        skip_should do
+          write bool ? " == " : " != "
+          skip_brackets { format_call_args sub, false }
+        end
+      when "be_true", "be_false"
+        write "assert "
+        accept obj
+        skip_should do
+          write bool ? " == " : " != "
+          write sub.name.byte_slice(3) # true/false
+          skip_brackets { }
+        end
+      when "be_truthy", "be_falsey"
+        write "assert "
+        if bool == (sub.name == "be_truthy")
+          skip_brackets { accept obj }
+        else
+          write "!"
+          accept obj
+        end
+        skip_should do
+          skip_brackets { }
+        end
+      when "be_nil"
+        write "assert "
+        if bool
+          accept obj
+          write ".nil?"
+        else
+          skip_brackets { accept obj }
+        end
+        skip_should do
+          skip_brackets { }
+        end
+      when "be_close"
+        write "assert "
+        write "!" if !bool
+        accept obj
+        skip_should do
+          write ".close?"
+          skip_brackets(" ") { format_call_args sub, false }
+        end
+      when "match"
+        write "assert "
+        accept obj
+        skip_should do
+          write bool ? " =~ " : " !~ "
+          skip_brackets { format_call_args sub, false }
+        end
+      when "contain"
+        write "assert "
+        write "!" if !bool
+        accept obj
+        skip_should do
+          write ".includes?"
+          skip_brackets(" ") { format_call_args sub, false }
+        end
+      when "be"
+        write "assert "
+        write "!" if !bool
+        accept obj
+        skip_should do
+          write ".same?"
+          skip_brackets(" ") { format_call_args sub, false }
+        end
+      when "be_a"
+        write "assert "
+        write "!" if !bool
+        accept obj
+        skip_should do
+          write ".is_a?"
+          skip_brackets(" ") { format_call_args sub, false }
+        end
+      else
+        return
+      end
+
+      true
+    end
+
     def visit(node : Call)
+      return false if convert_specs(node)
+
       # This is the case of `...`
       if node.name == "`"
         accept node.args.first
