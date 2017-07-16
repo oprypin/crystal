@@ -55,24 +55,30 @@ class Reference
     object_id
   end
 
-  def inspect(io : IO) : Nil
-    io << "#<" << {{@type.name.id.stringify}} << ":0x"
-    object_id.to_s(16, io)
+  macro def_inspect(*fields)
+    def inspect(io : IO) : Nil
+      io << "#<" << {{@type.name.id.stringify}} << ":0x"
+      object_id.to_s(16, io)
 
-    executed = exec_recursive(:inspect) do
-      {% for ivar, i in @type.instance_vars %}
-        {% if i > 0 %}
-          io << ","
+      executed = exec_recursive(:inspect) do
+        {% for field, i in fields %}
+          {% if i > 0 %}
+            io << ","
+          {% end %}
+          io << " {{field.id}}="
+          {{field.id}}.inspect io
         {% end %}
-        io << " @{{ivar.id}}="
-        @{{ivar.id}}.inspect io
-      {% end %}
+      end
+      unless executed
+        io << " ..."
+      end
+      io << ">"
+      nil
     end
-    unless executed
-      io << " ..."
-    end
-    io << ">"
-    nil
+  end
+
+  macro finished
+    def_inspect({{*@type.instance_vars.map { |v| "@" + v } }})
   end
 
   def pretty_print(pp) : Nil
