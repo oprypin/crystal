@@ -23,6 +23,8 @@ module Crystal
           initializer.node = initializer.node.transform(transformer)
         end
       end
+
+      TypesAndMethodsPrinter.new.print_type_with_methods(self)
     end
 
     def cleanup_type(type, transformer)
@@ -47,6 +49,86 @@ module Crystal
     def cleanup_files
       tempfiles.each do |tempfile|
         File.delete(tempfile) rescue nil
+      end
+    end
+
+    def cleanup_bindings(node)
+      node.accept CleanupBindings.new
+    end
+  end
+
+  class TypesAndMethodsPrinter
+    def initialize
+      @all_types = Set(UInt64).new
+    end
+
+    def print_types_and_methods(program)
+      types = [] of Type
+      collect_types(program, types)
+      types.sort_by!(&.to_s)
+      types.each do |type|
+        print_type_with_methods(type)
+      end
+    end
+
+    def collect_types(type : Type, target)
+      return if @all_types.includes?(type.object_id)
+      @all_types << type.object_id
+
+      target << type
+      collect_types(type.types?, target)
+
+      if type.is_a?(NonGenericClassType)
+        collect_types(type.subclasses, target)
+      end
+
+      if type.is_a?(GenericClassType)
+        collect_types(type.generic_types, target)
+      end
+
+      if !type.metaclass?
+        collect_types(type.metaclass, target)
+      end
+    end
+
+    def collect_types(types : Hash, target)
+      types.each do |key, value|
+        collect_types(value, target)
+      end
+    end
+
+    def collect_types(types : Array, target)
+      types.each do |value|
+        collect_types(value, target)
+      end
+    end
+
+    def collect_types(nil : Nil, target)
+    end
+
+    def print_type_with_methods(type)
+      if type.is_a?(DefInstanceContainer) && !type.def_instances.empty?
+        puts "|=== #{type} ===|"
+        type.def_instances.to_a.sort_by(&.[1].name).each do |key, a_def|
+          name = String.build do |io|
+            io << "  #"
+            io << a_def.name
+            io << "("
+            key.arg_types.join(", ", io)
+            if nargs = key.named_args
+              io << ", "
+              nargs.join(", ", io) do |narg|
+                io << narg.name << ": " << narg.type
+              end
+            end
+            if block_type = key.block_type
+              io << ", &" << block_type
+            end
+            io << ")"
+          end
+
+          puts name
+        end
       end
     end
   end
