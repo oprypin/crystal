@@ -7,7 +7,7 @@ require "c/sys/stat"
 module Crystal::System::File
   def self.open(filename : String, mode : String, perm : Int32 | ::File::Permissions) : LibC::Int
     perm = ::File::Permissions.new(perm) if perm.is_a? Int32
-    oflag = open_flag(mode) | LibC::O_BINARY
+    oflag = open_flag(mode) | LibC::O_BINARY | LibC::O_NOINHERIT
 
     # Only the owner writable bit is used, since windows only supports
     # the read only attribute.
@@ -28,7 +28,8 @@ module Crystal::System::File
   def self.mktemp(name : String, extension : String?) : {LibC::Int, String}
     path = "#{tempdir}\\#{name}.#{::Random::Secure.hex}#{extension}"
 
-    fd = LibC._wopen(to_windows_path(path), LibC::O_RDWR | LibC::O_CREAT | LibC::O_EXCL | LibC::O_BINARY, ::File::DEFAULT_CREATE_PERMISSIONS)
+    mode = LibC::O_RDWR | LibC::O_CREAT | LibC::O_EXCL | LibC::O_BINARY | LibC::O_NOINHERIT
+    fd = LibC._wopen(to_windows_path(path), mode, ::File::DEFAULT_CREATE_PERMISSIONS)
     if fd == -1
       raise Errno.new("Error creating temporary file at #{path.inspect}")
     end

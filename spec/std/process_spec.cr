@@ -3,14 +3,46 @@ require "process"
 require "./spec_helper"
 require "../spec_helper"
 
+private def exit_code_command(code)
+  if {{flag?(:win32)}}
+    {"cmd.exe", {"/c", "exit #{code}"}}
+  else
+    case code
+    when 0
+      {"true", [] of String}
+    when 1
+      {"false", [] of String}
+    else
+      {"/bin/sh", {"-c", "exit #{code}"}}
+    end
+  end
+end
+
+private def shell_command(command)
+  if {{flag?(:win32)}}
+    {"cmd.exe", {"/c", command}}
+  else
+    {"/bin/sh", {"-c", command}}
+  end
+end
+
+private def stdin_to_stdout_command
+  if {{flag?(:win32)}}
+    # {"powershell.exe", {"-C", "$Input"}}
+    {"C:\\Crystal\\cat.exe", [] of String}
+  else
+    {"/bin/cat", [] of String}
+  end
+end
+
 describe Process do
   it "runs true" do
-    process = Process.new("true")
+    process = Process.new(*exit_code_command(0))
     process.wait.exit_code.should eq(0)
   end
 
   it "runs false" do
-    process = Process.new("false")
+    process = Process.new(*exit_code_command(1))
     process.wait.exit_code.should eq(1)
   end
 
@@ -21,56 +53,72 @@ describe Process do
   end
 
   it "run waits for the process" do
-    Process.run("true").exit_code.should eq(0)
+    Process.run(*exit_code_command(0)).exit_code.should eq(0)
   end
 
   it "runs true in block" do
-    Process.run("true") { }
+    Process.run(*exit_code_command(0)) { }
     $?.exit_code.should eq(0)
   end
 
   it "receives arguments in array" do
-    Process.run("/bin/sh", ["-c", "exit 123"]).exit_code.should eq(123)
+    command, args = exit_code_command(123)
+    Process.run(command, args.to_a).exit_code.should eq(123)
   end
 
   it "receives arguments in tuple" do
-    Process.run("/bin/sh", {"-c", "exit 123"}).exit_code.should eq(123)
+    command, args = exit_code_command(123)
+    Process.run(command, args.as(Tuple)).exit_code.should eq(123)
   end
 
   it "redirects output to /dev/null" do
     # This doesn't test anything but no output should be seen while running tests
-    Process.run("/bin/ls", output: Process::Redirect::Close).exit_code.should eq(0)
+    if {{flag?(:win32)}}
+      command = "cmd.exe"
+      args = {"/c", "dir"}
+    else
+      command = "/bin/ls"
+      args = [] of String
+    end
+    Process.run(command, args, output: Process::Redirect::Close).exit_code.should eq(0)
   end
 
   it "gets output" do
-    value = Process.run("/bin/sh", {"-c", "echo hello"}) do |proc|
+    value = Process.run(*shell_command("echo hello")) do |proc|
       proc.output.gets_to_end
     end
-    value.should eq("hello\n")
+    if {{flag?(:win32)}}
+      value.should eq("hello\r\n")
+    else
+      value.should eq("hello\n")
+    end
   end
 
-  it "sends input in IO" do
-    value = Process.run("/bin/cat", input: IO::Memory.new("hello")) do |proc|
+  # TODO: reenable after implementing fibers/asyncio
+  pending_win32 "sends input in IO" do
+    value = Process.run(*stdin_to_stdout_command, input: IO::Memory.new("hello")) do |proc|
       proc.input?.should be_nil
       proc.output.gets_to_end
     end
     value.should eq("hello")
   end
 
-  it "sends output to IO" do
+  # TODO: reenable after implementing fibers/asyncio
+  pending_win32 "sends output to IO" do
     output = IO::Memory.new
-    Process.run("/bin/sh", {"-c", "echo hello"}, output: output)
+    Process.run(*shell_command("echo hello"), output: output)
     output.to_s.should eq("hello\n")
   end
 
-  it "sends error to IO" do
+  # TODO: reenable after implementing fibers/asyncio
+  pending_win32 "sends error to IO" do
     error = IO::Memory.new
-    Process.run("/bin/sh", {"-c", "echo hello 1>&2"}, error: error)
+    Process.run(*shell_command("echo hello 1>&2"), error: error)
     error.to_s.should eq("hello\n")
   end
 
   it "controls process in block" do
-    value = Process.run("/bin/cat") do |proc|
+    value = Process.run(*stdin_to_stdout_command, error: :inherit) do |proc|
       proc.input.print "hello"
       proc.input.close
       proc.output.gets_to_end
@@ -79,7 +127,7 @@ describe Process do
   end
 
   it "closes ios after block" do
-    Process.run("/bin/cat") { }
+    Process.run(*stdin_to_stdout_command) { }
     $?.exit_code.should eq(0)
   end
 
@@ -234,16 +282,16 @@ describe Process do
     pwd = Process::INITIAL_PWD
     crystal_path = File.join(pwd, "bin", "crystal")
 
-    it "resolves absolute executable" do
+    pending_win32 "resolves absolute executable" do
       Process.find_executable(File.join(pwd, "bin", "crystal")).should eq(crystal_path)
     end
 
-    it "resolves relative executable" do
+    pending_win32 "resolves relative executable" do
       Process.find_executable(File.join("bin", "crystal")).should eq(crystal_path)
       Process.find_executable(File.join("..", File.basename(pwd), "bin", "crystal")).should eq(crystal_path)
     end
 
-    it "searches within PATH" do
+    pending_win32 "searches within PATH" do
       (path = Process.find_executable("ls")).should_not be_nil
       path.not_nil!.should match(/#{File::SEPARATOR}ls$/)
 

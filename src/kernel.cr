@@ -8,6 +8,10 @@
   STDIN  = IO::FileDescriptor.from_stdio(0)
   STDOUT = IO::FileDescriptor.from_stdio(1).tap { |f| f.flush_on_newline = true }
   STDERR = IO::FileDescriptor.from_stdio(2).tap { |f| f.flush_on_newline = true }
+
+  ORIGINAL_STDIN  = IO::FileDescriptor.new(0, blocking: true)
+  ORIGINAL_STDOUT = IO::FileDescriptor.new(1, blocking: true).tap { |f| f.flush_on_newline = true }
+  ORIGINAL_STDERR = IO::FileDescriptor.new(2, blocking: true).tap { |f| f.flush_on_newline = true }
 {% end %}
 
 PROGRAM_NAME = String.new(ARGV_UNSAFE.value)
@@ -456,14 +460,20 @@ def abort(message, status = 1) : NoReturn
 end
 
 class Process
+  @@after_fork_child_callbacks : Array(-> Nil)?
+
   # Hooks are defined here due to load order problems.
   def self.after_fork_child_callbacks
-    @@after_fork_child_callbacks ||= [
-      ->Scheduler.after_fork,
-      ->Crystal::Signal.after_fork,
-      ->Crystal::SignalChildHandler.after_fork,
-      ->Random::DEFAULT.new_seed,
-    ] of -> Nil
+    {% begin %}
+      @@after_fork_child_callbacks ||= [
+        {% unless flag?(:win32) %}
+          ->Scheduler.after_fork,
+          ->Crystal::Signal.after_fork,
+          ->Crystal::SignalChildHandler.after_fork,
+        {% end %}
+        ->Random::DEFAULT.new_seed,
+      ] of -> Nil
+    {% end %}
   end
 end
 

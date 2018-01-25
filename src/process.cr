@@ -1,7 +1,4 @@
-require "c/signal"
-require "c/stdlib"
-require "c/sys/times"
-require "c/unistd"
+require "crystal/system/process"
 
 class Process
   # Terminate the current process immediately. All open files, pipes and sockets
@@ -10,51 +7,41 @@ class Process
   #
   # *status* is the exit status of the current process.
   def self.exit(status = 0)
-    LibC.exit(status)
+    Crystal::System::Process.exit(status)
   end
 
   # Returns the process identifier of the current process.
-  def self.pid : LibC::PidT
-    LibC.getpid
+  def self.pid
+    Crystal::System::Process.pid
   end
 
   # Returns the process group identifier of the current process.
-  def self.pgid : LibC::PidT
-    pgid(0)
+  def self.pgid
+    Crystal::System::Process.process_gid
   end
 
   # Returns the process group identifier of the process identified by *pid*.
-  def self.pgid(pid : Int32) : LibC::PidT
-    ret = LibC.getpgid(pid)
-    raise Errno.new("getpgid") if ret < 0
-    ret
+  def self.pgid(pid : Int)
+    Crystal::System::Process.process_gid(pid)
   end
 
   # Returns the process identifier of the parent process of the current process.
-  def self.ppid : LibC::PidT
-    LibC.getppid
+  def self.ppid
+    Crystal::System::Process.parent_pid
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
-  def self.kill(signal : Signal, *pids : Int)
+  def self.kill(signal : Signal, *pids : Int) : Nil
     pids.each do |pid|
-      ret = LibC.kill(pid, signal.value)
-      raise Errno.new("kill") if ret < 0
+      Crystal::System::Process.kill(pid, signal.value)
     end
-    nil
   end
 
   # Returns `true` if the process identified by *pid* is valid for
   # a currently registered process, `false` otherwise. Note that this
   # returns `true` for a process in the zombie or similar state.
   def self.exists?(pid : Int)
-    ret = LibC.kill(pid, 0)
-    if ret == 0
-      true
-    else
-      return false if Errno.value == Errno::ESRCH
-      raise Errno.new("kill")
-    end
+    Crystal::System::Process.exists?(pid)
   end
 
   # A struct representing the CPU current times of the process,
@@ -76,56 +63,35 @@ class Process
 
   # Runs the given block inside a new process and
   # returns a `Process` representing the new child process.
-  def self.fork
-    pid = fork_internal do
-      with self yield self
-    end
-    new pid
-  end
-
-  # Duplicates the current process.
-  # Returns a `Process` representing the new child process in the current process
-  # and `nil` inside the new child process.
-  def self.fork : self?
-    if pid = fork_internal
-      new pid
+  def self.fork : Process
+    if process = fork
+      process
     else
-      nil
-    end
-  end
-
-  # :nodoc:
-  protected def self.fork_internal(run_hooks : Bool = true, &block)
-    pid = self.fork_internal(run_hooks)
-
-    unless pid
       begin
         yield
         LibC._exit 0
       rescue ex
         ex.inspect_with_backtrace STDERR
         STDERR.flush
+
         LibC._exit 1
       ensure
         LibC._exit 254 # not reached
       end
     end
-
-    pid
   end
 
-  # *run_hooks* should ALWAYS be `true` unless `exec` is used immediately after fork.
-  # Channels, `IO` and other will not work reliably if *run_hooks* is `false`.
-  protected def self.fork_internal(run_hooks : Bool = true)
-    pid = LibC.fork
-    case pid
-    when 0
-      pid = nil
-      Process.after_fork_child_callbacks.each(&.call) if run_hooks
-    when -1
-      raise Errno.new("fork")
+  # Duplicates the current process.
+  # Returns a `Process` representing the new child process in the current process
+  # and `nil` inside the new child process.
+  def self.fork : Process?
+    if pid = Crystal::System::Process.fork
+      new(pid)
+    else
+      Process.after_fork_child_callbacks.each(&.call)
+
+      nil
     end
-    pid
   end
 
   # How to redirect the standard input, output and error IO of a process.
@@ -143,6 +109,7 @@ class Process
 
   # The standard `IO` configuration of a process.
   alias Stdio = Redirect | IO
+  alias ExecStdio = Redirect | IO::FileDescriptor
   alias Env = Nil | Hash(String, Nil) | Hash(String, String?) | Hash(String, String)
 
   # Executes a process and waits for it to complete.
@@ -181,14 +148,34 @@ class Process
   # * `true`: inherit from parent
   # * `IO`: use the given `IO`
   def self.exec(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
-                input : Stdio = Redirect::Inherit, output : Stdio = Redirect::Inherit, error : Stdio = Redirect::Inherit, chdir : String? = nil)
-    command, argv = prepare_argv(command, args, shell)
-    unless exec_internal(command, argv, env, clear_env, input, output, error, chdir)
-      raise Errno.new("execvp")
+                input : ExecStdio = Redirect::Inherit, output : ExecStdio = Redirect::Inherit, error : ExecStdio = Redirect::Inherit, chdir : String? = nil)
+    command, args = prepare_args(command, args, shell)
+    input = io_for_exec(input, STDIN)
+    output = io_for_exec(output, STDOUT)
+    error = io_for_exec(error, STDERR)
+    Crystal::System::Process.replace(command, args, env, clear_env, input, output, error, chdir)
+  end
+
+  private def self.io_for_exec(stdio : ExecStdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
+    case stdio
+    when IO::FileDescriptor
+      stdio
+    when Redirect::Pipe
+      raise "Cannot use Process::Redirect::Pipe for Process.exec"
+    when Redirect::Inherit
+      dst_io
+    when Redirect::Close
+      if dst_io == STDIN
+        File.open(File::DEVNULL, "r")
+      else
+        File.open(File::DEVNULL, "w")
+      end
+    else
+      raise "BUG: impossible type in ExecStdio #{stdio.class}"
     end
   end
 
-  getter pid : Int32
+  getter pid
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.
   getter! input : IO::FileDescriptor
@@ -199,7 +186,11 @@ class Process
   # A pipe to this process's error. Raises if a pipe wasn't asked when creating the process.
   getter! error : IO::FileDescriptor
 
-  @waitpid : Channel::Buffered(Int32)
+  {% unless flag?(:win32) %}
+    @waitpid : Channel::Buffered(Int32)
+    @channel : Channel(Exception?)?
+    @wait_count = 0
+  {% end %}
 
   # Creates a process, executes it, but doesn't wait for it to complete.
   #
@@ -208,89 +199,44 @@ class Process
   # By default the process is configured without input, output or error.
   def initialize(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                  input : Stdio = Redirect::Close, output : Stdio = Redirect::Close, error : Stdio = Redirect::Close, chdir : String? = nil)
-    command, argv = Process.prepare_argv(command, args, shell)
+    command, args = Process.prepare_args(command, args, shell)
 
-    @wait_count = 0
+    fork_input = stdio_to_fd(input, for: STDIN)
+    fork_output = stdio_to_fd(output, for: STDOUT)
+    fork_error = stdio_to_fd(error, for: STDERR)
 
-    if needs_pipe?(input)
-      fork_input, process_input = IO.pipe(read_blocking: true)
-      if input.is_a?(IO)
-        @wait_count += 1
-        spawn { copy_io(input, process_input, channel, close_dst: true) }
-      else
-        @input = process_input
-      end
-    end
+    @pid = Crystal::System::Process.spawn(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
 
-    if needs_pipe?(output)
-      process_output, fork_output = IO.pipe(write_blocking: true)
-      if output.is_a?(IO)
-        @wait_count += 1
-        spawn { copy_io(process_output, output, channel, close_src: true) }
-      else
-        @output = process_output
-      end
-    end
+    {% unless flag?(:win32) %}
+      {{ @type }}
+      @waitpid = Crystal::SignalChildHandler.wait(pid)
+    {% end %}
 
-    if needs_pipe?(error)
-      process_error, fork_error = IO.pipe(write_blocking: true)
-      if error.is_a?(IO)
-        @wait_count += 1
-        spawn { copy_io(process_error, error, channel, close_src: true) }
-      else
-        @error = process_error
-      end
-    end
+    # p! "closing",
+    #   input, fork_input, fork_input == input || fork_input == STDIN,
+    #   output, fork_output, fork_output == output || fork_output == STDOUT,
+    #   error, fork_error, fork_error == error || fork_error == STDERR
 
-    reader_pipe, writer_pipe = IO.pipe
-
-    @pid = Process.fork_internal(run_hooks: false) do
-      begin
-        reader_pipe.close
-        writer_pipe.close_on_exec = true
-        unless Process.exec_internal(
-                 command,
-                 argv,
-                 env,
-                 clear_env,
-                 fork_input || input,
-                 fork_output || output,
-                 fork_error || error,
-                 chdir
-               )
-          writer_pipe.write_bytes(Errno.value)
-          writer_pipe.close
-        end
-      rescue ex
-        ex.inspect_with_backtrace STDERR
-      ensure
-        LibC._exit 127
-      end
-    end
-
-    writer_pipe.close
-    bytes = uninitialized UInt8[4]
-    if reader_pipe.read(bytes.to_slice) == 4
-      reader_pipe.close
-      errno = IO::ByteFormat::SystemEndian.decode(Int32, bytes.to_slice)
-      raise Errno.new("execvp", errno)
-    end
-    reader_pipe.close
-
-    @waitpid = Crystal::SignalChildHandler.wait(pid)
-
-    fork_input.try &.close
-    fork_output.try &.close
-    fork_error.try &.close
+    fork_input.close unless fork_input == input || fork_input == STDIN
+    fork_output.close unless fork_output == output || fork_output == STDOUT
+    fork_error.close unless fork_error == error || fork_error == STDERR
   end
 
   private def initialize(@pid)
-    @waitpid = Crystal::SignalChildHandler.wait(pid)
-    @wait_count = 0
+    {% unless flag?(:win32) %}
+      {{ @type }}
+      @waitpid = Crystal::SignalChildHandler.wait(pid)
+    {% end %}
   end
 
+  {% if flag?(:win32) %}
+    private DEFAULT_SIGNAL = Signal::KILL
+  {% else %}
+    private DEFAULT_SIGNAL = Signal::TERM
+  {% end %}
+
   # See also: `Process.kill`
-  def kill(sig = Signal::TERM)
+  def kill(sig = DEFAULT_SIGNAL)
     Process.kill sig, @pid
   end
 
@@ -298,13 +244,17 @@ class Process
   def wait : Process::Status
     close_io @input # only closed when a pipe was created but not managed by copy_io
 
-    @wait_count.times do
-      ex = channel.receive
-      raise ex if ex
-    end
-    @wait_count = 0
+    {% if flag?(:win32) %}
+      Process::Status.new(Crystal::System::Process.wait(pid))
+    {% else %}
+      @wait_count.times do
+        ex = channel.receive
+        raise ex if ex
+      end
+      @wait_count = 0
 
-    Process::Status.new(@waitpid.receive)
+      Process::Status.new(@waitpid.receive)
+    {% end %}
   ensure
     close
   end
@@ -317,7 +267,11 @@ class Process
 
   # Whether this process is already terminated.
   def terminated?
-    @waitpid.closed? || !Process.exists?(@pid)
+    {% if flag?(:win32) %}
+      !Process.exists?(@pid)
+    {% else %}
+      @waitpid.closed? || !Process.exists?(@pid)
+    {% end %}
   end
 
   # Closes any pipes to the child process.
@@ -328,7 +282,7 @@ class Process
   end
 
   # :nodoc:
-  protected def self.prepare_argv(command, args, shell)
+  protected def self.prepare_args(command, args, shell)
     if shell
       command = %(#{command} "${@}") unless command.includes?(' ')
       shell_args = ["-c", command, "--"]
@@ -349,21 +303,61 @@ class Process
       args = shell_args
     end
 
-    argv = [command.to_unsafe]
-    args.try &.each do |arg|
-      argv << arg.to_unsafe
+    {command, args}
+  end
+
+  {% unless flag?(:win32) %}
+    private def channel
+      @channel ||= Channel(Exception?).new
     end
-    argv << Pointer(UInt8).null
+  {% end %}
 
-    {command, argv}
-  end
+  private def stdio_to_fd(stdio : Stdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
+    case stdio
+    when IO::FileDescriptor
+      stdio
+    when IO
+      {% if flag?(:win32) %}
+        raise NotImplementedError.new("Process.new with input as a generic IO")
+      {% else %}
+        if dst_io == STDIN
+          fork_io, process_io = IO.pipe(read_blocking: true)
 
-  private def channel
-    @channel ||= Channel(Exception?).new
-  end
+          @wait_count += 1
+          spawn { copy_io(stdio, process_io, channel, close_dst: true) }
+        else
+          process_io, fork_io = IO.pipe(write_blocking: true)
 
-  private def needs_pipe?(io)
-    (io == Redirect::Pipe) || (io.is_a?(IO) && !io.is_a?(IO::FileDescriptor))
+          @wait_count += 1
+          spawn { copy_io(process_io, stdio, channel, close_src: true) }
+        end
+
+        fork_io
+      {% end %}
+    when Redirect::Pipe
+      case dst_io
+      when STDIN
+        fork_io, @input = IO.pipe(read_blocking: true)
+      when STDOUT
+        @output, fork_io = IO.pipe(write_blocking: true)
+      when STDERR
+        @error, fork_io = IO.pipe(write_blocking: true)
+      else
+        raise "BUG: unknown destination io #{dst_io}"
+      end
+
+      fork_io
+    when Redirect::Inherit
+      dst_io
+    when Redirect::Close
+      if dst_io == STDIN
+        File.open(File::DEVNULL, "r")
+      else
+        File.open(File::DEVNULL, "w")
+      end
+    else
+      raise "BUG: impossible type in stdio #{stdio.class}"
+    end
   end
 
   private def copy_io(src, dst, channel, close_src = false, close_dst = false)
@@ -387,45 +381,6 @@ class Process
       src.close if close_src
       dst.close if close_dst
     end
-  end
-
-  # :nodoc:
-  protected def self.exec_internal(command : String, argv, env, clear_env, input, output, error, chdir)
-    # Reopen handles if the child is being redirected
-    reopen_io(input, IO::FileDescriptor.new(0, blocking: true), "r")
-    reopen_io(output, IO::FileDescriptor.new(1, blocking: true), "w")
-    reopen_io(error, IO::FileDescriptor.new(2, blocking: true), "w")
-
-    ENV.clear if clear_env
-    env.try &.each do |key, val|
-      if val
-        ENV[key] = val
-      else
-        ENV.delete key
-      end
-    end
-
-    Dir.cd(chdir) if chdir
-
-    LibC.execvp(command, argv) != -1
-  end
-
-  private def self.reopen_io(src_io, dst_io, mode)
-    case src_io
-    when IO::FileDescriptor
-      src_io.blocking = true
-      dst_io.reopen(src_io)
-    when Redirect::Inherit
-      dst_io.blocking = true
-    when Redirect::Close
-      File.open("/dev/null", mode) do |file|
-        dst_io.reopen(file)
-      end
-    else
-      raise "BUG: unknown object type #{src_io}"
-    end
-
-    dst_io.close_on_exec = false
   end
 
   private def close_io(io)
