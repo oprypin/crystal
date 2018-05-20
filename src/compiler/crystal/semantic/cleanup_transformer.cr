@@ -24,7 +24,7 @@ module Crystal
         end
       end
 
-      TypesAndMethodsPrinter.new.print_type_with_methods(self)
+      TypesAndMethodsPrinter.new.print_types_and_methods(self)
     end
 
     def cleanup_type(type, transformer)
@@ -108,10 +108,20 @@ module Crystal
 
     def print_type_with_methods(type)
       if type.is_a?(DefInstanceContainer) && !type.def_instances.empty?
+        return if type.to_s.starts_with?("Crystal::")
+        return if type.to_s.starts_with?("Spec::")
+        return if type.to_s.ends_with?(":Class")
         puts "|=== #{type} ===|"
         type.def_instances.to_a.sort_by(&.[1].name).each do |key, a_def|
+          next if key.arg_types.any? &.to_s.starts_with?("Crystal::")
+          next if (nargs = key.named_args) && nargs.any? &.type.to_s.starts_with?("Crystal::")
+          loc = a_def.location.to_s
+          next if loc.empty?
+          next if loc.includes? "/spec/"
+          next if loc.starts_with? "expanded macro: "
+          loc = loc.sub(%r(.*/crystal/src/), "")
           name = String.build do |io|
-            io << "  #"
+            io << "  "
             io << a_def.name
             io << "("
             key.arg_types.join(", ", io)
@@ -125,6 +135,8 @@ module Crystal
               io << ", &" << block_type
             end
             io << ")"
+            io << " : " << a_def.type
+            io << "                               " << loc
           end
 
           puts name
