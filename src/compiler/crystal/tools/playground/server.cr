@@ -424,6 +424,9 @@ module Crystal::Playground
     end
   end
 
+  class Error < Crystal::LocationlessException
+  end
+
   class Server
     @sessions = {} of Int32 => Session
     @sessions_key = 0
@@ -500,15 +503,17 @@ module Crystal::Playground
         HTTP::StaticFileHandler.new(public_dir),
       ]
 
+      server = HTTP::Server.new handlers
+
       host = @host
       if host
-        server = HTTP::Server.new host, @port, handlers
+        address = server.bind_tcp host, @port
       else
-        server = HTTP::Server.new @port, handlers
-        host = "localhost"
+        address = server.bind_tcp @port
       end
+      @port = address.port
 
-      puts "Listening on http://#{host}:#{@port}"
+      puts "Listening on http://#{address}"
       if host == "0.0.0.0"
         puts "WARNING running playground with 0.0.0.0 is unsecure."
       end
@@ -516,7 +521,7 @@ module Crystal::Playground
       begin
         server.listen
       rescue ex
-        raise ToolException.new(ex.message)
+        raise Playground::Error.new(ex.message)
       end
     end
 
