@@ -58,6 +58,8 @@ module Crystal
   end
 
   class TypesAndMethodsPrinter
+    record MethodInfo, key : DefInstanceKey, meth : Def, cls : Type
+
     def initialize
       @all_types = Set(UInt64).new
     end
@@ -65,9 +67,59 @@ module Crystal
     def print_types_and_methods(program)
       types = [] of Type
       collect_types(program, types)
-      types.sort_by!(&.to_s)
+
+      methods_by_loc = Hash(Location, Array(MethodInfo)).new { |h, k| h[k] = Array(MethodInfo).new }
+
       types.each do |type|
-        print_type_with_methods(type)
+        if type.is_a?(DefInstanceContainer) && !type.def_instances.empty?
+          type_s = type.to_s
+          return if type_s.starts_with?("Crystal::")
+          return if type_s.starts_with?("Spec::")
+          return if type_s.ends_with?(":Class")
+
+          type.def_instances.each do |key, meth|
+            next if key.arg_types.any? &.to_s.starts_with?("Crystal::")
+            next if (nargs = key.named_args) && nargs.any? &.type.to_s.starts_with?("Crystal::")
+
+            loc = meth.location.to_s
+            next if loc.empty?
+            next if loc.includes? "/spec/"
+            next if loc.starts_with? "expanded macro: "
+
+            methods_by_loc[meth.location] << p MethodInfo.new(key, meth, type)
+          end
+        end
+        puts "END TYPE"
+      end
+
+      puts "SIZE: #{methods_by_loc.size}"
+      puts "END 2"
+      methods_by_loc.each do |loc, methods|
+        if (p methods.map { |meth|
+          {meth.meth.name, meth.meth.type}
+        }).uniq!.size == 1
+          methods.each do |meth|
+            key, meth, cls = meth.key, meth.meth, meth.cls
+            result = String.build do |io|
+              io << meth.name
+              io << "("
+              key.arg_types.join(", ", io)
+              if nargs = key.named_args
+                io << ", "
+                nargs.join(", ", io) do |narg|
+                  io << narg.name << ": " << narg.type
+                end
+              end
+              if block_type = key.block_type
+                io << ", &" << block_type
+              end
+              io << ")"
+              io << " : " << meth.type
+              io << "                               " << loc
+            end
+            puts result
+          end
+        end
       end
     end
 
@@ -104,44 +156,6 @@ module Crystal
     end
 
     def collect_types(types : Nil, target)
-    end
-
-    def print_type_with_methods(type)
-      if type.is_a?(DefInstanceContainer) && !type.def_instances.empty?
-        return if type.to_s.starts_with?("Crystal::")
-        return if type.to_s.starts_with?("Spec::")
-        return if type.to_s.ends_with?(":Class")
-        puts "|=== #{type} ===|"
-        type.def_instances.to_a.sort_by(&.[1].name).each do |key, a_def|
-          next if key.arg_types.any? &.to_s.starts_with?("Crystal::")
-          next if (nargs = key.named_args) && nargs.any? &.type.to_s.starts_with?("Crystal::")
-          loc = a_def.location.to_s
-          next if loc.empty?
-          next if loc.includes? "/spec/"
-          next if loc.starts_with? "expanded macro: "
-          loc = loc.sub(%r(.*/crystal/src/), "")
-          name = String.build do |io|
-            io << "  "
-            io << a_def.name
-            io << "("
-            key.arg_types.join(", ", io)
-            if nargs = key.named_args
-              io << ", "
-              nargs.join(", ", io) do |narg|
-                io << narg.name << ": " << narg.type
-              end
-            end
-            if block_type = key.block_type
-              io << ", &" << block_type
-            end
-            io << ")"
-            io << " : " << a_def.type
-            io << "                               " << loc
-          end
-
-          puts name
-        end
-      end
     end
   end
 
