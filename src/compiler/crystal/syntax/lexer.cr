@@ -799,7 +799,9 @@ module Crystal
             char = next_char if char == '?'
           end
           @token.type = :GLOBAL_MATCH_DATA_INDEX
-          @token.value = string_range_from_pool(start)
+          @token.value = string_value = string_range_from_pool(start)
+          @token.number_kind = :i32
+          check_integer_literal_fits_in_size string_value, string_value.size, false, start
         else
           if ident_start?(current_char)
             while ident_part?(next_char)

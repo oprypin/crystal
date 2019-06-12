@@ -271,6 +271,7 @@ describe "Lexer" do
                     ":&+", ":&-", ":&*", ":&**"]
 
   it_lexes_global_match_data_index ["$1", "$10", "$1?", "$23?"]
+  assert_syntax_error "$18446744073709551616", "18446744073709551616 doesn't fit in an Int32"
 
   it_lexes "$~", :"$~"
   it_lexes "$?", :"$?"
