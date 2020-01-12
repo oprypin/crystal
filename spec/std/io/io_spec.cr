@@ -1,5 +1,7 @@
 require "../spec_helper"
-require "big"
+{% unless flag?(:win32) %}
+  require "big"
+{% end %}
 require "base64"
 
 # This is a non-optimized version of IO::Memory so we can test
@@ -80,7 +82,7 @@ end
 
 describe IO do
   describe "partial read" do
-    it "doesn't block on first read.  blocks on 2nd read" do
+    pending_win32 "doesn't block on first read.  blocks on 2nd read" do
       IO.pipe do |read, write|
         write.puts "hello"
         slice = Bytes.new 1024
@@ -475,7 +477,7 @@ describe IO do
     end
   end
 
-  describe "encoding" do
+  pending_win32 describe: "encoding" do
     describe "decode" do
       it "gets_to_end" do
         str = "Hello world" * 200
@@ -874,6 +876,8 @@ describe IO do
     end
   end
 
-  typeof(STDIN.cooked { })
-  typeof(STDIN.cooked!)
+  {% unless flag?(:win32) %}
+    typeof(STDIN.cooked { })
+    typeof(STDIN.cooked!)
+  {% end %}
 end
