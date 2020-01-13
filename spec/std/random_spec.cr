@@ -147,10 +147,10 @@ describe "Random" do
     end
 
     pending_win32 "BigInt range" do
-      expect_raises ArgumentError, "Invalid range for rand: 1.to_big_i...1.to_big_i" do
+      expect_raises ArgumentError, "Invalid range for rand: #{1.to_big_i...1.to_big_i}" do
         rand(1.to_big_i...1.to_big_i)
       end
-      expect_raises ArgumentError, "Invalid range for rand: 1.to_big_i..0.to_big_i" do
+      expect_raises ArgumentError, "Invalid range for rand: #{1.to_big_i..0.to_big_i}" do
         rand(1.to_big_i..0.to_big_i)
       end
     end
