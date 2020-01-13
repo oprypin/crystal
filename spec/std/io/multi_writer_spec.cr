@@ -52,7 +52,7 @@ describe "IO::MultiWriter" do
   end
 
   describe "#flush" do
-    pending_win32 "writes to IO and File" do
+    it "writes to IO and File" do
       with_tempfile("multiple_writer_spec") do |path|
         io = IO::Memory.new
 
