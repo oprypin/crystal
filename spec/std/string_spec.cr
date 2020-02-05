@@ -1100,11 +1100,11 @@ describe "String" do
     "foobar".reverse.should eq("raboof")
   end
 
-  pending_win32 "reverses utf-8 string" do
+  it "reverses utf-8 string" do
     "こんいちは".reverse.should eq("はちいんこ")
   end
 
-  pending_win32 "reverses taking grapheme clusters into account" do
+  it "reverses taking grapheme clusters into account" do
     "noël".reverse.should eq("lëon")
   end
 
