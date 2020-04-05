@@ -9,7 +9,7 @@ class Process::Status
 
   # Returns `true` if the process was terminated by a signal.
   def signal_exit?
-    {% unless flag?(:win32) %}
+    {% if flag?(:unix) %}
       # define __WIFSIGNALED(status) (((signed char) (((status) & 0x7f) + 1) >> 1) > 0)
       ((LibC::SChar.new(@exit_status & 0x7f) + 1) >> 1) > 0
     {% else %}
@@ -19,7 +19,7 @@ class Process::Status
 
   # Returns `true` if the process terminated normally.
   def normal_exit?
-    {% unless flag?(:win32) %}
+    {% if flag?(:unix) %}
       # define __WIFEXITED(status) (__WTERMSIG(status) == 0)
       signal_code == 0
     {% else %}
@@ -27,17 +27,21 @@ class Process::Status
     {% end %}
   end
 
-  {% unless flag?(:win32) %}
-    # If `signal_exit?` is `true`, returns the *Signal* the process
-    # received and didn't handle. Will raise if `signal_exit?` is `false`.
-    def exit_signal
+  # If `signal_exit?` is `true`, returns the *Signal* the process
+  # received and didn't handle. Will raise if `signal_exit?` is `false`.
+  #
+  # Available only on Unix-like operating systems.
+  def exit_signal
+    {% if flag?(:unix) %}
       Signal.from_value(signal_code)
-    end
-  {% end %}
+    {% else %}
+      raise NotImplementedError.new("Process::Status#exit_signal")
+    {% end %}
+  end
 
   # If `normal_exit?` is `true`, returns the exit code of the process.
   def exit_code
-    {% unless flag?(:win32) %}
+    {% if flag?(:unix) %}
       # define __WEXITSTATUS(status) (((status) & 0xff00) >> 8)
       (@exit_status & 0xff00) >> 8
     {% else %}

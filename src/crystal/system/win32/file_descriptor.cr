@@ -62,7 +62,7 @@ module Crystal::System::FileDescriptor
   end
 
   def windows_handle
-    windows_handle? || raise "FD isnt't associated with a stream"
+    windows_handle? || raise "FD isn't associated with a stream"
   end
 
   private def system_info

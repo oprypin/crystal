@@ -134,15 +134,16 @@ class Process
     command_line = %("#{command}" #{args})
     ret = LibC.CreateProcessW(
       nil,                                                                   # module name
-      to_windows_path(command_line),                                         # command line args
+      command_line.check_no_null_byte.to_utf16,                              # command line args
       nil,                                                                   # Process handle not inheritable
       nil,                                                                   # Thread handle not inheritable
       LibC::TRUE,                                                            # Set handle inheritance to TRUE
       LibC::CREATE_UNICODE_ENVIRONMENT | LibC::EXTENDED_STARTUPINFO_PRESENT, # Use UTF-16 ENV Block
       Process.create_env_block(env, clear_env),
-      chdir ? to_windows_path(chdir) : nil, # Use chdir or parent's starting directory
-      pointerof(startupinfoex),             # Pointer to STARTUPINFOEX structure
-      pointerof(@pi)    )                   # Pointer to PROCESS_INFORMATION structure
+      chdir.try &.check_no_null_byte.to_utf16, # Use chdir or parent's starting directory
+      pointerof(startupinfoex),                # Pointer to STARTUPINFOEX structure
+      pointerof(@pi)                           # Pointer to PROCESS_INFORMATION structure
+    )
     if ret != 0
       wait_install_res = LibC.RegisterWaitForSingleObject(out wait_handle, @pi.hProcess, ->Process.on_exited(Void*, Bool), Box.box(self), LibC::INFINITE, LibC::WT_EXECUTEONLYONCE)
       if (wait_install_res == LibC::FALSE)
@@ -298,10 +299,6 @@ class Process
 
   protected def self.is_main_window(handle : LibC::HWND) : Bool
     LibC.GetWindow(handle, LibC::GW_OWNER).address == 0 && LibC.IsWindowVisible(handle) == 1
-  end
-
-  private def to_windows_path(path : String) : LibC::LPWSTR
-    path.check_no_null_byte.to_utf16.to_unsafe
   end
 
   private class WinEnvBuilder
