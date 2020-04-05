@@ -72,21 +72,17 @@ class Process
   protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?, reader_pipe, writer_pipe)
     # like in child process
     self.exec_internal(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
-  rescue ex : Errno
-    writer_pipe.write_bytes(ex.errno)
+  rescue ex
     writer_pipe.write_bytes(ex.message.try(&.bytesize) || 0)
     writer_pipe << ex.message
-    0_i64
-  rescue ex
-    ex.inspect_with_backtrace STDERR
-    STDERR.flush
+    writer_pipe.close
     0_i64
   end
 
   def self.duplicate_handle(fd, inheritable)
     ret = LibC._dup(fd.fd)
     if ret == -1
-      raise Errno.new("Could not duplicate file descriptor")
+      raise RuntimeError.from_winerror("Could not duplicate file descriptor")
     end
     IO::FileDescriptor.new(ret)
   end

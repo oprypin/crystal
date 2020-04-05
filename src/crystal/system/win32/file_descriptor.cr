@@ -58,7 +58,7 @@ module Crystal::System::FileDescriptor
   end
 
   def windows_handle?
-    Crystal::System::FileDescriptor.windows_handle_for?(@fd)
+    Crystal::System::FileDescriptor.windows_handle_for?(fd)
   end
 
   def windows_handle
