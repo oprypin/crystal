@@ -1,7 +1,4 @@
-require "c/signal"
-require "c/stdlib"
-require "c/sys/resource"
-require "c/unistd"
+require "crystal/system/process"
 
 class Process
   # Terminate the current process immediately. All open files, pipes and sockets
@@ -9,30 +6,30 @@ class Process
   # not run any handlers registered with `at_exit`, use `::exit` for that.
   #
   # *status* is the exit status of the current process.
-  def self.exit(status = 0)
-    LibC.exit(status)
+  def self.exit(status = 0) : NoReturn
+    exit_system(status)
   end
 
   # Returns the process identifier of the current process.
-  def self.pid : LibC::PidT
-    LibC.getpid
+  def self.pid : Int64
+    pid_system
   end
 
-  # Returns the process group identifier of the current process.
-  def self.pgid : LibC::PidT
-    pgid(0)
-  end
+  {% if flag?(:unix) || flag?(:docs) %}
+    # Returns the process group identifier of the current process.
+    def self.pgid : Int64
+      pgid(0)
+    end
 
-  # Returns the process group identifier of the process identified by *pid*.
-  def self.pgid(pid : Int32) : LibC::PidT
-    ret = LibC.getpgid(pid)
-    raise RuntimeError.from_errno("getpgid") if ret < 0
-    ret
-  end
+    # Returns the process group identifier of the process identified by *pid*.
+    def self.pgid(pid : Int64) : Int64
+      Process.pgid_system(pid)
+    end
+  {% end %}
 
   # Returns the process identifier of the parent process of the current process.
-  def self.ppid : LibC::PidT
-    LibC.getppid
+  def self.ppid : Int64
+    ppid_system
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
@@ -53,14 +50,8 @@ class Process
   # Returns `true` if the process identified by *pid* is valid for
   # a currently registered process, `false` otherwise. Note that this
   # returns `true` for a process in the zombie or similar state.
-  def self.exists?(pid : Int)
-    ret = LibC.kill(pid, 0)
-    if ret == 0
-      true
-    else
-      return false if Errno.value == Errno::ESRCH
-      raise RuntimeError.from_errno("kill")
-    end
+  def self.exists?(pid : Int) : Bool
+    Process.exists_system?(pid)
   end
 
   # A struct representing the CPU current times of the process,
@@ -75,87 +66,27 @@ class Process
   # Returns a `Tms` for the current process. For the children times, only those
   # of terminated children are returned.
   def self.times : Tms
-    LibC.getrusage(LibC::RUSAGE_SELF, out usage)
-    LibC.getrusage(LibC::RUSAGE_CHILDREN, out child)
-
-    Tms.new(
-      usage.ru_utime.tv_sec.to_f64 + usage.ru_utime.tv_usec.to_f64 / 1e6,
-      usage.ru_stime.tv_sec.to_f64 + usage.ru_stime.tv_usec.to_f64 / 1e6,
-      child.ru_utime.tv_sec.to_f64 + child.ru_utime.tv_usec.to_f64 / 1e6,
-      child.ru_stime.tv_sec.to_f64 + child.ru_stime.tv_usec.to_f64 / 1e6,
-    )
+    times_system
   end
 
-  # Runs the given block inside a new process and
-  # returns a `Process` representing the new child process.
-  def self.fork : Process
-    {% raise("Process fork is unsupported with multithread mode") if flag?(:preview_mt) %}
-
-    if pid = fork_internal(will_exec: false)
-      new pid
-    else
-      begin
-        yield
-        LibC._exit 0
-      rescue ex
-        ex.inspect_with_backtrace STDERR
-        STDERR.flush
-        LibC._exit 1
-      ensure
-        LibC._exit 254 # not reached
-      end
-    end
-  end
-
-  # Duplicates the current process.
-  # Returns a `Process` representing the new child process in the current process
-  # and `nil` inside the new child process.
-  def self.fork : Process?
-    {% raise("Process fork is unsupported with multithread mode") if flag?(:preview_mt) %}
-
-    if pid = fork_internal(will_exec: false)
-      new pid
-    else
-      nil
-    end
-  end
-
-  # :nodoc:
-  protected def self.fork_internal(*, will_exec : Bool)
-    newmask = uninitialized LibC::SigsetT
-    oldmask = uninitialized LibC::SigsetT
-
-    LibC.sigfillset(pointerof(newmask))
-    ret = LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(newmask), pointerof(oldmask))
-    raise RuntimeError.from_errno("Failed to disable signals") unless ret == 0
-
-    case pid = LibC.fork
-    when 0
-      # child:
-      pid = nil
-      if will_exec
-        # reset signal handlers, then sigmask (inherited on exec):
-        Crystal::Signal.after_fork_before_exec
-        LibC.sigemptyset(pointerof(newmask))
-        LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(newmask), nil)
-      else
-        {% unless flag?(:preview_mt) %}
-          Process.after_fork_child_callbacks.each(&.call)
-        {% end %}
-        LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
-      end
-    when -1
-      # error:
-      errno = Errno.value
-      LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
-      raise RuntimeError.from_errno("fork", errno)
-    else
-      # parent:
-      LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
+  {% if flag?(:unix) || flag?(:docs) %}
+    # Runs the given block inside a new process and
+    # returns a `Process` representing the new child process.
+    #
+    # Available only on Unix-like operating systems.
+    def self.fork : Process
+      fork_system { yield }
     end
 
-    pid
-  end
+    # Duplicates the current process.
+    # Returns a `Process` representing the new child process in the current process
+    # and `nil` inside the new child process.
+    #
+    # Available only on Unix-like operating systems.
+    def self.fork : Process?
+      fork_system
+    end
+  {% end %}
 
   # How to redirect the standard input, output and error IO of a process.
   enum Redirect
@@ -192,7 +123,7 @@ class Process
   #
   # Returns the block's value.
   def self.run(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
-               input : Stdio = Redirect::Pipe, output : Stdio = Redirect::Pipe, error : Stdio = Redirect::Pipe, chdir : String? = nil)
+               input : Stdio = Redirect::Pipe, output : Stdio = Redirect::Pipe, error : Stdio = Redirect::Pipe, chdir : String? = nil, &block : Process ->)
     process = new(command, args, env, clear_env, shell, input, output, error, chdir)
     begin
       value = yield process
@@ -235,7 +166,7 @@ class Process
     end
   end
 
-  getter pid : Int32
+  getter pid : Int64 = 0
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.
   getter! input : IO::FileDescriptor
@@ -246,7 +177,8 @@ class Process
   # A pipe to this process's error. Raises if a pipe wasn't asked when creating the process.
   getter! error : IO::FileDescriptor
 
-  @waitpid : Channel(Int32)
+  # channel of process exit code
+  @waitpid : Channel(Int32) = Channel(Int32).new(1)
   @wait_count = 0
 
   # Creates a process, executes it, but doesn't wait for it to complete.
@@ -262,38 +194,8 @@ class Process
     fork_output = stdio_to_fd(output, for: STDOUT)
     fork_error = stdio_to_fd(error, for: STDERR)
 
-    reader_pipe, writer_pipe = IO.pipe
-
-    if pid = Process.fork_internal(will_exec: true)
-      @pid = pid
-    else
-      begin
-        reader_pipe.close
-        writer_pipe.close_on_exec = true
-        Process.exec_internal(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
-      rescue ex
-        writer_pipe.write_bytes(ex.message.try(&.bytesize) || 0)
-        writer_pipe << ex.message
-        writer_pipe.close
-      ensure
-        LibC._exit 127
-      end
-    end
-
-    writer_pipe.close
-    bytes = uninitialized UInt8[4]
-    if reader_pipe.read(bytes.to_slice) == 4
-      message_size = IO::ByteFormat::SystemEndian.decode(Int32, bytes.to_slice)
-      if message_size > 0
-        message = String.build(message_size) { |io| IO.copy(reader_pipe, io, message_size) }
-      end
-      reader_pipe.close
-      raise RuntimeError.new("Error executing process: #{message}")
-    end
-    reader_pipe.close
-
-    @waitpid = Crystal::SignalChildHandler.wait(pid)
-
+    @pid = create_and_exec(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
+    @waitpid = wait_system
     fork_input.close unless fork_input == input || fork_input == STDIN
     fork_output.close unless fork_output == output || fork_output == STDOUT
     fork_error.close unless fork_error == error || fork_error == STDERR
@@ -345,8 +247,8 @@ class Process
     end
   end
 
-  private def initialize(@pid)
-    @waitpid = Crystal::SignalChildHandler.wait(pid)
+  protected def initialize(@pid)
+    wait_system
     @wait_count = 0
   end
 
@@ -358,19 +260,17 @@ class Process
 
   # Sends *signal* to the process.
   def signal(signal : Signal)
-    Process.signal signal, @pid
+    signal_system sig
   end
 
   # Waits for this process to complete and closes any pipes.
   def wait : Process::Status
     close_io @input # only closed when a pipe was created but not managed by copy_io
-
     @wait_count.times do
       ex = channel.receive
       raise ex if ex
     end
     @wait_count = 0
-
     Process::Status.new(@waitpid.receive)
   ensure
     close
@@ -384,11 +284,27 @@ class Process
 
   # Whether this process is already terminated.
   def terminated?
-    @waitpid.closed? || !Process.exists?(@pid)
+    @waitpid.closed? || !exists_system?
+  end
+
+  # Terminate process gracefully
+  def terminate
+    terminate_system
+  end
+
+  # Terminate process immediately (kill it)
+  def interrupt
+    interrupt_system
+  end
+
+  # Closes any system resources held for the process.
+  def close
+    close_io
+    close_system
   end
 
   # Closes any pipes to the child process.
-  def close
+  def close_io
     close_io @input
     close_io @output
     close_io @error
@@ -400,28 +316,12 @@ class Process
   end
 
   # :nodoc:
-  protected def self.prepare_args(command, args, shell)
+  protected def self.prepare_args(command : String, args, shell)
     if shell
-      command = %(#{command} "${@}") unless command.includes?(' ')
-      shell_args = ["-c", command, "--"]
-
-      if args
-        unless command.includes?(%("${@}"))
-          raise ArgumentError.new(%(can't specify arguments in both, command and args without including "${@}" into your command))
-        end
-
-        {% if flag?(:freebsd) %}
-          shell_args << ""
-        {% end %}
-
-        shell_args.concat(args)
-      end
-
-      command = "/bin/sh"
-      args = shell_args
+      prepare_shell_system(command, args)
+    else
+      {command, args}
     end
-
-    {command, args}
   end
 
   private def channel
@@ -463,83 +363,29 @@ class Process
     end
   end
 
-  ORIGINAL_STDIN  = IO::FileDescriptor.new(0, blocking: true)
-  ORIGINAL_STDOUT = IO::FileDescriptor.new(1, blocking: true)
-  ORIGINAL_STDERR = IO::FileDescriptor.new(2, blocking: true)
-
-  # :nodoc:
-  protected def self.exec_internal(command, args, env, clear_env, input, output, error, chdir) : NoReturn
-    reopen_io(input, ORIGINAL_STDIN)
-    reopen_io(output, ORIGINAL_STDOUT)
-    reopen_io(error, ORIGINAL_STDERR)
-
-    ENV.clear if clear_env
-    env.try &.each do |key, val|
-      if val
-        ENV[key] = val
-      else
-        ENV.delete key
-      end
-    end
-
-    Dir.cd(chdir) if chdir
-
-    argv = [command.check_no_null_byte.to_unsafe]
-    args.try &.each do |arg|
-      argv << arg.check_no_null_byte.to_unsafe
-    end
-    argv << Pointer(UInt8).null
-
-    LibC.execvp(command, argv)
-    raise RuntimeError.from_errno
-  end
-
-  private def self.reopen_io(src_io : IO::FileDescriptor, dst_io : IO::FileDescriptor)
-    src_io = to_real_fd(src_io)
-
-    dst_io.reopen(src_io)
-    dst_io.blocking = true
-    dst_io.close_on_exec = false
-  end
-
-  private def self.to_real_fd(fd : IO::FileDescriptor)
-    case fd
-    when STDIN  then ORIGINAL_STDIN
-    when STDOUT then ORIGINAL_STDOUT
-    when STDERR then ORIGINAL_STDERR
-    else             fd
-    end
-  end
-
   private def close_io(io)
     io.close if io
   end
 
-  # Changes the root directory and the current working directory for the current
-  # process.
-  #
-  # Security: `chroot` on its own is not an effective means of mitigation. At minimum
-  # the process needs to also drop privileges as soon as feasible after the `chroot`.
-  # Changes to the directory hierarchy or file descriptors passed via `recvmsg(2)` from
-  # outside the `chroot` jail may allow a restricted process to escape, even if it is
-  # unprivileged.
-  #
-  # ```
-  # Process.chroot("/var/empty")
-  # ```
-  def self.chroot(path : String) : Nil
-    path.check_no_null_byte
-    if LibC.chroot(path) != 0
-      raise RuntimeError.from_errno("Failed to chroot")
+  {% if flag?(:unix) || flag?(:docs) %}
+    # Changes the root directory and the current working directory for the current
+    # process.
+    #
+    # Available only on Unix-like operating systems.
+    #
+    # Security: `chroot` on its own is not an effective means of mitigation. At minimum
+    # the process needs to also drop privileges as soon as feasible after the `chroot`.
+    # Changes to the directory hierarchy or file descriptors passed via `recvmsg(2)` from
+    # outside the `chroot` jail may allow a restricted process to escape, even if it is
+    # unprivileged.
+    #
+    # ```
+    # Process.chroot("/var/empty")
+    # ```
+    def self.chroot(path : String) : Nil
+      chroot_system(path)
     end
-
-    if LibC.chdir("/") != 0
-      errno = RuntimeError.from_errno("chdir after chroot failed")
-      errno.callstack = CallStack.new
-      errno.inspect_with_backtrace(STDERR)
-      abort("Unresolvable state, exiting...")
-    end
-  end
+  {% end %}
 end
 
 # Executes the given command in a subshell.
@@ -589,14 +435,20 @@ def `(command) : String
   output
 end
 
-# See also: `Process.fork`
-def fork
-  Process.fork { yield }
-end
+{% if flag?(:unix) || flag?(:docs) %}
+  # See also: `Process.fork`
+  #
+  # Available only on Unix-like operating systems.
+  def fork
+    ::Process.fork { yield }
+  end
 
-# See also: `Process.fork`
-def fork
-  Process.fork
-end
+  # See also: `Process.fork`
+  #
+  # Available only on Unix-like operating systems.
+  def fork
+    ::Process.fork
+  end
+{% end %}
 
 require "./process/*"
