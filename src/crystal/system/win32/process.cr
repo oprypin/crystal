@@ -2,9 +2,6 @@ require "c/processthreadsapi"
 require "c/winuser"
 require "c/tlhelp32"
 
-POWERSHELL = "powershell.exe"
-CMD        = "cmd.exe"
-
 class Process
   @@mutex = Mutex.new
 
@@ -190,27 +187,10 @@ class Process
     end
   end
 
-  private def self.shell
-    return ENV["comspec"]? || CMD
-  end
-
-  protected def self.system_prepare_shell(command, args)
-    shell = self.shell
-
-    if shell.ends_with?(POWERSHELL)
-      shell_args = ["-NoProfile", "-NonInteractive", "-NoLogo", "-Command", command]
-    elsif shell.ends_with?(CMD)
-      shell_args = ["/C", command]
-    else
-      raise "Unsupported shell #{shell}"
+  protected def self.prepare_args_system(command, args, shell)
+    if shell
+      raise NotImplementedError.new("Process shell: true is not supported on Windows")
     end
-
-    if args
-      shell_args.concat(args)
-    end
-
-    command = shell
-    args = shell_args
     {command, args}
   end
 
@@ -318,43 +298,6 @@ class Process
 
   protected def self.is_main_window(handle : LibC::HWND) : Bool
     LibC.GetWindow(handle, LibC::GW_OWNER).address == 0 && LibC.IsWindowVisible(handle) == 1
-  end
-
-  def self.run_ps(powershell_script : String, env : Env = nil, clear_env : Bool = false,
-                  input : Stdio = Redirect::Close, output : Stdio = Redirect::Pipe, error : Stdio = Redirect::Inherit, chdir : String? = nil, &block : Process ->)
-    args = ["-NoProfile", "-NonInteractive", "-NoLogo"]
-    if input == Redirect::Close
-      args << "-Command"
-      args << "-"
-    else
-      slice_16 = powershell_script.to_utf16
-      pointer = slice_16.to_unsafe
-      bytes = Slice(UInt8).new(pointer.as(Pointer(UInt8)), slice_16.size*2)
-      encoded = Base64.strict_encode(bytes)
-      args << "-encodedCommand"
-      args << encoded
-    end
-    passed_input = (input == Redirect::Close ? Redirect::Pipe : input)
-    process = new("powershell.exe", args, env, clear_env, false, passed_input, output, error, chdir)
-    if input == Redirect::Close
-      process.input << powershell_script
-      process.input << "\r\n"
-      process.input.close
-    end
-    begin
-      value = yield process
-      $? = process.wait
-      value
-    rescue ex
-      process.terminate
-      raise ex
-    end
-  end
-
-  def self.run_ps(powershell_script : String, env : Env = nil, clear_env : Bool = false, chdir : String? = nil) : String
-    Process.run_ps(powershell_script, env: env, clear_env: clear_env, chdir: chdir) do |proc|
-      proc.output.gets_to_end
-    end
   end
 
   private def to_windows_path(path : String) : LibC::LPWSTR
