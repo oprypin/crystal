@@ -274,7 +274,9 @@ module Crystal::SignalChildHandler
   @@waiting = {} of Int64 => Channel(Int32)
   @@mutex = Mutex.new(:unchecked)
 
-  def self.wait(channel : Channel(Int32), pid : Int64) : Channel(Int32)
+  def self.wait(pid : Int64) : Channel(Int32)
+    channel = Channel(Int32).new(1)
+
     @@mutex.lock
     if exit_code = @@pending.delete(pid)
       @@mutex.unlock

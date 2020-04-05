@@ -15,17 +15,15 @@ class Process
     pid_system
   end
 
-  {% if flag?(:unix) || flag?(:docs) %}
-    # Returns the process group identifier of the current process.
-    def self.pgid : Int64
-      pgid(0)
-    end
+  # Returns the process group identifier of the current process.
+  def self.pgid : Int64
+    pgid(0)
+  end
 
-    # Returns the process group identifier of the process identified by *pid*.
-    def self.pgid(pid : Int64) : Int64
-      Process.pgid_system(pid)
-    end
-  {% end %}
+  # Returns the process group identifier of the process identified by *pid*.
+  def self.pgid(pid : Int64) : Int64
+    Process.pgid_system(pid)
+  end
 
   # Returns the process identifier of the parent process of the current process.
   def self.ppid : Int64
@@ -69,24 +67,24 @@ class Process
     times_system
   end
 
-  {% if flag?(:unix) || flag?(:docs) %}
-    # Runs the given block inside a new process and
-    # returns a `Process` representing the new child process.
-    #
-    # Available only on Unix-like operating systems.
-    def self.fork : Process
-      fork_system { yield }
-    end
+  # Runs the given block inside a new process and
+  # returns a `Process` representing the new child process.
+  #
+  # Available only on Unix-like operating systems.
+  def self.fork : Process
+    {% raise("Process fork is unsupported with multithread mode") if flag?(:preview_mt) %}
 
-    # Duplicates the current process.
-    # Returns a `Process` representing the new child process in the current process
-    # and `nil` inside the new child process.
-    #
-    # Available only on Unix-like operating systems.
-    def self.fork : Process?
-      fork_system
-    end
-  {% end %}
+    fork_system { yield }
+  end
+
+  # Duplicates the current process.
+  # Returns a `Process` representing the new child process in the current process
+  # and `nil` inside the new child process.
+  #
+  # Available only on Unix-like operating systems.
+  def self.fork : Process?
+    fork_system
+  end
 
   # How to redirect the standard input, output and error IO of a process.
   enum Redirect
@@ -123,7 +121,7 @@ class Process
   #
   # Returns the block's value.
   def self.run(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
-               input : Stdio = Redirect::Pipe, output : Stdio = Redirect::Pipe, error : Stdio = Redirect::Pipe, chdir : String? = nil, &block : Process ->)
+               input : Stdio = Redirect::Pipe, output : Stdio = Redirect::Pipe, error : Stdio = Redirect::Pipe, chdir : String? = nil)
     process = new(command, args, env, clear_env, shell, input, output, error, chdir)
     begin
       value = yield process
@@ -138,7 +136,7 @@ class Process
   # Replaces the current process with a new one. This function never returns.
   def self.exec(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                 input : ExecStdio = Redirect::Inherit, output : ExecStdio = Redirect::Inherit, error : ExecStdio = Redirect::Inherit, chdir : String? = nil)
-    command, args = prepare_args(command, args, shell)
+    command, args = prepare_args_system(command, args, shell)
 
     input = exec_stdio_to_fd(input, for: STDIN)
     output = exec_stdio_to_fd(output, for: STDOUT)
@@ -166,7 +164,7 @@ class Process
     end
   end
 
-  getter pid : Int64 = 0
+  getter pid : Int64
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.
   getter! input : IO::FileDescriptor
@@ -178,7 +176,7 @@ class Process
   getter! error : IO::FileDescriptor
 
   # channel of process exit code
-  @waitpid : Channel(Int32) = Channel(Int32).new(1)
+  @waitpid : Channel(Int32)
   @wait_count = 0
 
   # Creates a process, executes it, but doesn't wait for it to complete.
@@ -188,7 +186,7 @@ class Process
   # By default the process is configured without input, output or error.
   def initialize(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                  input : Stdio = Redirect::Close, output : Stdio = Redirect::Close, error : Stdio = Redirect::Close, chdir : String? = nil)
-    command, args = Process.prepare_args(command, args, shell)
+    command, args = Process.prepare_args_system(command, args, shell)
 
     fork_input = stdio_to_fd(input, for: STDIN)
     fork_output = stdio_to_fd(output, for: STDOUT)
@@ -248,7 +246,7 @@ class Process
   end
 
   protected def initialize(@pid)
-    wait_system
+    @waitpid = wait_system
     @wait_count = 0
   end
 
@@ -260,17 +258,19 @@ class Process
 
   # Sends *signal* to the process.
   def signal(signal : Signal)
-    signal_system sig
+    signal_system signal
   end
 
   # Waits for this process to complete and closes any pipes.
   def wait : Process::Status
     close_io @input # only closed when a pipe was created but not managed by copy_io
+
     @wait_count.times do
       ex = channel.receive
       raise ex if ex
     end
     @wait_count = 0
+
     Process::Status.new(@waitpid.receive)
   ensure
     close
@@ -287,41 +287,17 @@ class Process
     @waitpid.closed? || !exists_system?
   end
 
-  # Terminate process gracefully
-  def terminate
-    terminate_system
-  end
-
-  # Terminate process immediately (kill it)
-  def interrupt
-    interrupt_system
-  end
-
-  # Closes any system resources held for the process.
+  # Closes any system resources (e.g. pipes) held for the child process.
   def close
-    close_io
-    close_system
-  end
-
-  # Closes any pipes to the child process.
-  def close_io
     close_io @input
     close_io @output
     close_io @error
+    close_system
   end
 
   # Asks the process to terminate gracefully
   def terminate
-    signal Signal::TERM
-  end
-
-  # :nodoc:
-  protected def self.prepare_args(command : String, args, shell)
-    if shell
-      prepare_shell_system(command, args)
-    else
-      {command, args}
-    end
+    terminate_system
   end
 
   private def channel
@@ -367,25 +343,23 @@ class Process
     io.close if io
   end
 
-  {% if flag?(:unix) || flag?(:docs) %}
-    # Changes the root directory and the current working directory for the current
-    # process.
-    #
-    # Available only on Unix-like operating systems.
-    #
-    # Security: `chroot` on its own is not an effective means of mitigation. At minimum
-    # the process needs to also drop privileges as soon as feasible after the `chroot`.
-    # Changes to the directory hierarchy or file descriptors passed via `recvmsg(2)` from
-    # outside the `chroot` jail may allow a restricted process to escape, even if it is
-    # unprivileged.
-    #
-    # ```
-    # Process.chroot("/var/empty")
-    # ```
-    def self.chroot(path : String) : Nil
-      chroot_system(path)
-    end
-  {% end %}
+  # Changes the root directory and the current working directory for the current
+  # process.
+  #
+  # Available only on Unix-like operating systems.
+  #
+  # Security: `chroot` on its own is not an effective means of mitigation. At minimum
+  # the process needs to also drop privileges as soon as feasible after the `chroot`.
+  # Changes to the directory hierarchy or file descriptors passed via `recvmsg(2)` from
+  # outside the `chroot` jail may allow a restricted process to escape, even if it is
+  # unprivileged.
+  #
+  # ```
+  # Process.chroot("/var/empty")
+  # ```
+  def self.chroot(path : String) : Nil
+    chroot_system(path)
+  end
 end
 
 # Executes the given command in a subshell.
@@ -435,20 +409,18 @@ def `(command) : String
   output
 end
 
-{% if flag?(:unix) || flag?(:docs) %}
-  # See also: `Process.fork`
-  #
-  # Available only on Unix-like operating systems.
-  def fork
-    ::Process.fork { yield }
-  end
+# See also: `Process.fork`
+#
+# Available only on Unix-like operating systems.
+def fork
+  Process.fork { yield }
+end
 
-  # See also: `Process.fork`
-  #
-  # Available only on Unix-like operating systems.
-  def fork
-    ::Process.fork
-  end
-{% end %}
+# See also: `Process.fork`
+#
+# Available only on Unix-like operating systems.
+def fork
+  Process.fork
+end
 
 require "./process/*"
