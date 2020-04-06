@@ -20,18 +20,22 @@ class Process
     LibC.GetCurrentProcessId.to_i64
   end
 
+  protected def self.pgid_system(pid : Int64) : Int64
+    raise NotImplementedError.new("Process.pgid")
+  end
+
   protected def self.ppid_system : Int64
     pid = LibC.GetCurrentProcessId
     snapshot = LibC.CreateToolhelp32Snapshot(LibC::TH32CS_SNAPPROCESS, 0)
     begin
       if (snapshot == LibC::INVALID_HANDLE_VALUE)
-        raise WinError.new("CreateToolhelp32Snapshot")
+        raise RuntimeError.from_winerror("CreateToolhelp32Snapshot")
       end
 
       pe32 = LibC::PROCESSENTRY32.new
       pe32.dwSize = sizeof(LibC::PROCESSENTRY32)
       if (LibC.Process32First(snapshot, pointerof(pe32)) == LibC::FALSE)
-        raise WinError.new("Process32First")
+        raise RuntimeError.from_winerror("Process32First")
       end
 
       loop do
@@ -48,15 +52,11 @@ class Process
     -1_i64
   end
 
-  def self.current_process_handle : LibC::HANDLE
-    LibC.GetCurrentProcess
+  protected def self.signal_system(pid : Int64, signal : Signal)
+    raise NotImplementedError.new("Process.signal")
   end
 
-  def self.current_thread_handle : LibC::HANDLE
-    LibC.GetCurrentThread
-  end
-
-  protected def self.exists_system(pid : Int64)
+  protected def self.exists_system?(pid : Int64)
     handle = LibC.OpenProcess(LibC::PROCESS_QUERY_INFORMATION, LibC::FALSE, pid.to_u32)
     if handle == LibC::NULL
       return false
@@ -66,14 +66,8 @@ class Process
     end
   end
 
-  protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?, reader_pipe, writer_pipe)
-    # like in child process
-    self.exec_internal(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
-  rescue ex
-    writer_pipe.write_bytes(ex.message.try(&.bytesize) || 0)
-    writer_pipe << ex.message
-    writer_pipe.close
-    0_i64
+  protected def self.times_system
+    raise NotImplementedError.new("Process.times")
   end
 
   def self.duplicate_handle(fd, inheritable)
@@ -84,7 +78,7 @@ class Process
     IO::FileDescriptor.new(ret)
   end
 
-  def exec_internal(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, input : IO::FileDescriptor, output : IO::FileDescriptor, error : IO::FileDescriptor, chdir : String?)
+  protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?)
     startupinfo = LibC::STARTUPINFOW.new
     # only listed handlers are inherited
     inherited_handle_list = Array(LibC::HANDLE).new
@@ -115,13 +109,13 @@ class Process
     LibC.InitializeProcThreadAttributeList(LibC::NULL, 1_u32, 0, out lpSize)
     attribute_list = Pointer(Void).malloc(lpSize.to_u64)
     if LibC.InitializeProcThreadAttributeList(attribute_list, 1_u32, 0, pointerof(lpSize)) == LibC::FALSE
-      raise WinError.new("InitializeProcThreadAttributeList")
+      raise RuntimeError.from_winerror("InitializeProcThreadAttributeList")
     end
 
     if inherited_handle_list.size > 0
       if LibC.UpdateProcThreadAttribute(attribute_list, 0, LibC::PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
            inherited_handle_list, sizeof(LibC::HANDLE) * inherited_handle_list.size, nil, nil) == LibC::FALSE
-        raise WinError.new("UpdateProcThreadAttribute")
+        raise RuntimeError.from_winerror("UpdateProcThreadAttribute")
       end
     end
 
@@ -147,12 +141,12 @@ class Process
     if ret != 0
       wait_install_res = LibC.RegisterWaitForSingleObject(out wait_handle, @pi.hProcess, ->Process.on_exited(Void*, Bool), Box.box(self), LibC::INFINITE, LibC::WT_EXECUTEONLYONCE)
       if (wait_install_res == LibC::FALSE)
-        raise WinError.new("RegisterWaitForSingleObject")
+        raise RuntimeError.from_winerror("RegisterWaitForSingleObject")
       end
       @handle = wait_handle
       @pi.dwProcessId.to_i64
     else
-      raise WinError.new("CreateProcessW")
+      raise RuntimeError.from_winerror("CreateProcessW")
     end
   end
 
@@ -166,7 +160,7 @@ class Process
       LibC._close(fd.fd) # ignore fail when already closed by child process
     end
     if LibC.GetExitCodeProcess(@pi.hProcess, out exit_code) == LibC::FALSE
-      raise WinError.new("GetExitCodeProcess")
+      raise RuntimeError.from_winerror("GetExitCodeProcess")
     end
     # Close process and thread handles.
     LibC.CloseHandle(@pi.hProcess)
@@ -209,7 +203,7 @@ class Process
   protected def self.create_env_block(env : Env?, clear_env : Bool)
     final_env : Env = {} of String => String
     if LibC.CreateEnvironmentBlock(out pointer, nil, LibC::FALSE) == LibC::FALSE
-      raise WinError.new("CreateEnvironmentBlock")
+      raise RuntimeError.from_winerror("CreateEnvironmentBlock")
     end
     env_block = pointer.as(Pointer(UInt16))
     begin

@@ -12,10 +12,6 @@ class Process
     LibC.getpid.to_i64
   end
 
-  protected def pgid_system : Int64
-    Process.pgid_system(@pid)
-  end
-
   protected def self.pgid_system(pid : Int64) : Int64
     ret = LibC.getpgid(pid)
     raise RuntimeError.from_errno("getpgid") if ret < 0
@@ -27,16 +23,12 @@ class Process
   end
 
   protected def terminate_system
-    signal_system Signal::TERM
+    self.signal_system(@pid, Signal::TERM)
   end
 
-  protected def signal_system(signal : Signal)
-    ret = LibC.kill(@pid, signal.value)
+  protected def self.signal_system(pid : Int64, signal : Signal)
+    ret = LibC.kill(pid, signal.value)
     raise RuntimeError.from_errno("kill") if ret < 0
-  end
-
-  protected def exists_system?
-    Process.exists_system?(@pid)
   end
 
   protected def self.exists_system?(pid : Int64)
@@ -121,7 +113,9 @@ class Process
     pid.try &.to_i64
   end
 
-  protected def create_and_exec_impl(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?, reader_pipe : IO::FileDescriptor, writer_pipe : IO::FileDescriptor)
+  protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?)
+    reader_pipe, writer_pipe = IO.pipe
+
     if pid = Process.fork_internal(will_exec: true)
       pid
     else
@@ -137,12 +131,7 @@ class Process
         LibC._exit 127
       end
     end
-  end
 
-  protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?)
-    reader_pipe, writer_pipe = IO.pipe
-
-    pid = create_and_exec_impl(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir, reader_pipe, writer_pipe)
     writer_pipe.close
     bytes = uninitialized UInt8[4]
     if reader_pipe.read(bytes.to_slice) == 4

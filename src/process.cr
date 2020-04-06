@@ -258,7 +258,7 @@ class Process
 
   # Sends *signal* to the process.
   def signal(signal : Signal)
-    signal_system signal
+    Process.signal_system(@pid, signal)
   end
 
   # Waits for this process to complete and closes any pipes.
@@ -284,7 +284,7 @@ class Process
 
   # Whether this process is already terminated.
   def terminated?
-    @waitpid.closed? || !exists_system?
+    @waitpid.closed? || !Process.exists?(@pid)
   end
 
   # Closes any system resources (e.g. pipes) held for the child process.
