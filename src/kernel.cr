@@ -41,6 +41,10 @@ STDOUT = IO::FileDescriptor.from_stdio(1)
 #   output you can do `STDERR.flush_on_newline = false`.
 STDERR = IO::FileDescriptor.from_stdio(2)
 
+ORIGINAL_STDIN  = IO::FileDescriptor.new(0, blocking: true)
+ORIGINAL_STDOUT = IO::FileDescriptor.new(1, blocking: true)
+ORIGINAL_STDERR = IO::FileDescriptor.new(2, blocking: true)
+
 # The name, the program was called with.
 PROGRAM_NAME = String.new(ARGV_UNSAFE.value)
 
@@ -493,17 +497,21 @@ end
   class Process
     # Hooks are defined here due to load order problems.
     def self.after_fork_child_callbacks
-      @@after_fork_child_callbacks ||= [
-        # clean ups (don't depend on event loop):
-        ->Crystal::Signal.after_fork,
-        ->Crystal::SignalChildHandler.after_fork,
+      {% begin %}
+        @@after_fork_child_callbacks ||= [
+          {% unless flag?(:win32) %}
+            # clean ups (don't depend on event loop):
+            ->Crystal::Signal.after_fork,
+            ->Crystal::SignalChildHandler.after_fork,
 
-        # reinit event loop:
-        ->Crystal::EventLoop.after_fork,
+            # reinit event loop:
+            ->Crystal::EventLoop.after_fork,
+          {% end %}
 
-        # more clean ups (may depend on event loop):
-        ->Random::DEFAULT.new_seed,
-      ] of -> Nil
+          # more clean ups (may depend on event loop):
+          ->Random::DEFAULT.new_seed,
+        ] of -> Nil
+      {% end %}
     end
   end
 {% end %}

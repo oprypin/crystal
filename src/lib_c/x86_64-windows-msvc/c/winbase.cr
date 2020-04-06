@@ -90,4 +90,14 @@ lib LibC
   fun GetEnvironmentStringsW : LPWCH
   fun FreeEnvironmentStringsW(lpszEnvironmentBlock : LPWCH) : BOOL
   fun SetEnvironmentVariableW(lpName : LPWSTR, lpValue : LPWSTR) : BOOL
+
+  INFINITE = 0xFFFFFFFF
+
+  STILL_ACTIVE = 0x103
+
+  STARTF_USESTDHANDLES = 0x00000100
+
+  fun DuplicateHandle(hSourceProcessHandle : HANDLE, hSourceHandle : HANDLE,
+                      hTargetProcessHandle : HANDLE, lpTargetHandle : HANDLE*,
+                      dwDesiredAccess : DWORD, bInheritHandle : BOOL, dwOptions : DWORD) : BOOL
 end
