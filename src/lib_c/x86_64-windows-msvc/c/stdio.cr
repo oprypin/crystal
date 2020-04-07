@@ -10,11 +10,19 @@ lib LibC
   fun _fdopen(fd : Int, mode : Char*) : Void*
   fun fclose(stream : Void*) : Int
   fun fflush(stream : Void*) : Int
+
+  P_WAIT    = 0
+  P_NOWAIT  = 1
+  P_OVERLAY = 2
+  P_NOWAITO = 3
+  P_DETACH  = 4
+
+  fun _wspawnvp(mode : Int, cmdname : WCHAR*, argv : WCHAR**) : HANDLE
 end
 
 fun __crystal_dprintf(fd : LibC::Int, format : LibC::Char*, ...) : LibC::Int
   f = LibC._fdopen(fd, "w")
-  if f == LibC::NULL
+  if f.nil?
     return -1
   end
   res : LibC::Int = 0

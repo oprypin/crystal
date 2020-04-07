@@ -252,18 +252,17 @@ class Crystal::Command
     if status.normal_exit?
       exit error_on_exit ? 1 : status.exit_code
     else
-      {% unless flag?(:win32) %}
-        case status.exit_signal
-        when ::Signal::KILL
-          STDERR.puts "Program was killed"
-        when ::Signal::SEGV
-          STDERR.puts "Program exited because of a segmentation fault (11)"
-        when ::Signal::INT
-          # OK, bubbled from the sub-program
-        else
-          STDERR.puts "Program received and didn't handle signal #{status.exit_signal} (#{status.exit_signal.value})"
-        end
-      {% end %}
+      case status.exit_signal
+      when ::Signal::KILL
+        STDERR.puts "Program was killed"
+      when ::Signal::SEGV
+        STDERR.puts "Program exited because of a segmentation fault (11)"
+      when ::Signal::INT
+        # OK, bubbled from the sub-program
+      else
+        STDERR.puts "Program received and didn't handle signal #{status.exit_signal} (#{status.exit_signal.value})"
+      end
+
       exit 1
     end
   end

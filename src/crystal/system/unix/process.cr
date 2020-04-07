@@ -3,35 +3,63 @@ require "c/stdlib"
 require "c/sys/resource"
 require "c/unistd"
 
-class Process
-  protected def self.exit_system(status = 0) : NoReturn
+struct Crystal::System::Process
+  alias PID = LibC::PidT
+
+  getter pid : PID
+
+  def initialize(@pid : LibC::PidT)
+    @channel = Crystal::SignalChildHandler.wait(@pid)
+  end
+
+  def wait
+    @channel.receive
+  end
+
+  def release
+  end
+
+  def exists?
+    !@channel.closed? && Crystal::System::Process.exists?(@pid)
+  end
+
+  def terminate
+    Crystal::System::Process.signal(@pid, LibC::SIGTERM)
+  end
+
+  def self.exit(status)
     LibC.exit(status)
   end
 
-  protected def self.pid_system : Int64
-    LibC.getpid.to_i64
+  def self.pid
+    LibC.getpid
   end
 
-  protected def self.pgid_system(pid : Int64) : Int64
+  def self.pgid
+    ret = LibC.getpgid(0)
+    raise RuntimeError.from_errno("getpgid") if ret < 0
+    ret
+  end
+
+  def self.pgid(pid)
+    # Disallow users from depending on ppid(0) instead of `pgid`
+    raise RuntimeError.from_errno("getpgid", Errno::EINVAL) if pid == 0
+
     ret = LibC.getpgid(pid)
     raise RuntimeError.from_errno("getpgid") if ret < 0
-    ret.to_i64
+    ret
   end
 
-  protected def self.ppid_system : Int64
-    LibC.getppid.to_i64
+  def self.ppid
+    LibC.getppid
   end
 
-  protected def terminate_system
-    self.signal_system(@pid, Signal::TERM)
-  end
-
-  protected def self.signal_system(pid : Int64, signal : Signal)
-    ret = LibC.kill(pid, signal.value)
+  def self.signal(pid, signal)
+    ret = LibC.kill(pid, signal)
     raise RuntimeError.from_errno("kill") if ret < 0
   end
 
-  protected def self.exists_system?(pid : Int64)
+  def self.exists?(pid)
     ret = LibC.kill(pid, 0)
     if ret == 0
       true
@@ -41,7 +69,7 @@ class Process
     end
   end
 
-  protected def self.times_system : Tms
+  def self.times : Tms
     LibC.getrusage(LibC::RUSAGE_SELF, out usage)
     LibC.getrusage(LibC::RUSAGE_CHILDREN, out child)
 
@@ -53,31 +81,7 @@ class Process
     )
   end
 
-  protected def self.fork_system : Process
-    if pid = fork_internal(will_exec: false)
-      new pid
-    else
-      begin
-        yield
-        LibC._exit 0
-      rescue ex
-        ex.inspect_with_backtrace STDERR
-        STDERR.flush
-        LibC._exit 1
-      ensure
-        LibC._exit 254 # not reached
-      end
-    end
-  end
-
-  protected def self.fork_system : Process?
-    if pid = fork_internal(will_exec: false)
-      new pid
-    end
-  end
-
-  # :nodoc:
-  protected def self.fork_internal(*, will_exec : Bool) : Int64?
+  def self.fork(*, will_exec = false)
     newmask = uninitialized LibC::SigsetT
     oldmask = uninitialized LibC::SigsetT
 
@@ -110,19 +114,18 @@ class Process
       LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
     end
 
-    pid.try &.to_i64
+    pid
   end
 
-  protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?)
+  def self.spawn(command, args, env, clear_env, input, output, error, chdir)
     reader_pipe, writer_pipe = IO.pipe
 
-    if pid = Process.fork_internal(will_exec: true)
-      pid
-    else
+    pid = self.fork(will_exec: true)
+    if !pid
       begin
         reader_pipe.close
         writer_pipe.close_on_exec = true
-        Process.exec_internal(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
+        self.replace(command, args, env, clear_env, input, output, error, chdir)
       rescue ex
         writer_pipe.write_bytes(ex.message.try(&.bytesize) || 0)
         writer_pipe << ex.message
@@ -143,10 +146,11 @@ class Process
       raise RuntimeError.new("Error executing process: #{message}")
     end
     reader_pipe.close
+
     pid
   end
 
-  protected def self.prepare_args_system(command, args, shell)
+  def self.prepare_args(command, args, shell)
     if shell
       command = %(#{command} "${@}") unless command.includes?(' ')
       shell_args = ["-c", command, "--"]
@@ -170,11 +174,7 @@ class Process
     {command, args}
   end
 
-  ORIGINAL_STDIN  = IO::FileDescriptor.new(0, blocking: true)
-  ORIGINAL_STDOUT = IO::FileDescriptor.new(1, blocking: true)
-  ORIGINAL_STDERR = IO::FileDescriptor.new(2, blocking: true)
-
-  protected def self.exec_internal(command, args, env, clear_env, input, output, error, chdir) : NoReturn
+  def self.replace(command, args, env, clear_env, input, output, error, chdir) : NoReturn
     reopen_io(input, ORIGINAL_STDIN)
     reopen_io(output, ORIGINAL_STDOUT)
     reopen_io(error, ORIGINAL_STDERR)
@@ -188,7 +188,7 @@ class Process
       end
     end
 
-    Dir.cd(chdir) if chdir
+    ::Dir.cd(chdir) if chdir
 
     argv = [command.check_no_null_byte.to_unsafe]
     args.try &.each do |arg|
@@ -200,9 +200,14 @@ class Process
     raise RuntimeError.from_errno
   end
 
-  protected def self.reopen_io(src_io : IO::FileDescriptor, dst_io : IO::FileDescriptor)
+  private def self.reopen_io(src_io : IO::FileDescriptor, dst_io : IO::FileDescriptor)
     src_io = to_real_fd(src_io)
-    dst_io.reopen(src_io)
+
+    if src_io.closed?
+      dst_io.close
+      return
+    end
+    dst_io.reopen(src_io) if src_io.fd != dst_io.fd
     dst_io.blocking = true
     dst_io.close_on_exec = false
   end
@@ -216,14 +221,7 @@ class Process
     end
   end
 
-  protected def wait_system
-    Crystal::SignalChildHandler.wait(@pid)
-  end
-
-  protected def close_system
-  end
-
-  protected def self.chroot_system(path : String) : Nil
+  def self.chroot(path : String) : Nil
     path.check_no_null_byte
     if LibC.chroot(path) != 0
       raise RuntimeError.from_errno("Failed to chroot")

@@ -1,14 +1,23 @@
-# The status of a terminated process.
+# The status of a terminated process. Returned by `Process#wait`
 class Process::Status
   # Platform-specific exit status code, which usually contains either the exit code or a termination signal.
   # The other `Process::Status` methods extract the values from `exit_status`.
-  getter exit_status : Int32
-
-  def initialize(@exit_status : Int32)
+  def exit_status : Int32
+    return @exit_status.to_i32
   end
 
+  {% if flag?(:win32) %}
+    # :nodoc:
+    def initialize(@exit_status : UInt32)
+    end
+  {% else %}
+    # :nodoc:
+    def initialize(@exit_status : Int32)
+    end
+  {% end %}
+
   # Returns `true` if the process was terminated by a signal.
-  def signal_exit?
+  def signal_exit? : Bool
     {% if flag?(:unix) %}
       # define __WIFSIGNALED(status) (((signed char) (((status) & 0x7f) + 1) >> 1) > 0)
       ((LibC::SChar.new(@exit_status & 0x7f) + 1) >> 1) > 0
@@ -18,7 +27,7 @@ class Process::Status
   end
 
   # Returns `true` if the process terminated normally.
-  def normal_exit?
+  def normal_exit? : Bool
     {% if flag?(:unix) %}
       # define __WIFEXITED(status) (__WTERMSIG(status) == 0)
       signal_code == 0
@@ -45,12 +54,12 @@ class Process::Status
       # define __WEXITSTATUS(status) (((status) & 0xff00) >> 8)
       (@exit_status & 0xff00) >> 8
     {% else %}
-      @exit_status
+      exit_status
     {% end %}
   end
 
   # Returns `true` if the process exited normally with an exit code of `0`.
-  def success?
+  def success? : Bool
     normal_exit? && exit_code == 0
   end
 

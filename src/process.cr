@@ -1,33 +1,36 @@
 require "crystal/system/process"
 
 class Process
+  alias PID = Crystal::System::Process::PID
+
   # Terminate the current process immediately. All open files, pipes and sockets
   # are flushed and closed, all child processes are inherited by PID 1. This does
   # not run any handlers registered with `at_exit`, use `::exit` for that.
   #
   # *status* is the exit status of the current process.
+  # Returns the process group identifier of the current process.
   def self.exit(status = 0) : NoReturn
-    exit_system(status)
+    Crystal::System::Process.exit(status)
   end
 
   # Returns the process identifier of the current process.
-  def self.pid : Int64
-    pid_system
-  end
-
-  # Returns the process group identifier of the current process.
-  def self.pgid : Int64
-    pgid(0)
+  def self.pid : PID
+    Crystal::System::Process.pid
   end
 
   # Returns the process group identifier of the process identified by *pid*.
-  def self.pgid(pid : Int64) : Int64
-    Process.pgid_system(pid)
+  def self.pgid(pid : Int) : PID
+    Crystal::System::Process.pgid(pid)
+  end
+
+  # Returns the process group identifier of the current process.
+  def self.pgid : PID
+    Crystal::System::Process.pgid
   end
 
   # Returns the process identifier of the parent process of the current process.
-  def self.ppid : Int64
-    ppid_system
+  def self.ppid : PID
+    Crystal::System::Process.ppid
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
@@ -36,20 +39,18 @@ class Process
     pids.each do |pid|
       signal(signal, pid)
     end
-    nil
   end
 
-  # Sends a *signal* to the process identified by the given *pid*.
+  # Sends *signal* to the process identified by *pid*.
   def self.signal(signal : Signal, pid : Int) : Nil
-    ret = LibC.kill(pid, signal.value)
-    raise RuntimeError.from_errno("kill") if ret < 0
+    Crystal::System::Process.signal(pid, signal.value)
   end
 
   # Returns `true` if the process identified by *pid* is valid for
   # a currently registered process, `false` otherwise. Note that this
   # returns `true` for a process in the zombie or similar state.
   def self.exists?(pid : Int) : Bool
-    Process.exists_system?(pid)
+    Crystal::System::Process.exists?(pid)
   end
 
   # A struct representing the CPU current times of the process,
@@ -64,7 +65,7 @@ class Process
   # Returns a `Tms` for the current process. For the children times, only those
   # of terminated children are returned.
   def self.times : Tms
-    times_system
+    Crystal::System::Process.times
   end
 
   # Runs the given block inside a new process and
@@ -72,9 +73,21 @@ class Process
   #
   # Available only on Unix-like operating systems.
   def self.fork : Process
-    {% raise("Process fork is unsupported with multithread mode") if flag?(:preview_mt) %}
+    if process = fork
+      process
+    else
+      begin
+        yield
+        LibC._exit 0
+      rescue ex
+        ex.inspect_with_backtrace STDERR
+        STDERR.flush
 
-    fork_system { yield }
+        LibC._exit 1
+      ensure
+        LibC._exit 254 # not reached
+      end
+    end
   end
 
   # Duplicates the current process.
@@ -83,7 +96,11 @@ class Process
   #
   # Available only on Unix-like operating systems.
   def self.fork : Process?
-    fork_system
+    {% raise("Process fork is unsupported with multithread mode") if flag?(:preview_mt) %}
+
+    if process = Crystal::System::Process.fork
+      new(process)
+    end
   end
 
   # How to redirect the standard input, output and error IO of a process.
@@ -136,16 +153,14 @@ class Process
   # Replaces the current process with a new one. This function never returns.
   def self.exec(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                 input : ExecStdio = Redirect::Inherit, output : ExecStdio = Redirect::Inherit, error : ExecStdio = Redirect::Inherit, chdir : String? = nil)
-    command, args = prepare_args_system(command, args, shell)
-
-    input = exec_stdio_to_fd(input, for: STDIN)
-    output = exec_stdio_to_fd(output, for: STDOUT)
-    error = exec_stdio_to_fd(error, for: STDERR)
-
-    exec_internal(command, args, env, clear_env, input, output, error, chdir)
+    command, args = Crystal::System::Process.prepare_args(command, args, shell)
+    input = io_for_exec(input, STDIN)
+    output = io_for_exec(output, STDOUT)
+    error = io_for_exec(error, STDERR)
+    Crystal::System::Process.replace(command, args, env, clear_env, input, output, error, chdir)
   end
 
-  private def self.exec_stdio_to_fd(stdio : ExecStdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
+  private def self.io_for_exec(stdio : ExecStdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
     case stdio
     when IO::FileDescriptor
       stdio
@@ -164,7 +179,9 @@ class Process
     end
   end
 
-  getter pid : Int64
+  def pid : PID
+    @process_info.pid
+  end
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.
   getter! input : IO::FileDescriptor
@@ -175,8 +192,7 @@ class Process
   # A pipe to this process's error. Raises if a pipe wasn't asked when creating the process.
   getter! error : IO::FileDescriptor
 
-  # channel of process exit code
-  @waitpid : Channel(Int32)
+  @process_info : Crystal::System::Process
   @wait_count = 0
 
   # Creates a process, executes it, but doesn't wait for it to complete.
@@ -186,14 +202,15 @@ class Process
   # By default the process is configured without input, output or error.
   def initialize(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                  input : Stdio = Redirect::Close, output : Stdio = Redirect::Close, error : Stdio = Redirect::Close, chdir : String? = nil)
-    command, args = Process.prepare_args_system(command, args, shell)
+    command, args = Crystal::System::Process.prepare_args(command, args, shell)
 
     fork_input = stdio_to_fd(input, for: STDIN)
     fork_output = stdio_to_fd(output, for: STDOUT)
     fork_error = stdio_to_fd(error, for: STDERR)
 
-    @pid = create_and_exec(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
-    @waitpid = wait_system
+    pid = Crystal::System::Process.spawn(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
+    @process_info = Crystal::System::Process.new(pid)
+
     fork_input.close unless fork_input == input || fork_input == STDIN
     fork_output.close unless fork_output == output || fork_output == STDOUT
     fork_error.close unless fork_error == error || fork_error == STDERR
@@ -245,9 +262,8 @@ class Process
     end
   end
 
-  protected def initialize(@pid)
-    @waitpid = wait_system
-    @wait_count = 0
+  private def initialize(pid)
+    @process_info = Crystal::System::Process.new(pid)
   end
 
   # See also: `Process.kill`
@@ -256,9 +272,9 @@ class Process
     signal sig
   end
 
-  # Sends *signal* to the process.
+  # Sends *signal* to this process.
   def signal(signal : Signal)
-    Process.signal_system(@pid, signal)
+    Crystal::System::Process.signal(pid, signal)
   end
 
   # Waits for this process to complete and closes any pipes.
@@ -271,7 +287,7 @@ class Process
     end
     @wait_count = 0
 
-    Process::Status.new(@waitpid.receive)
+    Process::Status.new(@process_info.wait)
   ensure
     close
   end
@@ -279,12 +295,12 @@ class Process
   # Whether the process is still registered in the system.
   # Note that this returns `true` for processes in the zombie or similar state.
   def exists?
-    !terminated?
+    @process_info.exists?
   end
 
   # Whether this process is already terminated.
   def terminated?
-    @waitpid.closed? || !Process.exists?(@pid)
+    !exists?
   end
 
   # Closes any system resources (e.g. pipes) held for the child process.
@@ -292,12 +308,12 @@ class Process
     close_io @input
     close_io @output
     close_io @error
-    close_system
+    @process_info.release
   end
 
-  # Asks the process to terminate gracefully
+  # Asks this process to terminate gracefully
   def terminate
-    terminate_system
+    @process_info.terminate
   end
 
   private def channel
@@ -310,10 +326,6 @@ class Process
 
   private def ensure_channel
     @channel ||= Channel(Exception?).new
-  end
-
-  private def needs_pipe?(io)
-    (io == Redirect::Pipe) || (io.is_a?(IO) && !io.is_a?(IO::FileDescriptor))
   end
 
   private def copy_io(src, dst, channel, close_src = false, close_dst = false)
@@ -358,7 +370,7 @@ class Process
   # Process.chroot("/var/empty")
   # ```
   def self.chroot(path : String) : Nil
-    chroot_system(path)
+    Crystal::System::Process.chroot(path)
   end
 end
 

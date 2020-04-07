@@ -1,8 +1,8 @@
 require "c/basetsd"
 
 lib LibC
-  INFINITE = -1
   fun Sleep(dwMilliseconds : DWORD)
+
   fun WaitForSingleObject(
     hHandle : HANDLE,
     dwMilliseconds : DWORD

@@ -1,13 +1,6 @@
 require "./basetsd"
 
 lib LibC
-  fun GetCurrentThreadStackLimits(lowLimit : ULONG_PTR*, highLimit : ULONG_PTR*) : Void
-  fun ExitProcess(uExitCode : UINT) : NoReturn
-  fun GetCurrentProcessId : DWORD
-  fun GetCurrentProcess : HANDLE
-  fun GetCurrentThread : HANDLE
-  fun TerminateProcess(hProcess : HANDLE, uExitCode : UINT) : BOOL
-
   CREATE_SUSPENDED           = 0x00000004_u32
   DETACHED_PROCESS           = 0x00000008_u32
   CREATE_UNICODE_ENVIRONMENT = 0x00000400_u32
@@ -20,9 +13,6 @@ lib LibC
     dwThreadId : DWORD
   end
 
-  alias LPPROCESS_INFORMATION = PROCESS_INFORMATION*
-
-  STARTF_USESTDHANDLES         = 0x00000100_u32
   EXTENDED_STARTUPINFO_PRESENT = 0x00080000_u32
 
   struct STARTUPINFOW
@@ -45,6 +35,21 @@ lib LibC
     hStdOutput : HANDLE
     hStdError : HANDLE
   end
+
+  fun GetCurrentThreadStackLimits(lowLimit : ULONG_PTR*, highLimit : ULONG_PTR*) : Void
+  fun ExitProcess(uExitCode : UINT) : NoReturn
+  fun GetProcessId(process : HANDLE) : DWORD
+  fun GetCurrentProcess : HANDLE
+  fun GetCurrentProcessId : DWORD
+  fun GetCurrentThread : HANDLE
+  fun OpenProcess(dwDesiredAccess : DWORD, bInheritHandle : BOOL, dwProcessId : DWORD) : HANDLE
+  fun TerminateProcess(hProcess : HANDLE, uExitCode : UINT) : BOOL
+  fun GetExitCodeProcess(hProcess : HANDLE, lpExitCode : DWORD*) : BOOL
+  fun CreateProcessW(lpApplicationName : LPWSTR, lpCommandLine : LPWSTR,
+                     lpProcessAttributes : SECURITY_ATTRIBUTES*, lpThreadAttributes : SECURITY_ATTRIBUTES*,
+                     bInheritHandles : BOOL, dwCreationFlags : DWORD,
+                     lpEnvironment : Void*, lpCurrentDirectory : LPWSTR,
+                     lpStartupInfo : STARTUPINFOW*, lpProcessInformation : PROCESS_INFORMATION*) : BOOL
 
   alias LPROC_THREAD_ATTRIBUTE_LIST = Void*
   PROC_THREAD_ATTRIBUTE_HANDLE_LIST = 0x00020002_u32
@@ -71,31 +76,5 @@ lib LibC
     lpReturnSize : SIZE_T*
   ) : BOOL
 
-  alias LPSTARTUPINFOW = Void*
-
-  fun CreateProcessW(
-    lpApplicationName : LPWSTR,
-    lpCommandLine : LPWSTR,
-    lpProcessAttributes : SECURITY_ATTRIBUTES*,
-    lpThreadAttributes : SECURITY_ATTRIBUTES*,
-    bInheritHandles : BOOL,
-    dwCreationFlags : DWORD,
-    lpEnvironment : LPVOID,
-    lpCurrentDirectory : LPCWSTR,
-    lpStartupInfo : LPSTARTUPINFOW,
-    lpProcessInformation : LPPROCESS_INFORMATION
-  ) : BOOL
-
-  fun GetExitCodeProcess(
-    hProcess : HANDLE,
-    lpExitCode : DWORD*
-  ) : BOOL
-
   PROCESS_QUERY_INFORMATION = 0x0400
-
-  fun OpenProcess(
-    dwDesiredAccess : DWORD,
-    bInheritHandle : BOOL,
-    dwProcessId : DWORD
-  ) : HANDLE
 end

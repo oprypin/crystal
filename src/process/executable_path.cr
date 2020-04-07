@@ -97,7 +97,7 @@ end
     private def self.executable_path_impl
       size = 512_u32
       buf = GC.malloc_atomic(size).as(UInt16*)
-      len = LibC.GetModuleFileNameW(LibC::NULL, buf, size)
+      len = LibC.GetModuleFileNameW(nil, buf, size)
       if len == 0
         LibC.dprintf 2, "GetModuleFileNameW ERR: #{LibC.GetLastError}\n"
         nil

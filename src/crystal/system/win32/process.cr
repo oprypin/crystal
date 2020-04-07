@@ -2,195 +2,263 @@ require "c/processthreadsapi"
 require "c/winuser"
 require "c/tlhelp32"
 
-class Process
-  @@mutex = Mutex.new
+struct Crystal::System::Process
+  alias PID = LibC::DWORD
 
-  @@pending = {} of Int64 => LibC::DWORD
-  @@waiting = {} of Int64 => Channel(Int32)
+  getter pid : PID
+  @thread_id : LibC::DWORD
+  @process_handle : LibC::HANDLE
 
-  @handle : LibC::HANDLE? = nil
-  @pi = LibC::PROCESS_INFORMATION.new
-  @child_descriptors = Array(IO::FileDescriptor).new
-
-  protected def self.exit_system(status = 0) : NoReturn
-    LibC.ExitProcess(status)
+  def initialize(process_info)
+    @pid = process_info.dwProcessId
+    @thread_id = process_info.dwThreadId
+    @process_handle = process_info.hProcess
   end
 
-  protected def self.pid_system : Int64
-    LibC.GetCurrentProcessId.to_i64
+  def wait
+    channel = Channel(Nil).new
+    callback = ->{
+      channel.send(nil)
+    }
+    box = Box.box(callback)
+
+    if LibC.RegisterWaitForSingleObject(out wait_handle, @process_handle, ->(data, timed_out) {
+         Box(typeof(callback)).unbox(data).call
+       }, box, LibC::INFINITE, LibC::WT_EXECUTEONLYONCE) == 0
+      raise RuntimeError.from_winerror("RegisterWaitForSingleObject")
+    end
+
+    begin
+      channel.receive
+    ensure
+      LibC.UnregisterWait(wait_handle)
+    end
+
+    if LibC.GetExitCodeProcess(@process_handle, out exit_code) == 0
+      raise RuntimeError.from_winerror("GetExitCodeProcess")
+    end
+    if exit_code == LibC::STILL_ACTIVE
+      raise "BUG: process still active"
+    end
+    exit_code
   end
 
-  protected def self.pgid_system(pid : Int64) : Int64
+  def release
+    close_handle(@process_handle)
+  end
+
+  def exists?
+    Crystal::System::Process.exists?(@pid)
+  end
+
+  def terminate
+    hwnd = find_main_window(@pid)
+    if hwnd
+      LibC.PostMessageW(hwnd, LibC::WM_CLOSE, 0, 0)
+    else
+      LibC.PostThreadMessageW(@thread_id, LibC::WM_QUIT, 0, 0)
+    end
+  end
+
+  def self.exit(status)
+    LibC.exit(status)
+  end
+
+  def self.pid
+    LibC.GetCurrentProcessId
+  end
+
+  def self.pgid
     raise NotImplementedError.new("Process.pgid")
   end
 
-  protected def self.ppid_system : Int64
+  def self.pgid(pid)
+    raise NotImplementedError.new("Process.pgid")
+  end
+
+  def self.ppid
     pid = LibC.GetCurrentProcessId
     snapshot = LibC.CreateToolhelp32Snapshot(LibC::TH32CS_SNAPPROCESS, 0)
     begin
-      if (snapshot == LibC::INVALID_HANDLE_VALUE)
+      if snapshot == LibC::INVALID_HANDLE_VALUE
         raise RuntimeError.from_winerror("CreateToolhelp32Snapshot")
       end
 
       pe32 = LibC::PROCESSENTRY32.new
       pe32.dwSize = sizeof(LibC::PROCESSENTRY32)
-      if (LibC.Process32First(snapshot, pointerof(pe32)) == LibC::FALSE)
+      if LibC.Process32First(snapshot, pointerof(pe32)) == 0
         raise RuntimeError.from_winerror("Process32First")
       end
 
       loop do
-        if (pe32.th32ProcessID == pid)
-          return pe32.th32ParentProcessID.to_i64
+        if pe32.th32ProcessID == pid
+          return pe32.th32ParentProcessID
         end
-        break if LibC.Process32Next(snapshot, pointerof(pe32)) == LibC::FALSE
+        break if LibC.Process32Next(snapshot, pointerof(pe32)) == 0
       end
     ensure
-      if (snapshot != LibC::INVALID_HANDLE_VALUE)
-        LibC.CloseHandle(snapshot)
+      if snapshot != LibC::INVALID_HANDLE_VALUE
+        close_handle(snapshot)
       end
     end
-    -1_i64
+    -1
   end
 
-  protected def self.signal_system(pid : Int64, signal : Signal)
+  def self.signal(pid, signal)
     raise NotImplementedError.new("Process.signal")
   end
 
-  protected def self.exists_system?(pid : Int64)
-    handle = LibC.OpenProcess(LibC::PROCESS_QUERY_INFORMATION, LibC::FALSE, pid.to_u32)
-    if handle == LibC::NULL
-      return false
+  # TODO: Use this method
+  def self.kill(pid)
+    handle = LibC.OpenProcess(LibC::PROCESS_ALL_ACCESS, 0, pid)
+    LibC.TerminateProcess(handle, -1)
+    close_handle(handle)
+  end
+
+  struct FindMainWindowParam
+    property process_id : LibC::DWORD = 0
+    property window_handle : LibC::HANDLE = LibC::HANDLE.null
+  end
+
+  protected def find_main_window(process_id : LibC::DWORD) : LibC::HWND
+    data = FindMainWindowParam.new
+    data.process_id = process_id
+    LibC.EnumWindows(->Process.enum_windows_callback(LibC::HWND, LibC::LPARAM), Box.box(data).address)
+    data.window_handle
+  end
+
+  protected def self.enum_windows_callback(handle : LibC::HWND, lparam : LibC::LPARAM) : LibC::BOOL
+    data = Box(FindMainWindowParam).unbox(Pointer(Void).new(lparam))
+    process_id = LibC::DWORD.new(0)
+    LibC.GetWindowThreadProcessId(handle, pointerof(process_id))
+    if data.process_id != process_id || !is_main_window(handle)
+      return 1
     else
-      LibC.CloseHandle(handle)
-      return true
+      data.window_handle = handle
+      return 0
     end
   end
 
-  protected def self.times_system
+  protected def self.is_main_window(handle : LibC::HWND) : Bool
+    LibC.GetWindow(handle, LibC::GW_OWNER).address == 0 && LibC.IsWindowVisible(handle) == 1
+  end
+
+  def self.exists?(pid)
+    handle = LibC.OpenProcess(LibC::PROCESS_QUERY_INFORMATION, 0, pid)
+    if handle.nil?
+      false
+    else
+      close_handle(handle)
+      true
+    end
+  end
+
+  def self.times
     raise NotImplementedError.new("Process.times")
   end
 
-  def self.duplicate_handle(fd, inheritable)
-    ret = LibC._dup(fd.fd)
-    if ret == -1
-      raise RuntimeError.from_winerror("Could not duplicate file descriptor")
-    end
-    IO::FileDescriptor.new(ret)
+  def self.fork
+    raise NotImplementedError.new("Process.fork")
   end
 
-  protected def create_and_exec(command : String, args : (Array | Tuple)?, env : Env?, clear_env : Bool, fork_input : IO::FileDescriptor, fork_output : IO::FileDescriptor, fork_error : IO::FileDescriptor, chdir : String?)
-    startupinfo = LibC::STARTUPINFOW.new
-    # only listed handlers are inherited
-    inherited_handle_list = Array(LibC::HANDLE).new
-
-    if fd = Process.duplicate_handle(input, true)
-      @child_descriptors << fd
-      handle = fd.windows_handle
-      startupinfo.hStdInput = handle
-      inherited_handle_list << handle
+  private def self.args_to_string(command : String, args, io : IO)
+    command_args = Array(String).new((args.try(&.size) || 0) + 1)
+    command_args << command
+    args.try &.each do |arg|
+      command_args << arg
     end
 
-    if fd = Process.duplicate_handle(output, true)
-      @child_descriptors << fd
-      handle = fd.windows_handle
-      startupinfo.hStdOutput = handle
-      inherited_handle_list << handle
-    end
+    first_arg = true
+    command_args.join(' ', io) do |arg|
+      quotes = first_arg || arg.size == 0 || arg.includes?(' ') || arg.includes?('\t')
+      first_arg = false
 
-    if fd = Process.duplicate_handle(error, true)
-      @child_descriptors << fd
-      handle = fd.windows_handle
-      startupinfo.hStdError = handle
-      inherited_handle_list << handle
-    end
+      io << '"' if quotes
 
-    startupinfo.dwFlags = LibC::STARTF_USESTDHANDLES
+      slashes = 0
+      arg.each_char do |c|
+        case c
+        when '\\'
+          slashes += 1
+        when '"'
+          (slashes + 1).times { io << '\\' }
+          slashes = 0
+        else
+          slashes = 0
+        end
 
-    LibC.InitializeProcThreadAttributeList(LibC::NULL, 1_u32, 0, out lpSize)
-    attribute_list = Pointer(Void).malloc(lpSize.to_u64)
-    if LibC.InitializeProcThreadAttributeList(attribute_list, 1_u32, 0, pointerof(lpSize)) == LibC::FALSE
-      raise RuntimeError.from_winerror("InitializeProcThreadAttributeList")
-    end
+        io << c
+      end
 
-    if inherited_handle_list.size > 0
-      if LibC.UpdateProcThreadAttribute(attribute_list, 0, LibC::PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-           inherited_handle_list, sizeof(LibC::HANDLE) * inherited_handle_list.size, nil, nil) == LibC::FALSE
-        raise RuntimeError.from_winerror("UpdateProcThreadAttribute")
+      if quotes
+        slashes.times { io << '\\' }
+        io << '"'
       end
     end
-
-    startupinfoex = LibC::STARTUPINFOEXW.new
-    startupinfoex.startupInfo = startupinfo
-    startupinfoex.lpAttributeList = attribute_list
-    startupinfoex.startupInfo.cb = sizeof(LibC::STARTUPINFOEXW)
-
-    args = args.nil? ? "" : "#{args.join(' ')}"
-    command_line = %("#{command}" #{args})
-    ret = LibC.CreateProcessW(
-      nil,                                                                   # module name
-      command_line.check_no_null_byte.to_utf16,                              # command line args
-      nil,                                                                   # Process handle not inheritable
-      nil,                                                                   # Thread handle not inheritable
-      LibC::TRUE,                                                            # Set handle inheritance to TRUE
-      LibC::CREATE_UNICODE_ENVIRONMENT | LibC::EXTENDED_STARTUPINFO_PRESENT, # Use UTF-16 ENV Block
-      Process.create_env_block(env, clear_env),
-      chdir.try &.check_no_null_byte.to_utf16, # Use chdir or parent's starting directory
-      pointerof(startupinfoex),                # Pointer to STARTUPINFOEX structure
-      pointerof(@pi)                           # Pointer to PROCESS_INFORMATION structure
-    )
-    if ret != 0
-      wait_install_res = LibC.RegisterWaitForSingleObject(out wait_handle, @pi.hProcess, ->Process.on_exited(Void*, Bool), Box.box(self), LibC::INFINITE, LibC::WT_EXECUTEONLYONCE)
-      if (wait_install_res == LibC::FALSE)
-        raise RuntimeError.from_winerror("RegisterWaitForSingleObject")
-      end
-      @handle = wait_handle
-      @pi.dwProcessId.to_i64
-    else
-      raise RuntimeError.from_winerror("CreateProcessW")
-    end
   end
 
-  protected def self.on_exited(context : Void*, is_time_out : Bool)
-    process = Box(::Process).unbox(context)
-    process.on_exited
+  private def self.handle_from_io(io : IO::FileDescriptor, parent_io)
+    ret = LibC._get_osfhandle(io.fd)
+    raise RuntimeError.from_winerror("_get_osfhandle") if ret == -1
+    source_handle = LibC::HANDLE.new(ret)
+
+    cur_proc = LibC.GetCurrentProcess
+    if LibC.DuplicateHandle(cur_proc, source_handle, cur_proc, out new_handle, 0, true, LibC::DUPLICATE_SAME_ACCESS) == 0
+      raise RuntimeError.from_winerror("DuplicateHandle")
+    end
+
+    new_handle
   end
 
-  protected def on_exited
-    @child_descriptors.each do |fd|
-      LibC._close(fd.fd) # ignore fail when already closed by child process
+  def self.spawn(command : String, args : Enumerable(String)?,
+                 env : ::Process::Env, clear_env : Bool,
+                 input, output, error,
+                 chdir : String?)
+    raise NotImplementedError.new("Process.new with env or clear_env options") if env || clear_env
+    raise NotImplementedError.new("Process.new with chdir set") if chdir
+
+    args = String.build { |io| args_to_string(command, args, io) }
+    args = args.check_no_null_byte.to_utf16
+
+    startup_info = LibC::STARTUPINFOW.new
+    startup_info.cb = sizeof(LibC::STARTUPINFOW)
+    startup_info.dwFlags = LibC::STARTF_USESTDHANDLES
+
+    startup_info.hStdInput = handle_from_io(input, STDIN)
+    startup_info.hStdOutput = handle_from_io(output, STDOUT)
+    startup_info.hStdError = handle_from_io(error, STDERR)
+
+    process_info = LibC::PROCESS_INFORMATION.new
+
+    if LibC.CreateProcessW(
+         nil, args, nil, nil, true, LibC::CREATE_UNICODE_ENVIRONMENT, create_env_block(env, clear_env), chdir.try &.check_no_null_byte.to_utf16,
+         pointerof(startup_info), pointerof(process_info)
+       ) == 0
+      raise RuntimeError.from_winerror("Error executing process")
     end
-    if LibC.GetExitCodeProcess(@pi.hProcess, out exit_code) == LibC::FALSE
-      raise RuntimeError.from_winerror("GetExitCodeProcess")
-    end
-    # Close process and thread handles.
-    LibC.CloseHandle(@pi.hProcess)
-    LibC.CloseHandle(@pi.hThread)
-    @@mutex.lock
-    if channel = @@waiting.delete(@pid)
-      @@mutex.unlock
-      channel.send(exit_code.to_i32)
-      channel.close
-    else
-      @@pending[@pid] = exit_code
-      @@mutex.unlock
-    end
+
+    close_handle(process_info.hThread)
+
+    close_handle(startup_info.hStdInput)
+    close_handle(startup_info.hStdOutput)
+    close_handle(startup_info.hStdError)
+
+    process_info
   end
 
-  protected def close_system
-    if @handle
-      LibC.UnregisterWait(@handle)
-    end
-  end
-
-  protected def self.prepare_args_system(command, args, shell)
+  def self.prepare_args(command, args, shell)
     if shell
       raise NotImplementedError.new("Process shell: true is not supported on Windows")
     end
     {command, args}
   end
 
-  # This function is used internally by :func:`CreateProcess` to convert
-  # the input to ``lpEnvironment`` to a string which the underlying C API
+  def self.replace(command, argv, env, clear_env, input, output, error, chdir) : NoReturn
+    raise NotImplementedError.new("Process.exec")
+  end
+
+  # This function is used internally by `CreateProcess` to convert
+  # the input to `lpEnvironment` to a string which the underlying C API
   # call will understand.
   #
   # An environment block consists of a null-terminated block of null-terminated strings. Each string is in the following form:
@@ -200,8 +268,8 @@ class Process
   #
   # An environment block can contain Unicode characters because we includes CREATE_UNICODE_ENVIRONMENT flag in dwCreationFlags
   # A Unicode environment block is terminated by four zero bytes: two for the last string, two more to terminate the block.
-  protected def self.create_env_block(env : Env?, clear_env : Bool)
-    final_env : Env = {} of String => String
+  protected def self.create_env_block(env, clear_env : Bool)
+    final_env = {} of String => String
     if LibC.CreateEnvironmentBlock(out pointer, nil, LibC::FALSE) == LibC::FALSE
       raise RuntimeError.from_winerror("CreateEnvironmentBlock")
     end
@@ -237,62 +305,6 @@ class Process
     if !key.includes?('=') && !key.empty?
       block.write(key, val)
     end
-  end
-
-  protected def self.wait_system(pid : Int64) : Channel(Int32)
-    channel = Channel(Int32).new(1)
-    @@mutex.lock
-    if exit_code = @@pending.delete(pid)
-      @@mutex.unlock
-      channel.send(exit_code.to_i32)
-      channel.close
-    else
-      @@waiting[pid] = channel
-      @@mutex.unlock
-    end
-
-    channel
-  end
-
-  protected def terminate_system
-    hwnd = find_main_window(@pi.dwProcessId)
-    if hwnd.address != 0
-      LibC.PostMessageW(hwnd, LibC::WM_CLOSE, 0, 0)
-    else
-      LibC.PostThreadMessageW(@pi.dwThreadId, LibC::WM_QUIT, 0, 0)
-    end
-  end
-
-  protected def kill_system
-    LibC.TerminateProcess(@pi.hProcess, -1)
-  end
-
-  struct FindMainWindowParam
-    property process_id : LibC::DWORD = 0
-    property window_handle : LibC::HANDLE = LibC::HANDLE.null
-  end
-
-  protected def find_main_window(process_id : LibC::DWORD) : LibC::HWND
-    data = FindMainWindowParam.new
-    data.process_id = process_id
-    LibC.EnumWindows(->Process.enum_windows_callback(LibC::HWND, LibC::LPARAM), Box.box(data).address)
-    data.window_handle
-  end
-
-  protected def self.enum_windows_callback(handle : LibC::HWND, lparam : LibC::LPARAM) : LibC::BOOL
-    data = Box(FindMainWindowParam).unbox(Pointer(Void).new(lparam))
-    process_id = LibC::DWORD.new(0)
-    LibC.GetWindowThreadProcessId(handle, pointerof(process_id))
-    if data.process_id != process_id || !is_main_window(handle)
-      return 1
-    else
-      data.window_handle = handle
-      return 0
-    end
-  end
-
-  protected def self.is_main_window(handle : LibC::HWND) : Bool
-    LibC.GetWindow(handle, LibC::GW_OWNER).address == 0 && LibC.IsWindowVisible(handle) == 1
   end
 
   private class WinEnvBuilder
@@ -351,5 +363,11 @@ class Process
       @capacity = capacity
       @buffer = @buffer.realloc(@capacity*2)
     end
+  end
+end
+
+private def close_handle(handle)
+  if LibC.CloseHandle(handle) == 0
+    raise RuntimeError.from_winerror("CloseHandle")
   end
 end

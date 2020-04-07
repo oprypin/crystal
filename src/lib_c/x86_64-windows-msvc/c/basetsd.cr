@@ -3,12 +3,11 @@ require "./stddef"
 lib LibC
   {% if flag?(:bits64) %}
     alias ULONG_PTR = UInt64
-    alias SIZE_T = UInt64
   {% else %}
     alias ULONG_PTR = UInt32
-    alias SIZE_T = UInt32
   {% end %}
 
+  alias SIZE_T = ULONG_PTR
   alias UINT = UInt32
   alias DWORD = UInt32
   alias BOOL = Int32

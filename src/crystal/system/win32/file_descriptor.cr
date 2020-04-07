@@ -128,13 +128,9 @@ module Crystal::System::FileDescriptor
     end
   end
 
-  def self.pipe(read_blocking, write_blocking, inheritable = true)
+  def self.pipe(read_blocking, write_blocking)
     pipe_fds = uninitialized StaticArray(LibC::Int, 2)
-    flags = LibC::O_BINARY
-    if !inheritable
-      flags |= LibC::O_NOINHERIT
-    end
-    if LibC._pipe(pipe_fds, 8192, flags) != 0
+    if LibC._pipe(pipe_fds, 8192, LibC::O_BINARY | LibC::O_NOINHERIT) != 0
       raise IO::Error.from_errno("Could not create pipe")
     end
 
