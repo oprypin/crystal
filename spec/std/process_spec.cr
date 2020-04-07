@@ -28,10 +28,17 @@ end
 
 private def stdin_to_stdout_command
   if {{flag?(:win32)}}
-    # {"powershell.exe", {"-C", "$Input"}}
-    {"C:\\Crystal\\cat.exe", [] of String}
+    {"powershell.exe", {"-C", "$Input"}}
   else
     {"/bin/cat", [] of String}
+  end
+end
+
+private def standing_command
+  if {{flag?(:win32)}}
+    {"cmd.exe"}
+  else
+    {"yes"}
   end
 end
 
@@ -47,7 +54,7 @@ describe Process do
   end
 
   it "raises if command could not be executed" do
-    expect_raises(RuntimeError, "Error executing process: No such file or directory") do
+    expect_raises(RuntimeError, /Error executing process: /) do
       Process.new("foobarbaz", ["foo"])
     end
   end
@@ -94,7 +101,6 @@ describe Process do
     end
   end
 
-  # TODO: reenable after implementing fibers/asyncio
   pending_win32 "sends input in IO" do
     value = Process.run(*stdin_to_stdout_command, input: IO::Memory.new("hello")) do |proc|
       proc.input?.should be_nil
@@ -103,14 +109,12 @@ describe Process do
     value.should eq("hello")
   end
 
-  # TODO: reenable after implementing fibers/asyncio
   pending_win32 "sends output to IO" do
     output = IO::Memory.new
     Process.run(*shell_command("echo hello"), output: output)
     output.to_s.should eq("hello\n")
   end
 
-  # TODO: reenable after implementing fibers/asyncio
   pending_win32 "sends error to IO" do
     error = IO::Memory.new
     Process.run(*shell_command("echo hello 1>&2"), error: error)
@@ -119,11 +123,11 @@ describe Process do
 
   it "controls process in block" do
     value = Process.run(*stdin_to_stdout_command, error: :inherit) do |proc|
-      proc.input.print "hello"
+      proc.input.puts "hello"
       proc.input.close
       proc.output.gets_to_end
     end
-    value.should eq("hello")
+    value.rstrip.should eq("hello")
   end
 
   it "closes ios after block" do
@@ -131,7 +135,7 @@ describe Process do
     $?.exit_code.should eq(0)
   end
 
-  it "chroot raises when unprivileged" do
+  pending_win32 "chroot raises when unprivileged" do
     status, output = build_and_run <<-'CODE'
       begin
         Process.chroot("/usr")
@@ -145,7 +149,7 @@ describe Process do
     output.should eq("#<RuntimeError:Failed to chroot: Operation not permitted>\n")
   end
 
-  it "sets working directory" do
+  pending_win32 "sets working directory" do
     parent = File.dirname(Dir.current)
     value = Process.run("pwd", shell: true, chdir: parent, output: Process::Redirect::Pipe) do |proc|
       proc.output.gets_to_end
@@ -159,19 +163,19 @@ describe Process do
     end
   end
 
-  it "looks up programs in the $PATH with a shell" do
-    proc = Process.run("uname", {"-a"}, shell: true, output: Process::Redirect::Close)
+  pending_win32 "looks up programs in the $PATH with a shell" do
+    proc = Process.run(*exit_code_command(0), shell: true, output: Process::Redirect::Close)
     proc.exit_code.should eq(0)
   end
 
-  it "allows passing huge argument lists to a shell" do
+  pending_win32 "allows passing huge argument lists to a shell" do
     proc = Process.new(%(echo "${@}"), {"a", "b"}, shell: true, output: Process::Redirect::Pipe)
     output = proc.output.gets_to_end
     proc.wait
     output.should eq "a b\n"
   end
 
-  it "does not run shell code in the argument list" do
+  pending_win32 "does not run shell code in the argument list" do
     proc = Process.new("echo", {"`echo hi`"}, shell: true, output: Process::Redirect::Pipe)
     output = proc.output.gets_to_end
     proc.wait
@@ -179,14 +183,14 @@ describe Process do
   end
 
   describe "environ" do
-    it "clears the environment" do
+    pending_win32 "clears the environment" do
       value = Process.run("env", clear_env: true) do |proc|
         proc.output.gets_to_end
       end
       value.should eq("")
     end
 
-    it "sets an environment variable" do
+    pending_win32 "sets an environment variable" do
       env = {"FOO" => "bar"}
       value = Process.run("env", clear_env: true, env: env) do |proc|
         proc.output.gets_to_end
@@ -194,7 +198,7 @@ describe Process do
       value.should eq("FOO=bar\n")
     end
 
-    it "deletes an environment variable" do
+    pending_win32 "deletes an environment variable" do
       env = {"HOME" => nil}
       value = Process.run("env | egrep '^HOME='", env: env, shell: true) do |proc|
         proc.output.gets_to_end
@@ -204,30 +208,30 @@ describe Process do
   end
 
   describe "signal" do
-    it "kills a process" do
-      process = Process.new("yes")
+    pending_win32 "kills a process" do
+      process = Process.new(*standing_command)
       process.signal(Signal::KILL).should be_nil
     end
 
-    it "kills many process" do
-      process1 = Process.new("yes")
-      process2 = Process.new("yes")
+    pending_win32 "kills many process" do
+      process1 = Process.new(*standing_command)
+      process2 = Process.new(*standing_command)
       process1.signal(Signal::KILL).should be_nil
       process2.signal(Signal::KILL).should be_nil
     end
   end
 
-  it "gets the pgid of a process id" do
-    process = Process.new("yes")
+  pending_win32 "gets the pgid of a process id" do
+    process = Process.new(*standing_command)
     Process.pgid(process.pid).should be_a(Int32)
     process.signal(Signal::KILL)
     Process.pgid.should eq(Process.pgid(Process.pid))
   end
 
-  it "can link processes together" do
+  pending_win32 "can link processes together" do
     buffer = IO::Memory.new
-    Process.run("/bin/cat") do |cat|
-      Process.run("/bin/cat", input: cat.output, output: buffer) do
+    Process.run(*stdin_to_stdout_command) do |cat|
+      Process.run(*stdin_to_stdout_command, input: cat.output, output: buffer) do
         1000.times { cat.input.puts "line" }
         cat.close
       end
@@ -235,7 +239,7 @@ describe Process do
     buffer.to_s.lines.size.should eq(1000)
   end
 
-  {% unless flag?(:preview_mt) %}
+  {% unless flag?(:preview_mt) || flag?(:win32) %}
     it "executes the new process with exec" do
       with_tempfile("crystal-spec-exec") do |path|
         File.exists?(path).should be_false
@@ -250,14 +254,14 @@ describe Process do
     end
   {% end %}
 
-  it "checks for existence" do
+  pending_win32 "checks for existence" do
     # We can't reliably check whether it ever returns false, since we can't predict
     # how PIDs are used by the system, a new process might be spawned in between
     # reaping the one we would spawn and checking for it, using the now available
     # pid.
     Process.exists?(Process.ppid).should be_true
 
-    process = Process.new("yes")
+    process = Process.new(*standing_command)
     process.exists?.should be_true
     process.terminated?.should be_false
 

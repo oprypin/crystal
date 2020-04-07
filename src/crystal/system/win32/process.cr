@@ -108,7 +108,7 @@ module Crystal::System::Process
          nil, args, nil, nil, true, 0, nil, nil,
          pointerof(startup_info), pointerof(process_info)
        ) == 0
-      raise RuntimeError.from_winerror("CreateProcess")
+      raise RuntimeError.from_winerror("Error executing process")
     end
 
     close_handle(process_info.hProcess)
