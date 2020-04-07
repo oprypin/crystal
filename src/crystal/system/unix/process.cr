@@ -46,21 +46,46 @@ module Crystal::System::Process
     end
   end
 
-  def self.fork
+  def self.fork(*, will_exec = false)
+    newmask = uninitialized LibC::SigsetT
+    oldmask = uninitialized LibC::SigsetT
+
+    LibC.sigfillset(pointerof(newmask))
+    ret = LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(newmask), pointerof(oldmask))
+    raise RuntimeError.from_errno("Failed to disable signals") unless ret == 0
+
     case pid = LibC.fork
-    when -1
-      raise RuntimeError.from_errno("fork")
     when 0
-      nil
+      # child:
+      pid = nil
+      if will_exec
+        # reset signal handlers, then sigmask (inherited on exec):
+        Crystal::Signal.after_fork_before_exec
+        LibC.sigemptyset(pointerof(newmask))
+        LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(newmask), nil)
+      else
+        {% unless flag?(:preview_mt) %}
+          ::Process.after_fork_child_callbacks.each(&.call)
+        {% end %}
+        LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
+      end
+    when -1
+      # error:
+      errno = Errno.value
+      LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
+      raise RuntimeError.from_errno("fork", errno)
     else
-      pid
+      # parent:
+      LibC.pthread_sigmask(LibC::SIG_SETMASK, pointerof(oldmask), nil)
     end
+
+    pid
   end
 
   def self.spawn(command, args, env, clear_env, input, output, error, chdir) : Int32
     reader_pipe, writer_pipe = IO.pipe
 
-    pid = self.fork
+    pid = self.fork(will_exec: true)
     if !pid
       begin
         reader_pipe.close

@@ -101,9 +101,6 @@ class Process
 
     if pid = Crystal::System::Process.fork
       new(pid)
-    else
-      Process.after_fork_child_callbacks.each(&.call)
-      nil
     end
   end
 
