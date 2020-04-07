@@ -12,23 +12,23 @@ module Crystal::System::Process
     LibC.getpid
   end
 
-  def self.parent_pid
-    LibC.getppid
-  end
-
-  def self.process_gid
+  def self.pgid
     ret = LibC.getpgid(0)
     raise RuntimeError.from_errno("getpgid") if ret < 0
     ret
   end
 
-  def self.process_gid(pid)
-    # Disallow users from depending on ppid(0) instead of `process_gid`
+  def self.pgid(pid)
+    # Disallow users from depending on ppid(0) instead of `pgid`
     raise RuntimeError.from_errno("getpgid", Errno::EINVAL) if pid == 0
 
     ret = LibC.getpgid(pid)
     raise RuntimeError.from_errno("getpgid") if ret < 0
     ret
+  end
+
+  def self.ppid
+    LibC.getppid
   end
 
   def self.signal(pid, signal)
@@ -37,11 +37,11 @@ module Crystal::System::Process
   end
 
   def self.exists?(pid)
-    if LibC.kill(pid, 0) == 0
+    ret = LibC.kill(pid, 0)
+    if ret == 0
       true
-    elsif Errno.value == Errno::ESRCH
-      false
     else
+      return false if Errno.value == Errno::ESRCH
       raise RuntimeError.from_errno("kill")
     end
   end
@@ -60,21 +60,8 @@ module Crystal::System::Process
   def self.spawn(command, args, env, clear_env, input, output, error, chdir) : Int32
     reader_pipe, writer_pipe = IO.pipe
 
-    if pid = self.fork
-      writer_pipe.close
-      bytes = uninitialized UInt8[4]
-      if reader_pipe.read(bytes.to_slice) == 4
-        message_size = IO::ByteFormat::SystemEndian.decode(Int32, bytes.to_slice)
-        if message_size > 0
-          message = String.build(message_size) { |io| IO.copy(reader_pipe, io, message_size) }
-        end
-        reader_pipe.close
-        raise RuntimeError.new("Error executing process: #{message}")
-      end
-      reader_pipe.close
-
-      pid
-    else
+    pid = self.fork
+    if !pid
       begin
         reader_pipe.close
         writer_pipe.close_on_exec = true
@@ -87,31 +74,20 @@ module Crystal::System::Process
         LibC._exit 127
       end
     end
-  end
 
-  private def self.to_real_fd(fd : IO::FileDescriptor)
-    case fd
-    when STDIN
-      ORIGINAL_STDIN
-    when STDOUT
-      ORIGINAL_STDOUT
-    when STDERR
-      ORIGINAL_STDERR
-    else
-      fd
+    writer_pipe.close
+    bytes = uninitialized UInt8[4]
+    if reader_pipe.read(bytes.to_slice) == 4
+      message_size = IO::ByteFormat::SystemEndian.decode(Int32, bytes.to_slice)
+      if message_size > 0
+        message = String.build(message_size) { |io| IO.copy(reader_pipe, io, message_size) }
+      end
+      reader_pipe.close
+      raise RuntimeError.new("Error executing process: #{message}")
     end
-  end
+    reader_pipe.close
 
-  private def self.reopen_io(src_io : IO::FileDescriptor, dst_io : IO::FileDescriptor)
-    src_io = to_real_fd(src_io)
-
-    if src_io.closed?
-      dst_io.close
-      return
-    end
-    dst_io.reopen(src_io) if src_io.fd != dst_io.fd
-    dst_io.blocking = true
-    dst_io.close_on_exec = false
+    pid
   end
 
   def self.replace(command, args, env, clear_env, input, output, error, chdir) : NoReturn
@@ -138,6 +114,31 @@ module Crystal::System::Process
 
     LibC.execvp(command, argv)
     raise RuntimeError.from_errno
+  end
+
+  private def self.reopen_io(src_io : IO::FileDescriptor, dst_io : IO::FileDescriptor)
+    src_io = to_real_fd(src_io)
+
+    if src_io.closed?
+      dst_io.close
+      return
+    end
+    dst_io.reopen(src_io) if src_io.fd != dst_io.fd
+    dst_io.blocking = true
+    dst_io.close_on_exec = false
+  end
+
+  private def self.to_real_fd(fd : IO::FileDescriptor)
+    case fd
+    when STDIN
+      ORIGINAL_STDIN
+    when STDOUT
+      ORIGINAL_STDOUT
+    when STDERR
+      ORIGINAL_STDERR
+    else
+      fd
+    end
   end
 
   def self.wait(pid)

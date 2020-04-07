@@ -9,17 +9,22 @@ module Crystal::System::Process
     LibC.GetCurrentProcessId
   end
 
-  def self.parent_pid
+  def self.pgid
+    raise NotImplementedError.new("Process.pgid")
+  end
+
+  def self.pgid(pid)
+    raise NotImplementedError.new("Process.pgid")
+  end
+
+  def self.ppid
     # TODO: Implement this using CreateToolhelp32Snapshot
     raise NotImplementedError.new("Process.ppid")
   end
 
-  def self.process_gid
-    raise NotImplementedError.new("Process.pgid")
-  end
-
-  def self.process_gid(pid)
-    raise NotImplementedError.new("Process.pgid")
+  def self.signal(pid, signal)
+    raise NotImplementedError.new("Process.signal with signals other than Signal::KILL") unless signal == 9
+    raise NotImplementedError.new("Process.signal")
   end
 
   def self.exists?(pid)
@@ -87,12 +92,7 @@ module Crystal::System::Process
     raise NotImplementedError.new("Process.new with chdir set") if chdir
 
     args = String.build { |io| args_to_string(command, args, io) }
-
-    puts
-    puts args
-
-    command = to_windows_string(command)
-    args = to_windows_string(args)
+    args = args.check_no_null_byte.to_utf16
 
     startup_info = LibC::STARTUPINFOW.new
     startup_info.cb = sizeof(LibC::STARTUPINFOW)
@@ -154,11 +154,6 @@ module Crystal::System::Process
     else
       raise RuntimeError.from_winerror("GetExitCodeProcess")
     end
-  end
-
-  def self.signal(pid, signal)
-    raise NotImplementedError.new("Process.signal with signals other than Signal::KILL") unless signal == 9
-    raise NotImplementedError.new("Process.signal")
   end
 
   private def self.to_windows_string(string : String) : LibC::LPWSTR

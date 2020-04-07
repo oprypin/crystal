@@ -17,17 +17,17 @@ class Process
 
   # Returns the process group identifier of the current process.
   def self.pgid
-    Crystal::System::Process.process_gid
+    Crystal::System::Process.pgid
   end
 
   # Returns the process group identifier of the process identified by *pid*.
   def self.pgid(pid : Int)
-    Crystal::System::Process.process_gid(pid)
+    Crystal::System::Process.pgid(pid)
   end
 
   # Returns the process identifier of the parent process of the current process.
   def self.ppid
-    Crystal::System::Process.parent_pid
+    Crystal::System::Process.ppid
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
