@@ -1,4 +1,4 @@
-require "c/stddef"
+require "./stddef"
 
 lib LibC
   struct DivT

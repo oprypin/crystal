@@ -260,7 +260,7 @@ struct Crystal::System::Process
   # A Unicode environment block is terminated by four zero bytes: two for the last string, two more to terminate the block.
   protected def self.create_env_block(env, clear_env : Bool)
     final_env = {} of String => String
-    if LibC.CreateEnvironmentBlock(out pointer, nil, LibC::FALSE) == LibC::FALSE
+    if LibC.CreateEnvironmentBlock(out pointer, nil, 0) == 0
       raise RuntimeError.from_winerror("CreateEnvironmentBlock")
     end
     env_block = pointer.as(Pointer(UInt16))

@@ -1,5 +1,6 @@
 require "c/winnt"
 require "c/win_def"
+require "c/int_safe"
 
 lib LibC
   fun GetNativeSystemInfo(system_info : SYSTEM_INFO*)

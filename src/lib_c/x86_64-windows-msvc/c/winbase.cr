@@ -1,5 +1,6 @@
-require "c/win_def"
 require "c/winnt"
+require "c/win_def"
+require "c/int_safe"
 
 @[Link("UserEnv")]
 lib LibC
@@ -88,8 +89,8 @@ lib LibC
 
   fun GetEnvironmentVariableW(lpName : LPWSTR, lpBuffer : LPWSTR, nSize : DWORD) : DWORD
   fun GetEnvironmentStringsW : LPWCH
-  fun CreateEnvironmentBlock(lpEnvironment : LPVOID*, hToken : HANDLE, bInherit : BOOL) : BOOL
-  fun DestroyEnvironmentBlock(lpEnvironment : LPVOID) : BOOL
+  fun CreateEnvironmentBlock(lpEnvironment : Void**, hToken : HANDLE, bInherit : BOOL) : BOOL
+  fun DestroyEnvironmentBlock(lpEnvironment : Void*) : BOOL
   fun FreeEnvironmentStringsW(lpszEnvironmentBlock : LPWCH) : BOOL
   fun SetEnvironmentVariableW(lpName : LPWSTR, lpValue : LPWSTR) : BOOL
 

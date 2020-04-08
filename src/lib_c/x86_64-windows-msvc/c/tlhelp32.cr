@@ -1,4 +1,5 @@
-require "./basetsd"
+require "c/basetsd"
+require "c/int_safe"
 
 # TlHelp32.h
 @[Link("Kernel32")]
@@ -13,7 +14,7 @@ lib LibC
     th32ModuleID : DWORD
     cntThreads : DWORD
     th32ParentProcessID : DWORD
-    pcPriClassBase : LONG
+    pcPriClassBase : Long
     dwFlags : DWORD
     szExeFile : CHAR[MAX_PATH]
   end

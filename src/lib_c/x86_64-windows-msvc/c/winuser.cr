@@ -8,14 +8,14 @@ lib LibC
 
   fun PostMessageW(
     hWnd : HWND,
-    msg : UINT,
+    msg : UInt,
     wParam : WPARAM,
     lParam : LPARAM
   ) : BOOL
 
   fun PostThreadMessageW(
     idThread : DWORD,
-    msg : UINT,
+    msg : UInt,
     wParam : WPARAM,
     lParam : LPARAM
   ) : BOOL
@@ -29,14 +29,14 @@ lib LibC
 
   fun GetWindowThreadProcessId(
     hWnd : HWND,
-    lpdwProcessId : LPDWORD
+    lpdwProcessId : DWORD*
   ) : DWORD
 
   GW_OWNER = 4
 
   fun GetWindow(
     hWnd : HWND,
-    uCmd : UINT
+    uCmd : UInt
   ) : HWND
 
   fun IsWindowVisible(hWnd : HWND) : BOOL

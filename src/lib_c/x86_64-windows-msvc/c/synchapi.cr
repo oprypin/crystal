@@ -1,4 +1,5 @@
 require "c/basetsd"
+require "c/int_safe"
 
 lib LibC
   fun Sleep(dwMilliseconds : DWORD)
@@ -7,17 +8,4 @@ lib LibC
     hHandle : HANDLE,
     dwMilliseconds : DWORD
   ) : DWORD
-
-  alias WAITORTIMERCALLBACK = (Void*, Bool -> Nil)
-  WT_EXECUTEONLYONCE = 0x00000008
-  fun RegisterWaitForSingleObject(
-    phNewWaitObject : HANDLE*,
-    hObject : HANDLE,
-    callback : WAITORTIMERCALLBACK,
-    context : Void*,
-    dwMilliseconds : ULong,
-    dwFlags : ULong
-  ) : BOOL
-
-  fun UnregisterWait(waitHandle : HANDLE) : BOOL
 end

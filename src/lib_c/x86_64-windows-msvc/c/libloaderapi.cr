@@ -1,8 +1,9 @@
 # Libloaderapi.h
-require "./win_def"
+require "c/win_def"
 
 lib LibC
   alias HMODULE = Void*
+
   fun GetModuleFileNameW(
     hModule : HMODULE,
     lpFilename : LPWSTR,
