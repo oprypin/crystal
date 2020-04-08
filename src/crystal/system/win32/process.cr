@@ -3,9 +3,7 @@ require "c/winuser"
 require "c/tlhelp32"
 
 struct Crystal::System::Process
-  alias PID = LibC::DWORD
-
-  getter pid : PID
+  getter pid : LibC::DWORD
   @thread_id : LibC::DWORD
   @process_handle : LibC::HANDLE
 

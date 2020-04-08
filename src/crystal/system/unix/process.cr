@@ -4,9 +4,7 @@ require "c/sys/resource"
 require "c/unistd"
 
 struct Crystal::System::Process
-  alias PID = LibC::PidT
-
-  getter pid : PID
+  getter pid : LibC::PidT
 
   def initialize(@pid : LibC::PidT)
     @channel = Crystal::SignalChildHandler.wait(@pid)

@@ -1,7 +1,7 @@
 require "crystal/system/process"
 
 class Process
-  alias PID = Crystal::System::Process::PID
+  alias PID = Int64
 
   # Terminate the current process immediately. All open files, pipes and sockets
   # are flushed and closed, all child processes are inherited by PID 1. This does
@@ -15,22 +15,22 @@ class Process
 
   # Returns the process identifier of the current process.
   def self.pid : PID
-    Crystal::System::Process.pid
+    PID.new(Crystal::System::Process.pid)
   end
 
   # Returns the process group identifier of the process identified by *pid*.
   def self.pgid(pid : Int) : PID
-    Crystal::System::Process.pgid(pid)
+    PID.new(Crystal::System::Process.pgid(pid))
   end
 
   # Returns the process group identifier of the current process.
   def self.pgid : PID
-    Crystal::System::Process.pgid
+    PID.new(Crystal::System::Process.pgid)
   end
 
   # Returns the process identifier of the parent process of the current process.
   def self.ppid : PID
-    Crystal::System::Process.ppid
+    PID.new(Crystal::System::Process.ppid)
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
@@ -180,7 +180,7 @@ class Process
   end
 
   def pid : PID
-    @process_info.pid
+    PID.new(@process_info.pid)
   end
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.
@@ -274,7 +274,7 @@ class Process
 
   # Sends *signal* to this process.
   def signal(signal : Signal)
-    Crystal::System::Process.signal(pid, signal)
+    Crystal::System::Process.signal(@process_info.pid, signal)
   end
 
   # Waits for this process to complete and closes any pipes.
