@@ -16,23 +16,15 @@ struct Crystal::System::Process
   end
 
   def wait
-    channel = Channel(Nil).new
-    callback = ->{
-      channel.send(nil)
-    }
-    box = Box.box(callback)
-
-    if LibC.RegisterWaitForSingleObject(out wait_handle, @process_handle, ->(data, timed_out) {
-         Box(typeof(callback)).unbox(data).call
-       }, box, LibC::INFINITE, LibC::WT_EXECUTEONLYONCE) == 0
-      raise RuntimeError.from_winerror("RegisterWaitForSingleObject")
+    if LibC.WaitForSingleObject(@process_handle, LibC::INFINITE) != 0
+      raise RuntimeError.from_winerror("WaitForSingleObject")
     end
 
-    begin
-      channel.receive
-    ensure
-      LibC.UnregisterWait(wait_handle)
-    end
+    # WaitForSingleObject returns immediately once ExitProcess is called in the child, but
+    # the process still has yet to be destructed by the OS and have it's memory unmapped.
+    # Since the semantics on unix are that the resources of a process have been released once
+    # waitpid returns, we wait 5 milliseconds to attempt to replicate this behaviour.
+    sleep 5.milliseconds
 
     if LibC.GetExitCodeProcess(@process_handle, out exit_code) == 0
       raise RuntimeError.from_winerror("GetExitCodeProcess")
@@ -79,11 +71,10 @@ struct Crystal::System::Process
   def self.ppid
     pid = LibC.GetCurrentProcessId
     snapshot = LibC.CreateToolhelp32Snapshot(LibC::TH32CS_SNAPPROCESS, 0)
+    if snapshot == LibC::INVALID_HANDLE_VALUE
+      raise RuntimeError.from_winerror("CreateToolhelp32Snapshot")
+    end
     begin
-      if snapshot == LibC::INVALID_HANDLE_VALUE
-        raise RuntimeError.from_winerror("CreateToolhelp32Snapshot")
-      end
-
       pe32 = LibC::PROCESSENTRY32.new
       pe32.dwSize = sizeof(LibC::PROCESSENTRY32)
       if LibC.Process32First(snapshot, pointerof(pe32)) == 0
@@ -97,11 +88,9 @@ struct Crystal::System::Process
         break if LibC.Process32Next(snapshot, pointerof(pe32)) == 0
       end
     ensure
-      if snapshot != LibC::INVALID_HANDLE_VALUE
-        close_handle(snapshot)
-      end
+      close_handle(snapshot)
     end
-    -1
+    raise RuntimeError.new("Could not determine parent PID")
   end
 
   def self.signal(pid, signal)
@@ -145,11 +134,14 @@ struct Crystal::System::Process
 
   def self.exists?(pid)
     handle = LibC.OpenProcess(LibC::PROCESS_QUERY_INFORMATION, 0, pid)
-    if handle.nil?
-      false
-    else
+    return false if handle.nil?
+    begin
+      if LibC.GetExitCodeProcess(handle, out exit_code) == 0
+        raise RuntimeError.from_winerror("GetExitCodeProcess")
+      end
+      exit_code == LibC::STILL_ACTIVE
+    ensure
       close_handle(handle)
-      true
     end
   end
 
