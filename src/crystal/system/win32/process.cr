@@ -13,6 +13,10 @@ struct Crystal::System::Process
     @process_handle = process_info.hProcess
   end
 
+  def release
+    close_handle(@process_handle)
+  end
+
   def wait
     if LibC.WaitForSingleObject(@process_handle, LibC::INFINITE) != 0
       raise RuntimeError.from_winerror("WaitForSingleObject")
@@ -31,10 +35,6 @@ struct Crystal::System::Process
       raise "BUG: process still active"
     end
     exit_code
-  end
-
-  def release
-    close_handle(@process_handle)
   end
 
   def exists?

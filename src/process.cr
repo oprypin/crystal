@@ -18,14 +18,14 @@ class Process
     PID.new(Crystal::System::Process.pid)
   end
 
-  # Returns the process group identifier of the process identified by *pid*.
-  def self.pgid(pid : Int) : PID
-    PID.new(Crystal::System::Process.pgid(pid))
-  end
-
   # Returns the process group identifier of the current process.
   def self.pgid : PID
     PID.new(Crystal::System::Process.pgid)
+  end
+
+  # Returns the process group identifier of the process identified by *pid*.
+  def self.pgid(pid : Int) : PID
+    PID.new(Crystal::System::Process.pgid(pid))
   end
 
   # Returns the process identifier of the parent process of the current process.
@@ -64,6 +64,8 @@ class Process
 
   # Returns a `Tms` for the current process. For the children times, only those
   # of terminated children are returned.
+  #
+  # Available only on Unix-like operating systems.
   def self.times : Tms
     Crystal::System::Process.times
   end
@@ -82,7 +84,6 @@ class Process
       rescue ex
         ex.inspect_with_backtrace STDERR
         STDERR.flush
-
         LibC._exit 1
       ensure
         LibC._exit 254 # not reached
@@ -154,9 +155,11 @@ class Process
   def self.exec(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                 input : ExecStdio = Redirect::Inherit, output : ExecStdio = Redirect::Inherit, error : ExecStdio = Redirect::Inherit, chdir : String? = nil)
     command, args = Crystal::System::Process.prepare_args(command, args, shell)
+
     input = io_for_exec(input, STDIN)
     output = io_for_exec(output, STDOUT)
     error = io_for_exec(error, STDERR)
+
     Crystal::System::Process.replace(command, args, env, clear_env, input, output, error, chdir)
   end
 

@@ -10,11 +10,11 @@ struct Crystal::System::Process
     @channel = Crystal::SignalChildHandler.wait(@pid)
   end
 
-  def wait
-    @channel.receive
+  def release
   end
 
-  def release
+  def wait
+    @channel.receive
   end
 
   def exists?
@@ -210,7 +210,7 @@ struct Crystal::System::Process
     dst_io.close_on_exec = false
   end
 
-  protected def self.to_real_fd(fd : IO::FileDescriptor)
+  private def self.to_real_fd(fd : IO::FileDescriptor)
     case fd
     when STDIN  then ORIGINAL_STDIN
     when STDOUT then ORIGINAL_STDOUT
