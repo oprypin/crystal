@@ -254,7 +254,7 @@ describe Process do
     end
   {% end %}
 
-  it "checks for existence" do
+  pending_win32 "checks for existence" do
     # We can't reliably check whether it ever returns false, since we can't predict
     # how PIDs are used by the system, a new process might be spawned in between
     # reaping the one we would spawn and checking for it, using the now available
@@ -266,7 +266,7 @@ describe Process do
     process.terminated?.should be_false
 
     # Kill, zombie now
-    process.terminate
+    process.signal(Signal::KILL)
     process.exists?.should be_true
     process.terminated?.should be_false
 
@@ -274,6 +274,15 @@ describe Process do
     process.wait
     process.exists?.should be_false
     process.terminated?.should be_true
+  end
+
+  it "terminates the process" do
+    process = Process.new(*standing_command)
+    process.exists?.should be_true
+    process.terminated?.should be_false
+
+    process.terminate
+    process.wait
   end
 
   describe "executable_path" do
