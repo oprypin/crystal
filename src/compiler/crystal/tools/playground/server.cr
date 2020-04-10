@@ -54,7 +54,7 @@ module Crystal::Playground
         return
       end
 
-      output_filename = tempfile "play-#{@session_key}-#{tag}"
+      output_filename = Crystal.temp_executable "play-#{@session_key}-#{tag}"
       compiler = Compiler.new
       compiler.color = false
       begin
@@ -152,10 +152,6 @@ module Crystal::Playground
           end
         end
       end
-    end
-
-    private def tempfile(basename)
-      Crystal.tempfile(basename)
     end
 
     private def stop_process

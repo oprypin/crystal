@@ -31,7 +31,7 @@ module Crystal
     def directory_for(filename : String)
       dir = compute_dir
 
-      name = filename.gsub('/', '-')
+      name = filename.gsub('/', '-').gsub('\\', '-').gsub(':', '-')
       while name.starts_with?('-')
         name = name[1..-1]
       end
