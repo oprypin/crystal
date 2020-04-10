@@ -115,7 +115,7 @@ struct Crystal::System::Process
     pid
   end
 
-  def self.spawn(command, args, env, clear_env, input, output, error, chdir)
+  def self.spawn(command_args, env, clear_env, input, output, error, chdir)
     reader_pipe, writer_pipe = IO.pipe
 
     pid = self.fork(will_exec: true)
@@ -123,7 +123,7 @@ struct Crystal::System::Process
       begin
         reader_pipe.close
         writer_pipe.close_on_exec = true
-        self.replace(command, args, env, clear_env, input, output, error, chdir)
+        self.replace(command_args, env, clear_env, input, output, error, chdir)
       rescue ex
         writer_pipe.write_bytes(ex.message.try(&.bytesize) || 0)
         writer_pipe << ex.message
@@ -148,10 +148,10 @@ struct Crystal::System::Process
     pid
   end
 
-  def self.prepare_args(command, args, shell)
+  def self.prepare_args(command : String, args : Enumerable(String)?, shell : Bool) : Array(String)
     if shell
       command = %(#{command} "${@}") unless command.includes?(' ')
-      shell_args = ["-c", command, "--"]
+      shell_args = ["/bin/sh", "-c", command, "--"]
 
       if args
         unless command.includes?(%("${@}"))
@@ -165,14 +165,15 @@ struct Crystal::System::Process
         shell_args.concat(args)
       end
 
-      command = "/bin/sh"
-      args = shell_args
+      shell_args
+    else
+      command_args = [command]
+      command_args.concat(args) if args
+      command_args
     end
-
-    {command, args}
   end
 
-  def self.replace(command, args, env, clear_env, input, output, error, chdir) : NoReturn
+  def self.replace(command_args, env, clear_env, input, output, error, chdir) : NoReturn
     reopen_io(input, ORIGINAL_STDIN)
     reopen_io(output, ORIGINAL_STDOUT)
     reopen_io(error, ORIGINAL_STDERR)
@@ -188,10 +189,8 @@ struct Crystal::System::Process
 
     ::Dir.cd(chdir) if chdir
 
-    argv = [command.check_no_null_byte.to_unsafe]
-    args.try &.each do |arg|
-      argv << arg.check_no_null_byte.to_unsafe
-    end
+    command = command_args[0]
+    argv = command_args.map &.check_no_null_byte.to_unsafe
     argv << Pointer(UInt8).null
 
     LibC.execvp(command, argv)
@@ -219,7 +218,7 @@ struct Crystal::System::Process
     end
   end
 
-  def self.chroot(path : String) : Nil
+  def self.chroot(path)
     path.check_no_null_byte
     if LibC.chroot(path) != 0
       raise RuntimeError.from_errno("Failed to chroot")

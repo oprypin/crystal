@@ -152,11 +152,8 @@ struct Crystal::System::Process
   end
 
   private def self.args_to_string(command : String, args, io : IO)
-    command_args = Array(String).new((args.try(&.size) || 0) + 1)
-    command_args << command
-    args.try &.each do |arg|
-      command_args << arg
-    end
+    command_args = [command]
+    command_args.concat(args) if args
 
     first_arg = true
     command_args.join(' ', io) do |arg|
@@ -200,15 +197,9 @@ struct Crystal::System::Process
     new_handle
   end
 
-  def self.spawn(command : String, args : Enumerable(String)?,
-                 env : ::Process::Env, clear_env : Bool,
-                 input, output, error,
-                 chdir : String?)
-    raise NotImplementedError.new("Process.new with env or clear_env options") if env || clear_env
-    raise NotImplementedError.new("Process.new with chdir set") if chdir
-
-    args = String.build { |io| args_to_string(command, args, io) }
-    args = args.check_no_null_byte.to_utf16
+  def self.spawn(command_args : String, env : ::Process::Env, clear_env : Bool,
+                 input, output, error, chdir : String?)
+    command = command_args.check_no_null_byte.to_utf16
 
     startup_info = LibC::STARTUPINFOW.new
     startup_info.cb = sizeof(LibC::STARTUPINFOW)
@@ -221,7 +212,8 @@ struct Crystal::System::Process
     process_info = LibC::PROCESS_INFORMATION.new
 
     if LibC.CreateProcessW(
-         nil, args, nil, nil, true, LibC::CREATE_UNICODE_ENVIRONMENT, create_env_block(env, clear_env), chdir.try &.check_no_null_byte.to_utf16,
+         nil, command_args.check_no_null_byte.to_utf16, nil, nil, true, LibC::CREATE_UNICODE_ENVIRONMENT,
+         create_env_block(env, clear_env), chdir.try &.check_no_null_byte.to_utf16,
          pointerof(startup_info), pointerof(process_info)
        ) == 0
       raise RuntimeError.from_winerror("Error executing process")
@@ -236,14 +228,18 @@ struct Crystal::System::Process
     process_info
   end
 
-  def self.prepare_args(command, args, shell)
+  def self.prepare_args(command : String, args : Enumerable(String)?, shell : Bool) : String
     if shell
-      raise NotImplementedError.new("Process shell: true is not supported on Windows")
+      if args
+        raise NotImplementedError.new("Process with args and shell: true is not supported on Windows")
+      end
+      command
+    else
+      String.build { |io| args_to_string(command, args, io) }
     end
-    {command, args}
   end
 
-  def self.replace(command, argv, env, clear_env, input, output, error, chdir) : NoReturn
+  def self.replace(command_args, env, clear_env, input, output, error, chdir) : NoReturn
     raise NotImplementedError.new("Process.exec")
   end
 

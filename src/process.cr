@@ -160,13 +160,13 @@ class Process
   # Replaces the current process with a new one. This function never returns.
   def self.exec(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                 input : ExecStdio = Redirect::Inherit, output : ExecStdio = Redirect::Inherit, error : ExecStdio = Redirect::Inherit, chdir : String? = nil)
-    command, args = Crystal::System::Process.prepare_args(command, args, shell)
+    command_args = Crystal::System::Process.prepare_args(command, args, shell)
 
     input = io_for_exec(input, STDIN)
     output = io_for_exec(output, STDOUT)
     error = io_for_exec(error, STDERR)
 
-    Crystal::System::Process.replace(command, args, env, clear_env, input, output, error, chdir)
+    Crystal::System::Process.replace(command_args, env, clear_env, input, output, error, chdir)
   end
 
   private def self.io_for_exec(stdio : ExecStdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
@@ -211,13 +211,13 @@ class Process
   # By default the process is configured without input, output or error.
   def initialize(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                  input : Stdio = Redirect::Close, output : Stdio = Redirect::Close, error : Stdio = Redirect::Close, chdir : String? = nil)
-    command, args = Crystal::System::Process.prepare_args(command, args, shell)
+    command_args = Crystal::System::Process.prepare_args(command, args, shell)
 
     fork_input = stdio_to_fd(input, for: STDIN)
     fork_output = stdio_to_fd(output, for: STDOUT)
     fork_error = stdio_to_fd(error, for: STDERR)
 
-    pid = Crystal::System::Process.spawn(command, args, env, clear_env, fork_input, fork_output, fork_error, chdir)
+    pid = Crystal::System::Process.spawn(command_args, env, clear_env, fork_input, fork_output, fork_error, chdir)
     @process_info = Crystal::System::Process.new(pid)
 
     fork_input.close unless fork_input == input || fork_input == STDIN
