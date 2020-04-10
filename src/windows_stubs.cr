@@ -1,3 +1,4 @@
+require "c/signal"
 require "c/synchapi"
 
 struct CallStack
@@ -97,7 +98,13 @@ class Mutex
 end
 
 enum Signal
-  KILL = 0
+  KILL = 9
+  INT  = LibC::SIGINT
+  ILL  = LibC::SIGILL
+  FPE  = LibC::SIGFPE
+  SEGV = LibC::SIGSEGV
+  TERM = LibC::SIGTERM
+  ABRT = LibC::SIGABRT
 end
 
 def sleep(seconds : Number)
