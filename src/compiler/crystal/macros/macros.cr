@@ -81,10 +81,12 @@ class Crystal::Program
     recorded_requires_path = File.join(program_dir, "recorded_requires")
     requires_path = File.join(program_dir, "requires")
 
-    # First, update times for the program dir, so it remains in the cache longer
-    # (this is specially useful if a macro run program is used by multiple programs)
-    now = Time.utc
-    File.utime(now, now, program_dir)
+    {% unless flag?(:win32) %}
+      # First, update times for the program dir, so it remains in the cache longer
+      # (this is specially useful if a macro run program is used by multiple programs)
+      now = Time.utc
+      File.utime(now, now, program_dir)
+    {% end %}
 
     if can_reuse_previous_compilation?(filename, executable_path, recorded_requires_path, requires_path)
       elapsed_time = Time.monotonic - time

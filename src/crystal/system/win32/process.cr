@@ -199,8 +199,6 @@ struct Crystal::System::Process
 
   def self.spawn(command_args : String, env : ::Process::Env, clear_env : Bool,
                  input, output, error, chdir : String?)
-    command = command_args.check_no_null_byte.to_utf16
-
     startup_info = LibC::STARTUPINFOW.new
     startup_info.cb = sizeof(LibC::STARTUPINFOW)
     startup_info.dwFlags = LibC::STARTF_USESTDHANDLES
@@ -211,6 +209,7 @@ struct Crystal::System::Process
 
     process_info = LibC::PROCESS_INFORMATION.new
 
+    p! command_args
     if LibC.CreateProcessW(
          nil, command_args.check_no_null_byte.to_utf16, nil, nil, true, LibC::CREATE_UNICODE_ENVIRONMENT,
          create_env_block(env, clear_env), chdir.try &.check_no_null_byte.to_utf16,
@@ -231,7 +230,7 @@ struct Crystal::System::Process
   def self.prepare_args(command : String, args : Enumerable(String)?, shell : Bool) : String
     if shell
       if args
-        raise NotImplementedError.new("Process with args and shell: true is not supported on Windows")
+        command = command.sub("%*", (String.build { |io| args_to_string("", args, io) })[3..])
       end
       command
     else
