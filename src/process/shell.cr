@@ -15,7 +15,7 @@ class Process
     {% end %}
   end
 
-  # Shorthand for `shell_quote({arg})`.
+  # Shell-quotes one item, same as `shell_quote({arg})`.
   def self.shell_quote(arg : String) : String
     shell_quote({arg})
   end
@@ -38,6 +38,11 @@ class Process
         arg
       end
     end
+  end
+
+  # Shell-quotes one item, same as `shell_quote_posix({arg})`.
+  def self.shell_quote_posix(arg : String) : String
+    shell_quote_posix({arg})
   end
 
   # Converts a sequence of strings to one joined string with each argument shell-quoted.
@@ -77,5 +82,10 @@ class Process
         io << '"'
       end
     end
+  end
+
+  # Shell-quotes one item, same as `shell_quote_windows({arg})`.
+  def self.shell_quote_windows(arg : String) : String
+    shell_quote_windows({arg})
   end
 end
