@@ -314,22 +314,18 @@ module Crystal
 
       target_machine.emit_obj_to_file llvm_mod, object_name
 
-      stdout.puts linker_command(program, object_name, output_filename, nil)
+      stdout.puts linker_command(program, {object_name}, output_filename, nil)
     end
 
-    private def linker_command(program : Program, object_name, output_filename, output_dir)
+    private def linker_command(program : Program, object_names, output_filename, output_dir)
       if program.has_flag? "windows"
-        if object_name
-          object_name = %("#{object_name}")
-        else
-          object_name = %(%*)
-        end
-
         if link_flags = @link_flags.presence
           link_flags = "/link #{link_flags}"
         end
 
-        %(#{CL} #{object_name} "/Fe#{output_filename}" #{program.lib_flags} #{link_flags})
+        objects = Process.shell_quote_windows(object_names)
+        output = Process.shell_quote_windows({"/Fe#{output_filename}"})
+        %(#{CL} #{objects} #{output} #{program.lib_flags} #{link_flags}")
       else
         if thin_lto
           clang = ENV["CLANG"]? || "clang"
@@ -344,17 +340,14 @@ module Crystal
           cc = CC
         end
 
-        if object_name
-          object_name = %('#{object_name}')
-        else
-          object_name = %("${@}")
-        end
+        objects = Process.shell_quote_posix(object_names)
+        output = Process.shell_quote_posix({output_filename})
 
         link_flags = @link_flags || ""
         link_flags += " -rdynamic"
         link_flags += " -static" if static?
 
-        %(#{cc} #{object_name} -o '#{output_filename}' #{link_flags} #{program.lib_flags})
+        %(#{cc} #{objects} -o #{output} #{link_flags} #{program.lib_flags})
       end
     end
 
@@ -389,10 +382,10 @@ module Crystal
 
       @progress_tracker.stage("Codegen (linking)") do
         Dir.cd(output_dir) do
-          linker_command = linker_command(program, nil, output_filename, output_dir)
+          linker_command = linker_command(program, object_names, output_filename, output_dir)
 
-          process_wrapper(linker_command, object_names) do |command, args|
-            Process.run(command, args, shell: true,
+          process_wrapper(linker_command) do |command|
+            Process.run(command, shell: true,
               input: Process::Redirect::Close, output: Process::Redirect::Inherit, error: Process::Redirect::Pipe) do |process|
               process.error.each_line(chomp: false) do |line|
                 hint_string = colorize("(this usually means you need to install the development package for lib\\1)").yellow.bold
@@ -565,17 +558,10 @@ module Crystal
       end
     end
 
-    private def system(command, args = nil)
-      process_wrapper(command, args) do
-        ::system(command, args)
-        $?
-      end
-    end
+    private def process_wrapper(command)
+      stdout.puts command if verbose?
 
-    private def process_wrapper(command, args = nil)
-      stdout.puts "#{command} #{args.join " "}" if verbose?
-
-      status = yield command, args
+      status = yield command
 
       unless status.success?
         msg = status.normal_exit? ? "code: #{status.exit_code}" : "signal: #{status.exit_signal} (#{status.exit_signal.value})"
