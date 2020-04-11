@@ -1,6 +1,7 @@
 require "c/processthreadsapi"
 require "c/winuser"
 require "c/tlhelp32"
+require "process/shell"
 
 struct Crystal::System::Process
   getter pid : LibC::DWORD
@@ -151,39 +152,6 @@ struct Crystal::System::Process
     raise NotImplementedError.new("Process.fork")
   end
 
-  private def self.args_to_string(command : String, args, io : IO)
-    command_args = [command]
-    command_args.concat(args) if args
-
-    first_arg = true
-    command_args.join(' ', io) do |arg|
-      quotes = first_arg || arg.size == 0 || arg.includes?(' ') || arg.includes?('\t')
-      first_arg = false
-
-      io << '"' if quotes
-
-      slashes = 0
-      arg.each_char do |c|
-        case c
-        when '\\'
-          slashes += 1
-        when '"'
-          (slashes + 1).times { io << '\\' }
-          slashes = 0
-        else
-          slashes = 0
-        end
-
-        io << c
-      end
-
-      if quotes
-        slashes.times { io << '\\' }
-        io << '"'
-      end
-    end
-  end
-
   private def self.handle_from_io(io : IO::FileDescriptor, parent_io)
     ret = LibC._get_osfhandle(io.fd)
     raise RuntimeError.from_winerror("_get_osfhandle") if ret == -1
@@ -209,7 +177,6 @@ struct Crystal::System::Process
 
     process_info = LibC::PROCESS_INFORMATION.new
 
-    p! command_args
     if LibC.CreateProcessW(
          nil, command_args.check_no_null_byte.to_utf16, nil, nil, true, LibC::CREATE_UNICODE_ENVIRONMENT,
          create_env_block(env, clear_env), chdir.try &.check_no_null_byte.to_utf16,
@@ -230,11 +197,13 @@ struct Crystal::System::Process
   def self.prepare_args(command : String, args : Enumerable(String)?, shell : Bool) : String
     if shell
       if args
-        command = command.sub("%*", (String.build { |io| args_to_string("", args, io) })[3..])
+        raise NotImplementedError.new("Process with args and shell: true is not supported on Windows")
       end
       command
     else
-      String.build { |io| args_to_string(command, args, io) }
+      command_args = [command]
+      command_args.concat(args) if args
+      ::Process.shell_quote(command_args)
     end
   end
 

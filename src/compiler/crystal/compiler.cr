@@ -325,7 +325,7 @@ module Crystal
 
         objects = Process.shell_quote_windows(object_names)
         output = Process.shell_quote_windows({"/Fe#{output_filename}"})
-        %(#{CL} #{objects} #{output} #{program.lib_flags} #{link_flags}")
+        %(#{CL} #{objects} #{output} #{program.lib_flags} #{link_flags})
       else
         if thin_lto
           clang = ENV["CLANG"]? || "clang"
