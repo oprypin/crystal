@@ -32,7 +32,9 @@ module Crystal
     end
 
     def self.date
-      time = {{ (env("SOURCE_DATE_EPOCH") || `date +%s`).to_i }}
+      time = {{ (env("SOURCE_DATE_EPOCH") || (
+                  host_flag?(:win32) ? `powershell Get-Date -Millisecond 0 -UFormat %s` : `date +%s`
+                )).to_i }}
       Time.unix(time).to_s("%Y-%m-%d")
     end
 
