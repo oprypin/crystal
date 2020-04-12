@@ -14,23 +14,25 @@ class Process
   end
 
   # Returns the process identifier of the current process.
-  def self.pid : PID
-    PID.new(Crystal::System::Process.pid)
+  def self.pid : Int64
+    LibC.getpid.to_i64
   end
 
   # Returns the process group identifier of the current process.
-  def self.pgid : PID
-    PID.new(Crystal::System::Process.pgid)
+  def self.pgid : Int64
+    pgid(0).to_i64
   end
 
   # Returns the process group identifier of the process identified by *pid*.
-  def self.pgid(pid : Int) : PID
-    PID.new(Crystal::System::Process.pgid(pid))
+  def self.pgid(pid : Int) : Int64
+    ret = LibC.getpgid(pid)
+    raise RuntimeError.from_errno("getpgid") if ret < 0
+    ret.to_i64
   end
 
   # Returns the process identifier of the parent process of the current process.
-  def self.ppid : PID
-    PID.new(Crystal::System::Process.ppid)
+  def self.ppid : Int64
+    LibC.getppid.to_i64
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
@@ -188,8 +190,9 @@ class Process
     end
   end
 
-  def pid : PID
-    PID.new(@process_info.pid)
+  # Returns the process identifier of this process.
+  def pid : Int64
+    @pid.to_i64
   end
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.

@@ -223,7 +223,7 @@ describe Process do
 
   pending_win32 "gets the pgid of a process id" do
     process = Process.new(*standing_command)
-    Process.pgid(process.pid).should be_a(Process::PID)
+    Process.pgid(process.pid).should be_a(Int64)
     process.signal(Signal::KILL)
     Process.pgid.should eq(Process.pgid(Process.pid))
   end

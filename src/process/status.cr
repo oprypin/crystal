@@ -1,9 +1,9 @@
-# The status of a terminated process. Returned by `Process#wait`
+# The status of a terminated process. Returned by `Process#wait`.
 class Process::Status
   # Platform-specific exit status code, which usually contains either the exit code or a termination signal.
   # The other `Process::Status` methods extract the values from `exit_status`.
   def exit_status : Int32
-    return @exit_status.to_i32
+    @exit_status.to_i32!
   end
 
   {% if flag?(:win32) %}
@@ -40,7 +40,7 @@ class Process::Status
   # received and didn't handle. Will raise if `signal_exit?` is `false`.
   #
   # Available only on Unix-like operating systems.
-  def exit_signal
+  def exit_signal : Signal
     {% if flag?(:unix) %}
       Signal.from_value(signal_code)
     {% else %}
@@ -49,7 +49,7 @@ class Process::Status
   end
 
   # If `normal_exit?` is `true`, returns the exit code of the process.
-  def exit_code
+  def exit_code : Int32
     {% if flag?(:unix) %}
       # define __WEXITSTATUS(status) (((status) & 0xff00) >> 8)
       (@exit_status & 0xff00) >> 8
