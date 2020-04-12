@@ -320,11 +320,11 @@ module Crystal
     private def linker_command(program : Program, object_name, output_filename, output_dir)
       if program.has_flag? "windows"
         if object_name
-          object_arg = Process.shell_quote_windows(object_name)
+          object_arg = Process.quote_windows(object_name)
         else
           object_arg = %(%*)
         end
-        output_arg = Process.shell_quote_windows("/Fe#{output_filename}")
+        output_arg = Process.quote_windows("/Fe#{output_filename}")
 
         if link_flags = @link_flags.presence
           link_flags = "/link #{link_flags}"
@@ -346,11 +346,11 @@ module Crystal
         end
 
         if object_name
-          object_arg = Process.shell_quote_posix(object_name)
+          object_arg = Process.quote_posix(object_name)
         else
           object_arg = %("${@}")
         end
-        output_arg = Process.shell_quote_posix(output_filename)
+        output_arg = Process.quote_posix(output_filename)
 
         link_flags = @link_flags || ""
         link_flags += " -rdynamic"
@@ -566,7 +566,7 @@ module Crystal
     end
 
     private def process_wrapper(command, args = nil)
-      stdout.puts "#{command} #{Process.shell_quote(args)}" if verbose?
+      stdout.puts "#{command} #{Process.quote(args)}" if verbose?
 
       status = yield command, args
 

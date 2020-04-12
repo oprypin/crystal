@@ -1,23 +1,26 @@
 class Process
   # Converts a sequence of strings to one joined string with each argument shell-quoted.
   #
-  # This is then safe to pass to the current system's shell or as part of the command in `system()`.
+  # This is then safe to pass as part of the command when using `shell: true` or `system()`.
+  #
+  # NOTE: The actual return value is system-dependent, so it mustn't be relied on in other contexts.
+  # See also: `quote_posix`.
   #
   # ```
   # files = ["my file.txt", "another.txt"]
-  # `grep -E 'fo+' -- #{Process.shell_quote(files)}`
+  # `grep -E 'fo+' -- #{Process.quote(files)}`
   # ```
-  def self.shell_quote(args : Enumerable(String)) : String
+  def self.quote(args : Enumerable(String)) : String
     {% if flag?(:win32) %}
-      shell_quote_windows(args)
+      quote_windows(args)
     {% else %}
-      shell_quote_posix(args)
+      quote_posix(args)
     {% end %}
   end
 
-  # Shell-quotes one item, same as `shell_quote({arg})`.
-  def self.shell_quote(arg : String) : String
-    shell_quote({arg})
+  # Shell-quotes one item, same as `quote({arg})`.
+  def self.quote(arg : String) : String
+    quote({arg})
   end
 
   # Converts a sequence of strings to one joined string with each argument shell-quoted.
@@ -26,9 +29,9 @@ class Process
   #
   # ```
   # files = ["my file.txt", "another.txt"]
-  # Process.shell_quote_posix(files) # => "'my file.txt' another.txt"
+  # Process.quote_posix(files) # => "'my file.txt' another.txt"
   # ```
-  def self.shell_quote_posix(args : Enumerable(String)) : String
+  def self.quote_posix(args : Enumerable(String)) : String
     args.join(' ') do |arg|
       if arg.empty?
         "''"
@@ -40,27 +43,32 @@ class Process
     end
   end
 
-  # Shell-quotes one item, same as `shell_quote_posix({arg})`.
-  def self.shell_quote_posix(arg : String) : String
-    shell_quote_posix({arg})
+  # Shell-quotes one item, same as `quote_posix({arg})`.
+  def self.quote_posix(arg : String) : String
+    quote_posix({arg})
   end
 
+  # :nodoc:
+  #
   # Converts a sequence of strings to one joined string with each argument shell-quoted.
   #
-  # This is then safe to pass to the CMD shell or CreateProcess.
+  # This is then safe to pass Windows API CreateProcess.
+  #
+  # NOTE: This is **not** safe to pass to the CMD shell.
   #
   # ```
-  # Process.shell_quote_windows({ %q(C:\"foo" project.txt) }) # => %q("C:\\\"foo\" project.txt")
+  # files = ["my file.txt", "another.txt"]
+  # Process.quote_windows(files) # => %("my file.txt" another.txt)
   # ```
-  def self.shell_quote_windows(args : Enumerable(String)) : String
-    String.build { |io| shell_quote_windows(args, io) }
+  def self.quote_windows(args : Enumerable(String)) : String
+    String.build { |io| quote_windows(args, io) }
   end
 
-  private def self.shell_quote_windows(args, io : IO)
+  private def self.quote_windows(args, io : IO)
     args.join(' ', io) do |arg|
-      quotes = arg.empty? || arg.includes?(' ') || arg.includes?('\t')
+      need_quotes = arg.empty? || arg.includes?(' ') || arg.includes?('\t')
 
-      io << '"' if quotes
+      io << '"' if need_quotes
 
       slashes = 0
       arg.each_char do |c|
@@ -77,15 +85,21 @@ class Process
         io << c
       end
 
-      if quotes
+      if need_quotes
         slashes.times { io << '\\' }
         io << '"'
       end
     end
   end
 
-  # Shell-quotes one item, same as `shell_quote_windows({arg})`.
-  def self.shell_quote_windows(arg : String) : String
-    shell_quote_windows({arg})
+  # :nodoc:
+  #
+  # Shell-quotes one item, same as `quote_windows({arg})`.
+  #
+  # ```
+  # Process.quote_windows(%q(C:\"foo" project.txt)) # => %q("C:\\\"foo\" project.txt")
+  # ```
+  def self.quote_windows(arg : String) : String
+    quote_windows({arg})
   end
 end
