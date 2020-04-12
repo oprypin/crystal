@@ -144,7 +144,6 @@ module Crystal
     end
 
     private def make_relative_unless_absolute(filename)
-      filename = "#{Dir.current}/#{filename}" unless filename.starts_with?('/')
       File.expand_path(filename)
     end
 

@@ -31,10 +31,8 @@ module Crystal
     def directory_for(filename : String)
       dir = compute_dir
 
-      name = filename.gsub('/', '-')
-      while name.starts_with?('-')
-        name = name[1..-1]
-      end
+      name = filename.gsub(::Path::SEPARATORS.to_h { |c| {c, '-'} })
+      name = name.lstrip('-')
       output_dir = File.join(dir, name)
       Dir.mkdir_p(output_dir)
       output_dir

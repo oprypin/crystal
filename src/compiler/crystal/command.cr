@@ -196,7 +196,7 @@ class Crystal::Command
       return
     end
 
-    output_filename = Crystal.tempfile(config.output_filename)
+    output_filename = Crystal.temp_executable(config.output_filename)
 
     result = config.compile output_filename
 
@@ -230,9 +230,11 @@ class Crystal::Command
       begin
         elapsed = Time.measure do
           Process.run(output_filename, args: run_args, input: Process::Redirect::Inherit, output: Process::Redirect::Inherit, error: Process::Redirect::Inherit) do |process|
-            # Ignore the signal so we don't exit the running process
-            # (the running process can still handle this signal)
-            ::Signal::INT.ignore # do
+            {% unless flag?(:win32) %}
+              # Ignore the signal so we don't exit the running process
+              # (the running process can still handle this signal)
+              ::Signal::INT.ignore # do
+            {% end %}
           end
         end
         {$?, elapsed}
