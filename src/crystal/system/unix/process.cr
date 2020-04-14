@@ -67,11 +67,11 @@ struct Crystal::System::Process
     end
   end
 
-  def self.times : Tms
+  def self.times
     LibC.getrusage(LibC::RUSAGE_SELF, out usage)
     LibC.getrusage(LibC::RUSAGE_CHILDREN, out child)
 
-    Tms.new(
+    ::Process::Tms.new(
       usage.ru_utime.tv_sec.to_f64 + usage.ru_utime.tv_usec.to_f64 / 1e6,
       usage.ru_stime.tv_sec.to_f64 + usage.ru_stime.tv_usec.to_f64 / 1e6,
       child.ru_utime.tv_sec.to_f64 + child.ru_utime.tv_usec.to_f64 / 1e6,
@@ -200,11 +200,7 @@ struct Crystal::System::Process
   private def self.reopen_io(src_io : IO::FileDescriptor, dst_io : IO::FileDescriptor)
     src_io = to_real_fd(src_io)
 
-    if src_io.closed?
-      dst_io.close
-      return
-    end
-    dst_io.reopen(src_io) if src_io.fd != dst_io.fd
+    dst_io.reopen(src_io)
     dst_io.blocking = true
     dst_io.close_on_exec = false
   end

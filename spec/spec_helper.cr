@@ -269,7 +269,7 @@ def build(code)
 
   binary_file = File.tempname("build_and_run_bin")
 
-  `bin/crystal build #{encode_program_flags} #{Process.shell_quote(code_file.path)} -o #{binary_file.path.inspect}`
+  `bin/crystal build #{encode_program_flags} #{Process.shell_quote(code_file.path.to_s)} -o #{Process.shell_quote(binary_file.path.to_s)}`
   File.exists?(binary_file).should be_true
 
   yield binary_file

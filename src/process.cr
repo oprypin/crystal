@@ -1,38 +1,44 @@
+class Process
+  # A struct representing the CPU current times of the process,
+  # in fractions of seconds.
+  #
+  # * *utime*: CPU time a process spent in userland.
+  # * *stime*: CPU time a process spent in the kernel.
+  # * *cutime*: CPU time a processes terminated children (and their terminated children) spent in the userland.
+  # * *cstime*: CPU time a processes terminated children (and their terminated children) spent in the kernel.
+  record Tms, utime : Float64, stime : Float64, cutime : Float64, cstime : Float64
+end
+
 require "crystal/system/process"
 
 class Process
-  alias PID = Int64
-
   # Terminate the current process immediately. All open files, pipes and sockets
   # are flushed and closed, all child processes are inherited by PID 1. This does
   # not run any handlers registered with `at_exit`, use `::exit` for that.
   #
   # *status* is the exit status of the current process.
-  # Returns the process group identifier of the current process.
   def self.exit(status = 0) : NoReturn
     Crystal::System::Process.exit(status)
   end
 
   # Returns the process identifier of the current process.
   def self.pid : Int64
-    LibC.getpid.to_i64
+    Crystal::System::Process.pid.to_i64
   end
 
   # Returns the process group identifier of the current process.
   def self.pgid : Int64
-    pgid(0).to_i64
+    Crystal::System::Process.pgid.to_i64
   end
 
   # Returns the process group identifier of the process identified by *pid*.
   def self.pgid(pid : Int) : Int64
-    ret = LibC.getpgid(pid)
-    raise RuntimeError.from_errno("getpgid") if ret < 0
-    ret.to_i64
+    Crystal::System::Process.pgid(pid).to_i64
   end
 
   # Returns the process identifier of the parent process of the current process.
   def self.ppid : Int64
-    LibC.getppid.to_i64
+    Crystal::System::Process.ppid.to_i64
   end
 
   # Sends a *signal* to the processes identified by the given *pids*.
@@ -48,27 +54,12 @@ class Process
     Crystal::System::Process.signal(pid, signal.value)
   end
 
-  # Sends *signal* to the process identified by *pid*.
-  def self.signal(signal : Signal, pid : Int) : Nil
-    ret = LibC.kill(pid, signal.value)
-    raise RuntimeError.from_errno("kill") if ret < 0
-  end
-
   # Returns `true` if the process identified by *pid* is valid for
   # a currently registered process, `false` otherwise. Note that this
   # returns `true` for a process in the zombie or similar state.
   def self.exists?(pid : Int) : Bool
     Crystal::System::Process.exists?(pid)
   end
-
-  # A struct representing the CPU current times of the process,
-  # in fractions of seconds.
-  #
-  # * *utime*: CPU time a process spent in userland.
-  # * *stime*: CPU time a process spent in the kernel.
-  # * *cutime*: CPU time a processes terminated children (and their terminated children) spent in the userland.
-  # * *cstime*: CPU time a processes terminated children (and their terminated children) spent in the kernel.
-  record Tms, utime : Float64, stime : Float64, cutime : Float64, cstime : Float64
 
   # Returns a `Tms` for the current process. For the children times, only those
   # of terminated children are returned.
@@ -107,8 +98,8 @@ class Process
   def self.fork : Process?
     {% raise("Process fork is unsupported with multithread mode") if flag?(:preview_mt) %}
 
-    if process = Crystal::System::Process.fork
-      new(process)
+    if pid = Crystal::System::Process.fork
+      new pid
     end
   end
 
@@ -160,18 +151,20 @@ class Process
   end
 
   # Replaces the current process with a new one. This function never returns.
+  #
+  # Available only on Unix-like operating systems.
   def self.exec(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                 input : ExecStdio = Redirect::Inherit, output : ExecStdio = Redirect::Inherit, error : ExecStdio = Redirect::Inherit, chdir : String? = nil)
     command_args = Crystal::System::Process.prepare_args(command, args, shell)
 
-    input = io_for_exec(input, STDIN)
-    output = io_for_exec(output, STDOUT)
-    error = io_for_exec(error, STDERR)
+    input = exec_stdio_to_fd(input, for: STDIN)
+    output = exec_stdio_to_fd(output, for: STDOUT)
+    error = exec_stdio_to_fd(error, for: STDERR)
 
     Crystal::System::Process.replace(command_args, env, clear_env, input, output, error, chdir)
   end
 
-  private def self.io_for_exec(stdio : ExecStdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
+  private def self.exec_stdio_to_fd(stdio : ExecStdio, for dst_io : IO::FileDescriptor) : IO::FileDescriptor
     case stdio
     when IO::FileDescriptor
       stdio
@@ -192,7 +185,7 @@ class Process
 
   # Returns the process identifier of this process.
   def pid : Int64
-    @pid.to_i64
+    @process_info.pid.to_i64
   end
 
   # A pipe to this process's input. Raises if a pipe wasn't asked when creating the process.
@@ -212,10 +205,20 @@ class Process
   # To wait for it to finish, invoke `wait`.
   #
   # By default the process is configured without input, output or error.
+  #
+  # If *shell* is false, the *command* is the path to the executable to run,
+  # along with a list of *args*.
+  #
+  # If *shell* is true, the *command* should be the full command line
+  # including space-separated args.
+  # * On POSIX this uses `/bin/sh` to process the command string. *args* are
+  #   also passed to the shell, and you need to include the string `"${@}"` in
+  #   the *command* to safely insert them there.
+  # * On Windows this is implemented by passing the string as-is to the
+  #   process, and passing *args* is not supported.
   def initialize(command : String, args = nil, env : Env = nil, clear_env : Bool = false, shell : Bool = false,
                  input : Stdio = Redirect::Close, output : Stdio = Redirect::Close, error : Stdio = Redirect::Close, chdir : String? = nil)
     command_args = Crystal::System::Process.prepare_args(command, args, shell)
-    puts command_args
 
     fork_input = stdio_to_fd(input, for: STDIN)
     fork_output = stdio_to_fd(output, for: STDOUT)

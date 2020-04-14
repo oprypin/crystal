@@ -4,9 +4,9 @@ require "./spec_helper"
 require "../spec_helper"
 
 private def exit_code_command(code)
-  if {{flag?(:win32)}}
+  {% if flag?(:win32) %}
     {"cmd.exe", {"/c", "exit #{code}"}}
-  else
+  {% else %}
     case code
     when 0
       {"true", [] of String}
@@ -15,31 +15,39 @@ private def exit_code_command(code)
     else
       {"/bin/sh", {"-c", "exit #{code}"}}
     end
-  end
+  {% end %}
 end
 
 private def shell_command(command)
-  if {{flag?(:win32)}}
+  {% if flag?(:win32) %}
     {"cmd.exe", {"/c", command}}
-  else
+  {% else %}
     {"/bin/sh", {"-c", command}}
-  end
+  {% end %}
 end
 
 private def stdin_to_stdout_command
-  if {{flag?(:win32)}}
+  {% if flag?(:win32) %}
     {"powershell.exe", {"-C", "$Input"}}
-  else
+  {% else %}
     {"/bin/cat", [] of String}
-  end
+  {% end %}
 end
 
 private def standing_command
-  if {{flag?(:win32)}}
+  {% if flag?(:win32) %}
     {"cmd.exe"}
-  else
+  {% else %}
     {"yes"}
-  end
+  {% end %}
+end
+
+private def newline
+  {% if flag?(:win32) %}
+    "\r\n"
+  {% else %}
+    "\n"
+  {% end %}
 end
 
 describe Process do
@@ -54,7 +62,7 @@ describe Process do
   end
 
   it "raises if command could not be executed" do
-    expect_raises(RuntimeError, /Error executing process: /) do
+    expect_raises(RuntimeError, "Error executing process:") do
       Process.new("foobarbaz", ["foo"])
     end
   end
@@ -80,13 +88,11 @@ describe Process do
 
   it "redirects output to /dev/null" do
     # This doesn't test anything but no output should be seen while running tests
-    if {{flag?(:win32)}}
-      command = "cmd.exe"
-      args = {"/c", "dir"}
-    else
-      command = "/bin/ls"
-      args = [] of String
-    end
+    command, args = {% if flag?(:win32) %}
+                      {"cmd.exe", {"/c", "dir"}}
+                    {% else %}
+                      {"/bin/ls", [] of String}
+                    {% end %}
     Process.run(command, args, output: Process::Redirect::Close).exit_code.should eq(0)
   end
 
@@ -94,11 +100,7 @@ describe Process do
     value = Process.run(*shell_command("echo hello")) do |proc|
       proc.output.gets_to_end
     end
-    if {{flag?(:win32)}}
-      value.should eq("hello\r\n")
-    else
-      value.should eq("hello\n")
-    end
+    value.should eq("hello#{newline}")
   end
 
   pending_win32 "sends input in IO" do
@@ -112,13 +114,13 @@ describe Process do
   pending_win32 "sends output to IO" do
     output = IO::Memory.new
     Process.run(*shell_command("echo hello"), output: output)
-    output.to_s.should eq("hello\n")
+    output.to_s.should eq("hello#{newline}")
   end
 
   pending_win32 "sends error to IO" do
     error = IO::Memory.new
-    Process.run(*shell_command("echo hello 1>&2"), error: error)
-    error.to_s.should eq("hello\n")
+    Process.run(*shell_command("1>&2 echo hello"), error: error)
+    error.to_s.should eq("hello#{newline}")
   end
 
   it "controls process in block" do
@@ -127,7 +129,7 @@ describe Process do
       proc.input.close
       proc.output.gets_to_end
     end
-    value.rstrip.should eq("hello")
+    value.should eq("hello#{newline}")
   end
 
   it "closes ios after block" do
@@ -151,10 +153,15 @@ describe Process do
 
   pending_win32 "sets working directory" do
     parent = File.dirname(Dir.current)
-    value = Process.run("pwd", shell: true, chdir: parent, output: Process::Redirect::Pipe) do |proc|
+    command = {% if flag?(:win32) %}
+                "cmd.exe /c echo %cd%"
+              {% else %}
+                "pwd"
+              {% end %}
+    value = Process.run(command, shell: true, chdir: parent, output: Process::Redirect::Pipe) do |proc|
       proc.output.gets_to_end
     end
-    value.should eq "#{parent}\n"
+    value.should eq "#{parent}#{newline}"
   end
 
   pending_win32 "disallows passing arguments to nowhere" do
@@ -276,7 +283,7 @@ describe Process do
     process.terminated?.should be_true
   end
 
-  it "terminates the process" do
+  pending_win32 "terminates the process" do
     process = Process.new(*standing_command)
     process.exists?.should be_true
     process.terminated?.should be_false
