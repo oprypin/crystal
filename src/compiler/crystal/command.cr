@@ -254,22 +254,24 @@ class Crystal::Command
       puts "Execute: #{elapsed_time}"
     end
 
-    if status.normal_exit?
+    case status
+    when .normal_exit?
       exit error_on_exit ? 1 : status.exit_code
-    else
-      case status.exit_signal
-      when ::Signal::KILL
+    when .signal_exit?
+      case signal = status.exit_signal
+      when .kill?
         STDERR.puts "Program was killed"
-      when ::Signal::SEGV
+      when .segv?
         STDERR.puts "Program exited because of a segmentation fault (11)"
-      when ::Signal::INT
+      when .int?
         # OK, bubbled from the sub-program
       else
-        STDERR.puts "Program received and didn't handle signal #{status.exit_signal} (#{status.exit_signal.value})"
+        STDERR.puts "Program received and didn't handle signal #{signal} (#{signal.value})"
       end
-
-      exit 1
+    else
+      STDERR.puts "Program exited abnormally, the cause is unknown"
     end
+    exit 1
   end
 
   record CompilerConfig,
