@@ -1,6 +1,7 @@
 require "c/processthreadsapi"
 require "c/winuser"
 require "c/tlhelp32"
+require "process/shell"
 
 struct Crystal::System::Process
   getter pid : LibC::DWORD
@@ -205,7 +206,7 @@ struct Crystal::System::Process
     else
       command_args = [command]
       command_args.concat(args) if args
-      String.build { |io| args_to_string(command_args, io) }
+      ::Process.quote_windows(command_args)
     end
   end
 
@@ -215,34 +216,6 @@ struct Crystal::System::Process
 
   def self.chroot(path)
     raise NotImplementedError.new("Process.chroot")
-  end
-
-  private def self.args_to_string(args, io : IO)
-    args.join(' ', io) do |arg|
-      quotes = arg.empty? || arg.includes?(' ') || arg.includes?('\t')
-
-      io << '"' if quotes
-
-      slashes = 0
-      arg.each_char do |c|
-        case c
-        when '\\'
-          slashes += 1
-        when '"'
-          (slashes + 1).times { io << '\\' }
-          slashes = 0
-        else
-          slashes = 0
-        end
-
-        io << c
-      end
-
-      if quotes
-        slashes.times { io << '\\' }
-        io << '"'
-      end
-    end
   end
 
   # This function is used internally by `CreateProcess` to convert
