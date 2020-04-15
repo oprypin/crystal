@@ -111,13 +111,13 @@ describe Process do
     value.should eq("hello")
   end
 
-  pending_win32 "sends output to IO" do
+  it "sends output to IO" do
     output = IO::Memory.new
     Process.run(*shell_command("echo hello"), output: output)
     output.to_s.should eq("hello#{newline}")
   end
 
-  pending_win32 "sends error to IO" do
+  it "sends error to IO" do
     error = IO::Memory.new
     Process.run(*shell_command("1>&2 echo hello"), error: error)
     error.to_s.should eq("hello#{newline}")
@@ -151,7 +151,7 @@ describe Process do
     output.should eq("#<RuntimeError:Failed to chroot: Operation not permitted>\n")
   end
 
-  pending_win32 "sets working directory" do
+  it "sets working directory" do
     parent = File.dirname(Dir.current)
     command = {% if flag?(:win32) %}
                 "cmd.exe /c echo %cd%"

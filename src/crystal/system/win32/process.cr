@@ -1,6 +1,7 @@
 require "c/processthreadsapi"
 require "c/winuser"
 require "c/tlhelp32"
+
 require "process/shell"
 
 struct Crystal::System::Process

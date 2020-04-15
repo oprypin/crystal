@@ -22,7 +22,7 @@ module Crystal
   # optionally generates an executable.
   class Compiler
     CC = ENV["CC"]? || "cc"
-    CL = "cl"
+    CL = "cl.exe"
 
     # A source to the compiler: its filename and source code.
     record Source,
@@ -314,23 +314,37 @@ module Crystal
 
       target_machine.emit_obj_to_file llvm_mod, object_name
 
-      stdout.puts linker_command(program, object_name, output_filename, nil)
+      print_command(*linker_command(program, [object_name], output_filename, nil))
     end
 
-    private def linker_command(program : Program, object_name, output_filename, output_dir)
-      if program.has_flag? "windows"
-        if object_name
-          object_arg = Process.quote_windows(object_name)
-        else
-          object_arg = %(%*)
-        end
-        output_arg = Process.quote_windows("/Fe#{output_filename}")
+    private def print_command(command, args)
+      stdout.puts command.sub(%("${@}"), args && Process.quote(args))
+    end
 
+    private def linker_command(program : Program, object_names, output_filename, output_dir)
+      if program.has_flag? "windows"
+        object_arg = Process.quote_windows(object_names)
+        output_arg = Process.quote_windows("/Fe#{output_filename}")
         if link_flags = @link_flags.presence
           link_flags = "/link #{link_flags}"
         end
 
-        %(#{CL} #{object_arg} #{output_arg} #{program.lib_flags} #{link_flags})
+        args = %(#{object_arg} #{output_arg} #{program.lib_flags} #{link_flags})
+        cmd = "#{CL} #{args}"
+
+        if cmd.to_utf16.size > 32000
+          # The command line would be too big, pass the args through a UTF-16-encoded file instead.
+          # TODO: Use a proper way to write encoded text to a file when that's supported.
+          # The first character is the BOM; it will be converted in the same endianness as the rest.
+          args_16 = "\ufeff#{args}".to_utf16
+          args_bytes = args_16.to_unsafe.as(UInt8*).to_slice(args_16.bytesize)
+
+          args_filename = "#{output_dir}/linker_args.txt"
+          File.write(args_filename, args_bytes)
+          cmd = "#{CL} @#{args_filename}"
+        end
+
+        {cmd, nil}
       else
         if thin_lto
           clang = ENV["CLANG"]? || "clang"
@@ -345,18 +359,11 @@ module Crystal
           cc = CC
         end
 
-        if object_name
-          object_arg = Process.quote_posix(object_name)
-        else
-          object_arg = %("${@}")
-        end
-        output_arg = Process.quote_posix(output_filename)
-
         link_flags = @link_flags || ""
         link_flags += " -rdynamic"
         link_flags += " -static" if static?
 
-        %(#{cc} #{object_arg} -o #{output_arg} #{link_flags} #{program.lib_flags})
+        { %(#{cc} "${@}" -o #{Process.quote_posix(output_filename)} #{link_flags} #{program.lib_flags}), object_names }
       end
     end
 
@@ -393,7 +400,7 @@ module Crystal
         Dir.cd(output_dir) do
           linker_command = linker_command(program, object_names, output_filename, output_dir)
 
-          process_wrapper(linker_command) do |command, args|
+          process_wrapper(*linker_command) do |command, args|
             Process.run(command, args, shell: true,
               input: Process::Redirect::Close, output: Process::Redirect::Inherit, error: Process::Redirect::Pipe) do |process|
               process.error.each_line(chomp: false) do |line|
@@ -568,9 +575,9 @@ module Crystal
     end
 
     private def process_wrapper(command, args = nil)
-      stdout.puts "#{command} #{Process.quote(args)}" if verbose?
+      print_command(command, args) if verbose?
 
-      status = yield command
+      status = yield command, args
 
       unless status.success?
         msg = status.normal_exit? ? "code: #{status.exit_code}" : "signal: #{status.exit_signal} (#{status.exit_signal.value})"
