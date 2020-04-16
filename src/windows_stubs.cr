@@ -1,7 +1,7 @@
 require "c/signal"
 require "c/synchapi"
 
-struct CallStack
+struct Exception::CallStack
   def self.skip(*args)
     # do nothing
   end
