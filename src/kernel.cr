@@ -489,25 +489,21 @@ def abort(message = nil, status = 1) : NoReturn
   exit status
 end
 
-{% unless flag?(:preview_mt) || flag?(:win32) %}
+{% unless flag?(:preview_mt) %}
   class Process
     # Hooks are defined here due to load order problems.
     def self.after_fork_child_callbacks
-      {% begin %}
-        @@after_fork_child_callbacks ||= [
-          {% unless flag?(:win32) %}
-            # clean ups (don't depend on event loop):
-            ->Crystal::Signal.after_fork,
-            ->Crystal::SignalChildHandler.after_fork,
+      @@after_fork_child_callbacks ||= [
+        # clean ups (don't depend on event loop):
+        ->Crystal::Signal.after_fork,
+        ->Crystal::SignalChildHandler.after_fork,
 
-            # reinit event loop:
-            ->Crystal::EventLoop.after_fork,
-          {% end %}
+        # reinit event loop:
+        ->Crystal::EventLoop.after_fork,
 
-          # more clean ups (may depend on event loop):
-          ->Random::DEFAULT.new_seed,
-        ] of -> Nil
-      {% end %}
+        # more clean ups (may depend on event loop):
+        ->Random::DEFAULT.new_seed,
+      ] of -> Nil
     end
   end
 {% end %}

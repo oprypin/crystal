@@ -50,7 +50,7 @@ module Crystal
           # in order to use the appropriate environment target.
           default_libc = target.gnu? ? "-gnu" : "-musl"
 
-          target = Crystal::Codegen::Target.new(target.to_s.sub(default_libc, "-#{"gnu"}"))
+          target = Crystal::Codegen::Target.new(target.to_s.sub(default_libc, "-#{linux_runtime_libc}"))
         end
 
         target
