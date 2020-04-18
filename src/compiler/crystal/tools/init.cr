@@ -273,7 +273,7 @@ module Crystal
       end
 
       private def command
-        `git init #{Process.quote(config.dir)}`
+        `git init #{config.dir}`
       end
     end
 
