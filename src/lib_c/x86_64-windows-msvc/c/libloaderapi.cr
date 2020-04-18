@@ -1,12 +1,5 @@
-# Libloaderapi.h
-require "c/win_def"
+require "c/winnt"
 
 lib LibC
-  alias HMODULE = Void*
-
-  fun GetModuleFileNameW(
-    hModule : HMODULE,
-    lpFilename : LPWSTR,
-    nSize : DWORD
-  ) : DWORD
+  fun GetModuleFileNameW(hModule : HMODULE, lpFilename : LPWSTR, nSize : DWORD) : DWORD
 end

@@ -91,18 +91,20 @@ end
     end
   end
 {% elsif flag?(:win32) %}
+  require "crystal/system/windows"
   require "c/libloaderapi"
 
   class Process
     private def self.executable_path_impl
-      size = 512_u32
-      buf = GC.malloc_atomic(size).as(UInt16*)
-      len = LibC.GetModuleFileNameW(nil, buf, size)
-      if len == 0
-        LibC.dprintf 2, "GetModuleFileNameW ERR: #{LibC.GetLastError}\n"
-        nil
-      else
-        String.from_utf16(Slice.new(buf, len))
+      Crystal::System.retry_wstr_buffer do |buffer, small_buf|
+        len = LibC.GetModuleFileNameW(nil, buffer, buffer.size)
+        if 0 < len < buffer.size
+          break String.from_utf16(buffer[0, len])
+        elsif small_buf && len == buffer.size
+          next 32767 # big enough. 32767 is the maximum total path length of UNC path.
+        else
+          break nil
+        end
       end
     end
   end
