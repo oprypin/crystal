@@ -1,0 +1,15 @@
+on:
+  push:
+    branches: [sync]
+  schedule:
+    - cron: "*/15 * * * *"
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: master
+    - run: git remote add crystal 'https://github.com/crystal-lang/crystal.git'
+    - run: git pull crystal master
+    - run: git push origin master
