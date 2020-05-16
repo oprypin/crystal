@@ -1,6 +1,6 @@
 require "./lib_llvm"
 {% if flag?(:win32) %}
-  @[Link(ldflags: "#{__DIR__}/ext/llvm_ext.obj")]
+  @[Link(ldflags: "#{__DIR__}/ext/llvm_ext.cc")]
 {% else %}
   @[Link(ldflags: "#{__DIR__}/ext/llvm_ext.o")]
 {% end %}
