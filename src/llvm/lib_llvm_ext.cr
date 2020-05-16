@@ -1,5 +1,9 @@
 require "./lib_llvm"
-@[Link(ldflags: "#{__DIR__}/ext/llvm_ext.o")]
+{% if flag?(:win32) %}
+  @[Link(ldflags: "#{__DIR__}/ext/llvm_ext.obj")]
+{% else %}
+  @[Link(ldflags: "#{__DIR__}/ext/llvm_ext.o")]
+{% end %}
 lib LibLLVMExt
   alias Char = LibC::Char
   alias Int = LibC::Int
@@ -100,6 +104,16 @@ lib LibLLVMExt
                                                                                                     name : Char*,
                                                                                                     file : Metadata,
                                                                                                     line : UInt) : Metadata
+
+  fun di_builder_create_unspecified_type = LLVMExtDIBuilderCreateUnspecifiedType(builder : LibLLVMExt::DIBuilder,
+                                                                                 name : Void*,
+                                                                                 size : LibC::SizeT) : LibLLVMExt::Metadata
+
+  fun di_builder_create_lexical_block_file = LLVMExtDIBuilderCreateLexicalBlockFile(builder : LibLLVMExt::DIBuilder,
+                                                                                    scope : LibLLVMExt::Metadata,
+                                                                                    file_scope : LibLLVMExt::Metadata,
+                                                                                    discriminator : UInt32) : LibLLVMExt::Metadata
+
   fun di_builder_replace_temporary = LLVMExtDIBuilderReplaceTemporary(builder : DIBuilder, from : Metadata, to : Metadata)
 
   fun set_current_debug_location = LLVMExtSetCurrentDebugLocation(LibLLVM::BuilderRef, Int, Int, Metadata, Metadata)

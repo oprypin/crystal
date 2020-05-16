@@ -1,7 +1,6 @@
 require "spec"
 require "process"
 require "./spec_helper"
-require "../spec_helper"
 
 private def exit_code_command(code)
   {% if flag?(:win32) %}
@@ -138,7 +137,7 @@ describe Process do
   end
 
   pending_win32 "chroot raises when unprivileged" do
-    status, output = build_and_run <<-'CODE'
+    status, output = compile_and_run_source <<-'CODE'
       begin
         Process.chroot("/usr")
         puts "FAIL"
@@ -300,15 +299,15 @@ describe Process do
 
   describe "find_executable" do
     pwd = Process::INITIAL_PWD
-    crystal_path = File.join(pwd, "bin", "crystal")
+    crystal_path = Path.new(pwd, "bin", "crystal").to_s
 
     pending_win32 "resolves absolute executable" do
-      Process.find_executable(File.join(pwd, "bin", "crystal")).should eq(crystal_path)
+      Process.find_executable(Path.new(pwd, "bin", "crystal")).should eq(crystal_path)
     end
 
     pending_win32 "resolves relative executable" do
-      Process.find_executable(File.join("bin", "crystal")).should eq(crystal_path)
-      Process.find_executable(File.join("..", File.basename(pwd), "bin", "crystal")).should eq(crystal_path)
+      Process.find_executable(Path.new("bin", "crystal")).should eq(crystal_path)
+      Process.find_executable(Path.new("..", File.basename(pwd), "bin", "crystal")).should eq(crystal_path)
     end
 
     pending_win32 "searches within PATH" do
