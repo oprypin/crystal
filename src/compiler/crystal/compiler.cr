@@ -83,6 +83,8 @@ module Crystal
     # If `true`, runs LLVM optimizations.
     property? release = false
 
+    property? backtrace2 : Bool?
+
     # Sets the code model. Check LLVM docs to learn about this.
     property mcmodel = LLVM::CodeModel::Default
 
@@ -210,6 +212,10 @@ module Crystal
       program.flags << "debug" unless debug.none?
       program.flags << "static" if static?
       program.flags.concat @flags
+      if backtrace2? || program.has_flag?("win32") && !release?
+        program.backtrace2 = true
+        program.flags << "backtrace2"
+      end
       program.wants_doc = wants_doc?
       program.color = color?
       program.stdout = stdout
@@ -244,7 +250,11 @@ module Crystal
       parser = Parser.new(source.code, program.string_pool)
       parser.filename = source.filename
       parser.wants_doc = wants_doc?
-      parser.parse
+      node = parser.parse
+      if program.has_flag?("backtrace2")
+        node = BacktraceTransformer.new.transform(node)
+      end
+      node
     rescue ex : InvalidByteSequenceError
       stderr.print colorize("Error: ").red.bold
       stderr.print colorize("file '#{Crystal.relative_filename(source.filename)}' is not a valid Crystal source file: ").bold

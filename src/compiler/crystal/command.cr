@@ -432,6 +432,10 @@ class Crystal::Command
         end
       end
 
+      opts.on("--backtrace2", "") do
+        compiler.backtrace2 = true
+      end
+
       opts.on("-s", "--stats", "Enable statistics output") do
         @progress_tracker.stats = true
       end
@@ -553,6 +557,9 @@ class Crystal::Command
     end
     opts.on("--release", "Compile in release mode") do
       compiler.release = true
+    end
+    opts.on("--backtrace2", "") do
+      compiler.backtrace2 = true
     end
     opts.on("-s", "--stats", "Enable statistics output") do
       compiler.progress_tracker.stats = true

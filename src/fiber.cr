@@ -289,4 +289,23 @@ class Fiber
     # Push the used section of the stack
     GC.push_stack @context.stack_top, @stack_bottom
   end
+
+  {% if flag?(:backtrace2) %}
+    @backtrace = [] of String
+    @backtrace_size = 0
+
+    def push_backtrace(s) : Nil
+      @backtrace.delete_at(@backtrace_size..)
+      @backtrace.push(s)
+      @backtrace_size += 1
+    end
+
+    def pop_backtrace : Nil
+      @backtrace_size -= 1
+    end
+
+    def self.backtrace
+      current.@backtrace
+    end
+  {% end %}
 end

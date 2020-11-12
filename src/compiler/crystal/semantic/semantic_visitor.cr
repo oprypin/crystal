@@ -53,6 +53,9 @@ abstract class Crystal::SemanticVisitor < Crystal::Visitor
           parser.filename = filename
           parser.wants_doc = @program.wants_doc?
           parsed_nodes = parser.parse
+          if program.backtrace2?
+            parsed_nodes = BacktraceTransformer.new.transform(parsed_nodes)
+          end
           parsed_nodes = @program.normalize(parsed_nodes, inside_exp: inside_exp?)
           # We must type the node immediately, in case a file requires another
           # *before* one of the files in `filenames`

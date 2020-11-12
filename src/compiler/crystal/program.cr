@@ -67,6 +67,8 @@ module Crystal
     # If `true`, doc comments are attached to types and methods.
     property? wants_doc = false
 
+    property? backtrace2 = false
+
     # If `true`, error messages can be colorized
     property? color = true
 
