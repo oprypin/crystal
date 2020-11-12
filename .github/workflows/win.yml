@@ -1,0 +1,27 @@
+name: Windows CI
+
+on: [push, pull_request]
+
+jobs:
+  windows-job:
+    runs-on: windows-latest
+    steps:
+      - name: Disable CRLF line ending substitution
+        run: |
+          git config --global core.autocrlf false
+      - name: Download Crystal source
+        uses: actions/checkout@v2
+
+      - name: Download LLVM
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/llvm-10.0.0.src.tar.xz -OutFile llvm.tar.xz
+          7z x llvm.tar.xz
+          7z x llvm.tar
+          mv llvm-* llvm-src
+      - name: Patch LLVM for VS 2019 16.7.0
+        working-directory: ./llvm-src
+        if: steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          sed -i 's/#ifdef HAVE_STD_IS_TRIVIALLY_COPYABLE/#if 0/' include/llvm/Support/type_traits.h
+          cat include/llvm/Support/type_traits.h
