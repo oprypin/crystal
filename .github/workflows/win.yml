@@ -126,19 +126,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: llvm
-          key: llvm-libs-10.0.0
+          key: llvm-libs-11.0.0
       - name: Download LLVM
         if: steps.cache-llvm.outputs.cache-hit != 'true'
         run: |
-          iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/llvm-10.0.0.src.tar.xz -OutFile llvm.tar.xz
+          iwr https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/llvm-11.0.0.src.tar.xz -OutFile llvm.tar.xz
           7z x llvm.tar.xz
           7z x llvm.tar
           mv llvm-* llvm-src
-      - name: Patch LLVM for VS 2019 16.7.0
-        working-directory: ./llvm-src
-        if: steps.cache-llvm.outputs.cache-hit != 'true'
-        run: |
-          sed -i 's/#ifdef HAVE_STD_IS_TRIVIALLY_COPYABLE/#if 0/' include/llvm/Support/type_traits.h
       - name: Build LLVM
         if: steps.cache-llvm.outputs.cache-hit != 'true'
         working-directory: ./llvm-src
@@ -150,52 +145,3 @@ jobs:
         run: |
           mv llvm-src/Release llvm
           mv llvm-src/include llvm/
-
-      - name: Set up environment
-        run: |
-          echo "CRYSTAL_PATH=$(pwd)\src" >> ${env:GITHUB_ENV}
-          echo "LIB=${env:LIB};$(pwd)\libs" >> ${env:GITHUB_ENV}
-          echo "TERM=dumb" >> ${env:GITHUB_ENV}
-          echo "LLVM_CONFIG=$(pwd)\llvm\bin\llvm-config.exe" >> ${env:GITHUB_ENV}
-          echo "SOURCE_DATE_EPOCH=$(Get-Date -Millisecond 0 -UFormat %s)" >> ${env:GITHUB_ENV}
-
-      - name: Download Crystal object file
-        uses: actions/download-artifact@v2
-        with:
-          name: objs
-      - name: Build LLVM extensions
-        run: |
-          cl /MT /c src\llvm\ext\llvm_ext.cc -I llvm\include /Fosrc\llvm\ext\llvm_ext.obj
-      - name: Link Crystal executable
-        run: |
-          Invoke-Expression "cl crystal.obj /Fecrystal-cross src\llvm\ext\llvm_ext.obj $(llvm\bin\llvm-config.exe --libs) libs\pcre.lib libs\gc.lib advapi32.lib libcmt.lib legacy_stdio_definitions.lib /F10000000"
-
-      - name: Re-build Crystal
-        run: |
-          .\crystal-cross.exe build src/compiler/crystal.cr -Di_know_what_im_doing -Dwithout_playground --link-flags=/F10000000
-          mv crystal.exe bin/
-
-      - name: Gather Crystal binaries
-        run: |
-          mkdir crystal
-          cp bin/crystal.exe crystal/
-          cp libs/* crystal/
-      - name: Upload Crystal binaries
-        uses: actions/upload-artifact@v2
-        with:
-          name: crystal
-          path: crystal
-
-      - name: Build stdlib specs executable
-        run: |
-          bin\crystal.exe build spec/std_spec.cr --exclude-warnings spec/std --exclude-warnings spec/compiler -Dwithout_openssl -Di_know_what_im_doing
-      - name: Run stdlib specs
-        run: |
-          .\std_spec.exe
-
-      - name: Build compiler specs executable
-        run: |
-          bin\crystal.exe build spec/compiler_spec.cr --exclude-warnings spec/std --exclude-warnings spec/compiler -Dwithout_playground -Di_know_what_im_doing
-      - name: Run compiler specs
-        run: |
-          .\compiler_spec.exe
