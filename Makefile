@@ -23,6 +23,7 @@ threads ?=      ## Maximum number of threads to use
 debug ?=        ## Add symbolic debug info
 verbose ?=      ## Run specs in verbose mode
 junit_output ?= ## Path to output junit results
+cov_output ?=   ## Directory to output coverage results
 static ?=       ## Enable static linking
 
 O := .build
@@ -48,6 +49,7 @@ LIB_CRYSTAL_TARGET = src/ext/libcrystal.a
 DEPS = $(LLVM_EXT_OBJ) $(LIB_CRYSTAL_TARGET)
 CFLAGS += -fPIC $(if $(debug),-g -O0)
 CXXFLAGS += $(if $(debug),-g -O0)
+COVERAGE := $(if $(coverage_output),kcov --verify --include-path=. $(coverage_output))
 CRYSTAL_VERSION ?= $(shell cat src/VERSION)
 
 ifeq ($(shell command -v ld.lld >/dev/null && uname -s),Linux)
@@ -82,15 +84,15 @@ help: ## Show this help
 
 .PHONY: spec
 spec: $(O)/all_spec ## Run all specs
-	$(O)/all_spec $(SPEC_FLAGS)
+	$(COVERAGE)$(O)/all_spec $(SPEC_FLAGS)
 
 .PHONY: std_spec
 std_spec: $(O)/std_spec ## Run standard library specs
-	$(O)/std_spec $(SPEC_FLAGS)
+	$(COVERAGE)$(O)/std_spec $(SPEC_FLAGS)
 
 .PHONY: compiler_spec
 compiler_spec: $(O)/compiler_spec ## Run compiler specs
-	$(O)/compiler_spec $(SPEC_FLAGS)
+	$(COVERAGE)$(O)/compiler_spec $(SPEC_FLAGS)
 
 .PHONY: docs
 docs: ## Generate standard library documentation

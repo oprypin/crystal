@@ -23,7 +23,12 @@ jobs:
         run: bin/ci prepare_build
 
       - name: Test
-        run: bin/ci build
+        run: coverage_output=.build/coverage bin/ci build
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
+        with:
+          directory: .build/coverage
 
   test_linux_32:
     env:
