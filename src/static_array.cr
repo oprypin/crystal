@@ -1,8 +1,41 @@
 # A fixed-size, stack allocated array.
+#
+# `StaticArray` is a generic type with type argument `T` specifying the type of
+# its elements and `N` the fixed size. For example `StaticArray(Int32, 3)`
+# is a static array of `Int32` with three elements.
+#
+# Instantiations of this static array type:
+#
+# ```
+# StaticArray(Int32, 3).new(42)           # => StaticArray[42, 42, 42]
+# StaticArray(Int32, 3).new { |i| i * 2 } # => StaticArray[0, 2, 4]
+# StaticArray[0, 8, 15]                   # => StaticArray[0, 8, 15]
+# ```
+#
+# This type can also be expressed as `Int32[3]` (only in type grammar). A typical use
+# case is in combination with `uninitialized`:
+#
+# ```
+# ints = uninitialized Int32[3]
+# ints[0] = 0
+# ints[1] = 8
+# ints[2] = 15
+# ```
+#
+# For number types there is also `Number.static_array` which can be used to initialize
+# a static array:
+#
+# ```
+# Int32.static_array(0, 8, 15) # => StaticArray[0, 8, 15]
+# ```
+#
+# The generic argument type `N` is a special case in the type grammar as it
+# doesn't specify a type but a size. Its value can be an `Int32` literal or
+# constant.
 struct StaticArray(T, N)
   include Indexable(T)
 
-  # Create a new `StaticArray` with the given *args*. The type of the
+  # Creates a new `StaticArray` with the given *args*. The type of the
   # static array will be the union of the type of the given *args*,
   # and its size will be the number of elements in *args*.
   #
@@ -81,7 +114,7 @@ struct StaticArray(T, N)
   end
 
   @[AlwaysInline]
-  def unsafe_at(index : Int)
+  def unsafe_fetch(index : Int)
     to_unsafe[index]
   end
 
@@ -127,21 +160,41 @@ struct StaticArray(T, N)
     N
   end
 
-  # Fills the array by substituting all elements with the given value.
+  # Replaces every element in `self` with the given *value*. Returns `self`.
   #
   # ```
-  # array = StaticArray(Int32, 3).new { |i| i + 1 }
-  # array.[]= 2 # => nil
-  # array       # => StaticArray[2, 2, 2]
+  # array = StaticArray(Int32, 3).new 0 # => StaticArray[0, 0, 0]
+  # array.fill(2)                       # => StaticArray[2, 2, 2]
+  # array                               # => StaticArray[2, 2, 2]
   # ```
-  def []=(value : T)
+  def fill(value : T) : self
+    {% if Int::Primitive.union_types.includes?(T) || Float::Primitive.union_types.includes?(T) %}
+      if value == 0
+        to_unsafe.clear(size)
+        return self
+      end
+    {% end %}
+
+    fill { value }
+  end
+
+  # Yields each index of `self` to the given block and then assigns
+  # the block's value in that position. Returns `self`.
+  #
+  # ```
+  # array = StaticArray[2, 1, 1, 1]
+  # array.fill { |i| i * i } # => StaticArray[0, 1, 4, 9]
+  # array                    # => StaticArray[0, 1, 4, 9]
+  # ```
+  def fill(& : Int32 -> T) : self
     size.times do |i|
-      to_unsafe[i] = value
+      to_unsafe[i] = yield i
     end
+    self
   end
 
   # Modifies `self` by randomizing the order of elements in the array
-  # using the given *random* number generator.  Returns `self`.
+  # using the given *random* number generator. Returns `self`.
   #
   # ```
   # a = StaticArray(Int32, 3).new { |i| i + 1 } # => StaticArray[1, 2, 3]
@@ -176,14 +229,20 @@ struct StaticArray(T, N)
   end
 
   # Like `map!`, but the block gets passed both the element and its index.
-  def map_with_index!(&block : (T, Int32) -> T)
-    to_unsafe.map_with_index!(size) { |e, i| yield e, i }
+  #
+  # Accepts an optional *offset* parameter, which tells it to start counting
+  # from there.
+  def map_with_index!(offset = 0, &block : (T, Int32) -> T)
+    to_unsafe.map_with_index!(size) { |e, i| yield e, offset + i }
     self
   end
 
   # Like `map`, but the block gets passed both the element and its index.
-  def map_with_index(&block : (T, Int32) -> U) forall U
-    StaticArray(U, N).new { |i| yield to_unsafe[i], i }
+  #
+  # Accepts an optional *offset* parameter, which tells it to start counting
+  # from there.
+  def map_with_index(offset = 0, &block : (T, Int32) -> U) forall U
+    StaticArray(U, N).new { |i| yield to_unsafe[i], offset + i }
   end
 
   # Reverses the elements of this array in-place, then returns `self`.
@@ -226,9 +285,9 @@ struct StaticArray(T, N)
   # array = StaticArray(Int32, 3).new { |i| i + 1 }
   # array.to_s # => "StaticArray[1, 2, 3]"
   # ```
-  def to_s(io : IO)
+  def to_s(io : IO) : Nil
     io << "StaticArray["
-    join ", ", io, &.inspect(io)
+    join io, ", ", &.inspect(io)
     io << ']'
   end
 

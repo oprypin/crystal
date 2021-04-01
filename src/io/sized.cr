@@ -13,7 +13,7 @@ class IO::Sized < IO
   property? sync_close : Bool
 
   # The number of remaining bytes to be read.
-  getter read_remaining : UInt64
+  property read_remaining : UInt64
   getter? closed : Bool
 
   # Creates a new `IO::Sized` which wraps *io*, and can read a maximum of
@@ -72,7 +72,7 @@ class IO::Sized < IO
     end
   end
 
-  def write(slice : Bytes)
+  def write(slice : Bytes) : NoReturn
     raise IO::Error.new "Can't write to IO::Sized"
   end
 

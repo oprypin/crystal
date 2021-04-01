@@ -63,7 +63,7 @@ module Crystal
         end
 
         signature.named_args.try &.each_with_index do |named_arg, i|
-          arg = match.def.args.find(&.name.==(named_arg.name))
+          arg = match.def.args.find(&.external_name.==(named_arg.name))
           if arg && (arg.type? || arg.restriction)
             indices[args_size + i] = true
           end
@@ -277,11 +277,7 @@ module Crystal
     delegate cover, cover_size, to: aliased_type
   end
 
-  class NumberLiteralType
-    delegate cover, cover_size, to: (@matched_type || literal.type)
-  end
-
-  class SymbolLiteralType
-    delegate cover, cover_size, to: (@matched_type || literal.type)
+  class LiteralType
+    delegate cover, cover_size, to: (@match || literal.type)
   end
 end

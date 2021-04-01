@@ -43,11 +43,6 @@ describe HTTP::Headers do
     headers["foo"]?.should eq("bar")
   end
 
-  it "fetches" do
-    headers = HTTP::Headers{"Foo" => "bar"}
-    headers.fetch("foo").should eq("bar")
-  end
-
   it "fetches with default value" do
     headers = HTTP::Headers.new
     headers.fetch("foo", "baz").should eq("baz")
@@ -76,9 +71,36 @@ describe HTTP::Headers do
     headers.empty?.should be_true
   end
 
-  it "equals another hash" do
-    headers = HTTP::Headers{"Foo" => "bar"}
-    headers.should eq({"foo" => "bar"})
+  describe "#==" do
+    it "equals other instance" do
+      a = HTTP::Headers{"Foo" => "bar"}
+      b = HTTP::Headers{"Foo" => "bar"}
+      c = HTTP::Headers{"Foo" => "baz"}
+      a.should eq b
+      a.hash.should eq b.hash
+      a.should_not eq c
+      a.hash.should_not eq c.hash
+    end
+
+    it "case-insensitive keys" do
+      a = HTTP::Headers{"Foo" => "bar"}
+      b = HTTP::Headers{"foo" => "bar"}
+      c = HTTP::Headers{"voo" => "bar"}
+      a.should eq b
+      a.hash.should eq b.hash
+      a.should_not eq c
+      a.hash.should_not eq c.hash
+    end
+
+    it "different internal representation" do
+      a = HTTP::Headers{"Foo" => "bar"}
+      b = HTTP::Headers{"Foo" => ["bar"]}
+      c = HTTP::Headers{"Foo" => ["bar", "baz"]}
+      a.should eq b
+      a.hash.should eq b.hash
+      a.should_not eq c
+      a.hash.should_not eq c.hash
+    end
   end
 
   it "dups" do
@@ -163,6 +185,21 @@ describe HTTP::Headers do
   it "matches word with comma separated value, partial match" do
     headers = HTTP::Headers{"foo" => "bar, bazo, baz"}
     headers.includes_word?("foo", "baz").should be_true
+  end
+
+  it "doesn't match word with comma separated value, partial match" do
+    headers = HTTP::Headers{"foo" => "bar, bazo"}
+    headers.includes_word?("foo", "baz").should be_false
+  end
+
+  it "matches word with comma separated value, partial match (array)" do
+    headers = HTTP::Headers{"foo" => ["foo", "baz, bazo"]}
+    headers.includes_word?("foo", "baz").should be_true
+  end
+
+  it "doesn't match word with comma separated value, partial match (array)" do
+    headers = HTTP::Headers{"foo" => ["foo", "bar, bazo"]}
+    headers.includes_word?("foo", "baz").should be_false
   end
 
   it "matches word among headers" do

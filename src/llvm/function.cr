@@ -3,6 +3,10 @@ require "./value_methods"
 struct LLVM::Function
   include LLVM::ValueMethods
 
+  def self.from_value(value : LLVM::ValueMethods)
+    new(value.to_unsafe)
+  end
+
   def basic_blocks
     BasicBlockCollection.new self
   end
@@ -74,5 +78,17 @@ struct LLVM::Function
 
   def params
     ParameterCollection.new self
+  end
+
+  def personality_function=(fn)
+    LibLLVM.set_personality_fn(self, fn)
+  end
+
+  def delete
+    LibLLVM.delete_function(self)
+  end
+
+  def naked?
+    attributes.naked?
   end
 end

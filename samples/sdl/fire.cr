@@ -281,7 +281,7 @@ class Screen
   end
 
   def put_pixel(point, color)
-    color = color.to_u32
+    color = color.to_u32!
     offset = @surface.offset(point.x, point.y)
     @surface[offset] = color
 
@@ -321,7 +321,7 @@ point_count = ARGV.size > 0 ? ARGV[0].to_i : 4
 yellow = YellowColorPattern.new
 magenta = MagentaColorPattern.new
 cyan = CyanColorPattern.new
-rainbow = RainbowColorPattern.new [yellow, magenta, cyan] of ColorPattern
+rainbow = RainbowColorPattern.new [yellow, magenta, cyan]
 
 main_points = [] of MainPoint
 main_points << MainPoint.new(50, 50, -Math::PI / 8, 1.4, yellow)

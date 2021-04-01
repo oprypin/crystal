@@ -55,22 +55,6 @@ describe "Semantic: pointer" do
     assert_type("Pointer(Int32).new(123_u64)") { pointer_of(int32) }
   end
 
-  it "types nil or pointer type" do
-    result = assert_type("1 == 1 ? nil : Pointer(Int32).new(0_u64)") { nilable pointer_of(int32) }
-    result.node.type.should be_a(NilablePointerType)
-  end
-
-  it "types nil or pointer type with typedef" do
-    result = assert_type(%(
-      lib LibC
-        type T = Void*
-        fun foo : T?
-      end
-      LibC.foo
-      )) { nilable types["LibC"].types["T"] }
-    result.node.type.should be_a(NilablePointerType)
-  end
-
   it "types pointer of constant" do
     result = assert_type("
       FOO = 1
@@ -112,22 +96,6 @@ describe "Semantic: pointer" do
       x = pointerof(pointer)
       ),
       "recursive pointerof expansion"
-  end
-
-  it "errors if using nil? on pointer type" do
-    assert_error %(
-      a = 1
-      pointerof(a).nil?
-      ),
-      "use `null?`"
-  end
-
-  it "errors if using nil? on union including pointer type" do
-    assert_error %(
-      a = 1
-      (1 || pointerof(a)).nil?
-      ),
-      "use `null?`"
   end
 
   it "can assign nil to void pointer" do
@@ -178,5 +146,53 @@ describe "Semantic: pointer" do
 
       pointerof(LibFoo.extern)
       )) { pointer_of(int32) }
+  end
+
+  it "says undefined variable (#7556)" do
+    assert_error %(
+      pointerof(foo)
+      ),
+      "undefined local variable or method 'foo'"
+  end
+
+  it "can assign pointerof virtual type (#8216)" do
+    semantic(%(
+      class Base
+      end
+
+      class Sub < Base
+      end
+
+      u = uninitialized Base
+
+      x : Pointer(Base)
+      x = pointerof(u)
+    ))
+  end
+
+  it "errors with non-matching generic value with value= (#10211)" do
+    assert_error %(
+      class Gen(T)
+      end
+
+      ptr = Pointer(Gen(Char | Int32)).malloc(1_u64)
+      ptr.value = Gen(Int32).new
+      ),
+      "type must be Gen(Char | Int32), not Gen(Int32)"
+  end
+
+  it "errors with non-matching generic value with value=, generic type (#10211)" do
+    assert_error %(
+      module Moo(T)
+      end
+
+      class Foo(T)
+        include Moo(T)
+      end
+
+      ptr = Pointer(Moo(Char | Int32)).malloc(1_u64)
+      ptr.value = Foo(Int32).new
+      ),
+      "type must be Moo(Char | Int32), not Foo(Int32)"
   end
 end

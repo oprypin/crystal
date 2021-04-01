@@ -15,7 +15,7 @@ describe "Semantic: while" do
 
   it "reports break cannot be used outside a while" do
     assert_error "break",
-      "Invalid break"
+      "invalid break"
   end
 
   it "types while true as NoReturn" do
@@ -32,7 +32,7 @@ describe "Semantic: while" do
 
   it "reports next cannot be used outside a while" do
     assert_error "next",
-      "Invalid next"
+      "invalid next"
   end
 
   it "uses var type inside while if endless loop" do
@@ -168,5 +168,144 @@ describe "Semantic: while" do
       end
       a
       )) { nilable int32 }
+  end
+
+  it "doesn't use type at end of endless while if variable is reassigned" do
+    assert_type(%(
+      while true
+        a = 1
+        if 1 == 1
+          break
+        end
+        a = 'x'
+      end
+      a
+      )) { int32 }
+  end
+
+  it "doesn't use type at end of endless while if variable is reassigned (2)" do
+    assert_type(%(
+      a = ""
+      while true
+        a = 1
+        if 1 == 1
+          break
+        end
+        a = 'x'
+      end
+      a
+      )) { int32 }
+  end
+
+  it "doesn't use type at end of endless while if variable is reassigned (3)" do
+    assert_type(%(
+      a = {1}
+      while true
+        a = a[0]
+        if 1 == 1
+          break
+        end
+        a = {'x'}
+      end
+      a
+      )) { union_of(int32, char) }
+  end
+
+  it "uses type at end of endless while if variable is reassigned, but not before first break" do
+    assert_type(%(
+      while true
+        if 1 == 1
+          break
+        end
+        a = 1
+        if 1 == 1
+          break
+        end
+        a = 'x'
+      end
+      a
+      )) { nilable union_of(int32, char) }
+  end
+
+  it "uses type at end of endless while if variable is reassigned, but not before first break (2)" do
+    assert_type(%(
+      a = ""
+      while true
+        if 1 == 1
+          break
+        end
+        a = 1
+        if 1 == 1
+          break
+        end
+        a = 'x'
+      end
+      a
+      )) { union_of(int32, char, string) }
+  end
+
+  it "rebinds condition variable after while body (#6158)" do
+    assert_type(%(
+      class Foo
+        @parent : self?
+
+        def parent
+          @parent
+        end
+      end
+
+      class Bar
+        def initialize(@parent : Foo)
+        end
+
+        def parent
+          @parent
+        end
+      end
+
+      a = Foo.new
+      b = Bar.new(a)
+      while b = b.parent
+        break if 1 == 1
+      end
+      b
+      )) { nilable types["Foo"] }
+  end
+
+  it "doesn't type var as nilable after break inside rescue" do
+    assert_type(%(
+      while true
+        begin
+          foo = 1
+          break
+        rescue
+        end
+      end
+      foo
+      )) { int32 }
+  end
+
+  it "types variable as nilable if raise before assign" do
+    assert_type(%(
+      require "prelude"
+
+      while true
+        begin
+          raise "oops"
+          foo = 12345
+        rescue
+        end
+        break
+      end
+      foo
+      )) { nilable int32 }
+  end
+
+  it "finds while cond assign target in Not (#10345)" do
+    assert_type(%(
+      while !(x = 1 || nil)
+      end
+      x
+      )) { int32 }
   end
 end

@@ -31,7 +31,7 @@ class File
   #
   # The binary representation of this enum is defined to be same representation
   # as the permission bits of a unix `st_mode` field. `File::Permissions`
-  # can also be compared to it's underlying bitset, for example
+  # can also be compared to its underlying bitset, for example
   # `File::Permissions::All == 0o777` will always be `true`.
   #
   # On windows, only the `OwnerWrite` bit is effective. All file permissions
@@ -58,7 +58,7 @@ class File
       new(int.to_i16)
     end
 
-    def to_s(io)
+    def to_s(io : IO) : Nil
       io << (owner_read? ? 'r' : '-')
       io << (owner_write? ? 'w' : '-')
       io << (owner_execute? ? 'x' : '-')
@@ -75,11 +75,11 @@ class File
     end
   end
 
-  # A `File::Info` contains metadata regarding a file. It is returned by
-  # `File.info`, and `File#info`.
+  # A `File::Info` contains metadata regarding a file.
+  # It is returned by `File.info`, `File#info` and `File.info?`.
   abstract struct Info
     # Size of the file, in bytes.
-    abstract def size : UInt64
+    abstract def size : Int64
 
     # The permissions of the file.
     abstract def permissions : Permissions
@@ -93,17 +93,17 @@ class File
     # The last time this file was modified.
     abstract def modification_time : Time
 
-    # The user ID of the file's owner.
-    abstract def owner : UInt32
+    # The user ID that the file belongs to.
+    abstract def owner_id : String
 
     # The group ID that the file belongs to.
-    abstract def group : UInt32
+    abstract def group_id : String
 
-    # Two `File::Info`s are equal if and only if they are of the same file.
+    # Returns true if this `Info` and *other* are of the same file.
     #
     # On unix, this compares device and inode fields, and will compare equal for
     # hard linked files.
-    abstract def ==(other : File::Info)
+    abstract def same_file?(other : File::Info) : Bool
 
     # Returns true if this `Info` represents a standard file. Shortcut for
     # `type.file?`.

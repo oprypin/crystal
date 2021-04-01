@@ -101,7 +101,11 @@ class OpenSSL::Cipher
 
   def finalize
     LibCrypto.evp_cipher_ctx_free(@ctx) if @ctx
-    @ctx = nil
+    @ctx = typeof(@ctx).null
+  end
+
+  def authenticated?
+    LibCrypto.evp_cipher_flags(cipher).includes?(LibCrypto::CipherFlags::EVP_CIPH_FLAG_AEAD_CIPHER)
   end
 
   private def cipherinit(cipher = nil, engine = nil, key = nil, iv = nil, enc = -1)

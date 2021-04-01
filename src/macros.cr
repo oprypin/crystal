@@ -46,13 +46,24 @@
 # Point.new      # => #<Point(@x=0, @y=0)>
 # Point.new y: 2 # => #<Point(@x=0, @y=2)>
 # ```
+#
+# This macro also provides a `copy_with` method which returns
+# a copy of the record with the provided properties altered.
+#
+# ```
+# record Point, x = 0, y = 0
+#
+# p = Point.new y: 2 # => #<Point(@x=0, @y=2)>
+# p.copy_with x: 3   # => #<Point(@x=3, @y=2)>
+# p                  # => #<Point(@x=0, @y=2)>
+# ```
 macro record(name, *properties)
   struct {{name.id}}
     {% for property in properties %}
       {% if property.is_a?(Assign) %}
         getter {{property.target.id}}
       {% elsif property.is_a?(TypeDeclaration) %}
-        getter {{property.var}} : {{property.type}}
+        getter {{property}}
       {% else %}
         getter :{{property.id}}
       {% end %}
@@ -67,18 +78,42 @@ macro record(name, *properties)
 
     {{yield}}
 
+    def copy_with({{
+                    *properties.map do |property|
+                      if property.is_a?(Assign)
+                        "#{property.target.id} _#{property.target.id} = @#{property.target.id}".id
+                      elsif property.is_a?(TypeDeclaration)
+                        "#{property.var.id} _#{property.var.id} = @#{property.var.id}".id
+                      else
+                        "#{property.id} _#{property.id} = @#{property.id}".id
+                      end
+                    end
+                  }})
+      self.class.new({{
+                       *properties.map do |property|
+                         if property.is_a?(Assign)
+                           "_#{property.target.id}".id
+                         elsif property.is_a?(TypeDeclaration)
+                           "_#{property.var.id}".id
+                         else
+                           "_#{property.id}".id
+                         end
+                       end
+                     }})
+    end
+
     def clone
-      {{name.id}}.new({{
-                        *properties.map do |property|
-                          if property.is_a?(Assign)
-                            "@#{property.target.id}.clone".id
-                          elsif property.is_a?(TypeDeclaration)
-                            "@#{property.var.id}.clone".id
-                          else
-                            "@#{property.id}.clone".id
-                          end
-                        end
-                      }})
+      self.class.new({{
+                       *properties.map do |property|
+                         if property.is_a?(Assign)
+                           "@#{property.target.id}.clone".id
+                         elsif property.is_a?(TypeDeclaration)
+                           "@#{property.var.id}.clone".id
+                         else
+                           "@#{property.id}.clone".id
+                         end
+                       end
+                     }})
     end
   end
 end
@@ -101,7 +136,7 @@ macro pp!(*exps)
     {% exp = exps.first %}
     %prefix = "#{{{ exp.stringify }}} # => "
     ::print %prefix
-    ::pp {{exp}}
+    ::pp({{exp}})
   {% else %}
     %names = { {{*exps.map(&.stringify)}} }
     %max_size = %names.max_of &.size
@@ -110,7 +145,7 @@ macro pp!(*exps)
         begin
           %prefix = "#{%names[{{i}}].ljust(%max_size)} # => "
           ::print %prefix
-          ::pp {{exp}}
+          ::pp({{exp}})
         end,
       {% end %}
     }
@@ -135,7 +170,7 @@ macro p!(*exps)
     {% exp = exps.first %}
     %prefix = "#{{{ exp.stringify }}} # => "
     ::print %prefix
-    ::p {{exp}}
+    ::p({{exp}})
   {% else %}
     %names = { {{*exps.map(&.stringify)}} }
     %max_size = %names.max_of &.size
@@ -144,17 +179,9 @@ macro p!(*exps)
         begin
           %prefix = "#{%names[{{i}}].ljust(%max_size)} # => "
           ::print %prefix
-          ::p {{exp}}
+          ::p({{exp}})
         end,
       {% end %}
     }
   {% end %}
-end
-
-macro assert_responds_to(var, method)
-  if {{var}}.responds_to?(:{{method}})
-    {{var}}
-  else
-    raise "Expected {{var}} to respond to :{{method}}, not #{ {{var}} }"
-  end
 end

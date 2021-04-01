@@ -114,7 +114,7 @@ class Crystal::Call
       if call_arg.is_a?(Out)
         arg_type = arg.type
         if arg_type.is_a?(PointerInstanceType)
-          if arg_type.element_type.remove_indirection.void?
+          if arg_type.element_type.remove_typedef.void?
             call_arg.raise "can't use out with Void* (argument #{lib_arg_name(arg, i)} of #{untyped_def.owner}.#{untyped_def.name} is Void*)"
           end
 
@@ -244,16 +244,16 @@ class Crystal::Call
 
       self_arg.value =
         case unaliased_type
-        when program.uint8  ; num.to_u8.to_s
-        when program.uint16 ; num.to_u16.to_s
-        when program.uint32 ; num.to_u32.to_s
-        when program.uint64 ; num.to_u64.to_s
-        when program.int8   ; num.to_i8.to_s
-        when program.int16  ; num.to_i16.to_s
-        when program.int32  ; num.to_i32.to_s
-        when program.int64  ; num.to_i64.to_s
-        when program.float32; num.to_f32.to_s
-        else                  num.to_f64.to_s
+        when program.uint8  ; num.to_u8!.to_s
+        when program.uint16 ; num.to_u16!.to_s
+        when program.uint32 ; num.to_u32!.to_s
+        when program.uint64 ; num.to_u64!.to_s
+        when program.int8   ; num.to_i8!.to_s
+        when program.int16  ; num.to_i16!.to_s
+        when program.int32  ; num.to_i32!.to_s
+        when program.int64  ; num.to_i64!.to_s
+        when program.float32; num.to_f32!.to_s
+        else                  num.to_f64!.to_s
         end
       self_arg.kind = unaliased_type.kind
       self_arg.type = unaliased_type
@@ -287,8 +287,6 @@ class Crystal::Type
       self.not_nil_type.allowed_in_lib?
     when NilableProcType
       self.proc_type.allowed_in_lib?
-    when NilablePointerType
-      self.pointer_type.allowed_in_lib?
     when ProcInstanceType
       self.arg_types.all?(&.allowed_in_lib?) && (self.return_type.allowed_in_lib? || self.return_type.nil_type?)
     when StaticArrayInstanceType
@@ -310,9 +308,6 @@ class Crystal::Type
     when ProcInstanceType
       # fun will be cast to return nil
       expected_type.is_a?(ProcInstanceType) && expected_type.return_type == program.nil && expected_type.arg_types == self.arg_types
-    when NilablePointerType
-      # nilable pointer is just a pointer
-      self.pointer_type == expected_type
     when PointerInstanceType
       # any pointer matches a void*
       expected_type.is_a?(PointerInstanceType) && expected_type.element_type.void?

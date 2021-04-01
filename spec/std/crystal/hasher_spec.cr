@@ -1,6 +1,10 @@
 require "spec"
 require "bit_array"
-require "big"
+require "../spec_helper"
+
+{% unless flag?(:win32) %}
+  require "big"
+{% end %}
 require "random/secure"
 
 struct Crystal::Hasher
@@ -56,10 +60,13 @@ describe "Crystal::Hasher" do
       Int64::MAX.hash.should eq(Int64::MAX.hash)
     end
 
-    pending "128bit types should be hashed ok" do
-      1.to_i128.hash.should eq(1_i8.hash)
-      1.to_u128.hash.should eq(1_u8.hash)
-    end
+    # TODO: remove fencing when 128bits support is added to non-native platforms
+    {% if flag?(:bits64) %}
+      pending_win32 "128bit types should be hashed ok" do
+        1.to_i128.hash.should eq(1_i8.hash)
+        1.to_u128.hash.should eq(1_u8.hash)
+      end
+    {% end %}
 
     it "#float should change state and differ" do
       hasher = TestHasher.for_test
@@ -245,15 +252,15 @@ describe "Crystal::Hasher" do
       1_i32.hash.should eq(1_f64.hash)
     end
 
-    it "should 1_f32 and 1.to_big_f hashes equal" do
+    pending_win32 "should 1_f32 and 1.to_big_f hashes equal" do
       1_f32.hash.should eq(1.to_big_f.hash)
     end
 
-    it "should 1_f32 and 1.to_big_r hashes equal" do
+    pending_win32 "should 1_f32 and 1.to_big_r hashes equal" do
       1_f32.hash.should eq(1.to_big_r.hash)
     end
 
-    it "should 1_f32 and 1.to_big_i hashes equal" do
+    pending_win32 "should 1_f32 and 1.to_big_i hashes equal" do
       1_f32.hash.should eq(1.to_big_i.hash)
     end
   end

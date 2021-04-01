@@ -54,7 +54,7 @@ class Regex
       group_size + 1
     end
 
-    # Return the position of the first character of the *n*th match.
+    # Returns the position of the first character of the *n*th match.
     #
     # When *n* is `0` or not given, uses the match of the entire `Regex`.
     # Otherwise, uses the match of the *n*th capture group.
@@ -68,7 +68,7 @@ class Regex
       @string.byte_index_to_char_index byte_begin(n)
     end
 
-    # Return the position of the next character after the match.
+    # Returns the position of the next character after the match.
     #
     # When *n* is `0` or not given, uses the match of the entire `Regex`.
     # Otherwise, uses the match of the *n*th capture group.
@@ -82,7 +82,7 @@ class Regex
       @string.byte_index_to_char_index byte_end(n)
     end
 
-    # Return the position of the first byte of the *n*th match.
+    # Returns the position of the first byte of the *n*th match.
     #
     # When *n* is `0` or not given, uses the match of the entire `Regex`.
     # Otherwise, uses the match of the *n*th capture group.
@@ -98,7 +98,7 @@ class Regex
       @ovector[n * 2]
     end
 
-    # Return the position of the next byte after the match.
+    # Returns the position of the next byte after the match.
     #
     # When *n* is `0` or not given, uses the match of the entire `Regex`.
     # Otherwise, uses the match of the *n*th capture group.
@@ -124,7 +124,7 @@ class Regex
     # "Crystal".match(/r(ys)/).not_nil![1]? # => "ys"
     # "Crystal".match(/r(ys)/).not_nil![2]? # => nil
     # ```
-    def []?(n)
+    def []?(n : Int)
       return unless valid_group?(n)
 
       n += size if n < 0
@@ -141,7 +141,7 @@ class Regex
     # "Crystal".match(/r(ys)/).not_nil![1] # => "ys"
     # "Crystal".match(/r(ys)/).not_nil![2] # raises IndexError
     # ```
-    def [](n)
+    def [](n : Int)
       check_index_out_of_bounds n
       n += size if n < 0
 
@@ -200,6 +200,37 @@ class Regex
         raise KeyError.new("Capture group '#{group_name}' does not exist")
       end
       match
+    end
+
+    # Returns all matches that are within the given range.
+    def [](range : Range)
+      self[*Indexable.range_to_index_and_count(range, size) || raise IndexError.new]
+    end
+
+    # Like `#[Range]`, but returns `nil` if the range's start is out of range.
+    def []?(range : Range)
+      self[*Indexable.range_to_index_and_count(range, size) || raise IndexError.new]?
+    end
+
+    # Returns count or less (if there aren't enough) matches starting at the
+    # given start index.
+    def [](start : Int, count : Int)
+      self[start, count]? || raise IndexError.new
+    end
+
+    # Like `#[Int, Int]` but returns `nil` if the *start* index is out of range.
+    def []?(start : Int, count : Int)
+      raise ArgumentError.new "Negative count: #{count}" if count < 0
+      return Array(String).new if start == size
+
+      start += size if start < 0
+
+      if 0 <= start <= size
+        return Array(String).new if count == 0
+
+        count = Math.min(count, size - start)
+        Array(String).new(count) { |i| self[start + i] }
+      end
     end
 
     private def named_capture_number(group_name)
@@ -325,11 +356,11 @@ class Regex
       hash
     end
 
-    def inspect(io : IO)
+    def inspect(io : IO) : Nil
       to_s(io)
     end
 
-    def to_s(io : IO)
+    def to_s(io : IO) : Nil
       name_table = @regex.name_table
 
       io << "Regex::MatchData("
@@ -375,6 +406,13 @@ class Regex
       return false unless string == other.string
 
       return @ovector.memcmp(other.@ovector, size * 2) == 0
+    end
+
+    # See `Object#hash(hasher)`
+    def hash(hasher)
+      hasher = regex.hash hasher
+      hasher = string.hash hasher
+      Slice.new(@ovector, size * 2).hash(hasher)
     end
 
     private def check_index_out_of_bounds(index)

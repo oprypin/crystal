@@ -1,6 +1,10 @@
 class Time::Location
   @@location_cache = {} of String => NamedTuple(time: Time, location: Location)
 
+  # `InvalidTZDataError` is raised if a zoneinfo file contains invalid
+  # time zone data.
+  #
+  # Details on the exact cause can be found in the error message.
   class InvalidTZDataError < Exception
     def self.initialize(message : String? = "Malformed time zone information", cause : Exception? = nil)
       super(message, cause)
@@ -23,22 +27,18 @@ class Time::Location
 
   # :nodoc:
   def self.load_from_dir_or_zip(name : String, source : String)
-    {% if flag?(:win32) %}
-      raise NotImplementedError.new("Time::Location.load_from_dir_or_zip")
-    {% else %}
-      if source.ends_with?(".zip")
-        open_file_cached(name, source) do |file|
-          read_zip_file(name, file) do |io|
-            read_zoneinfo(name, io)
-          end
-        end
-      else
-        path = File.expand_path(name, source)
-        open_file_cached(name, path) do |file|
-          read_zoneinfo(name, file)
+    if source.ends_with?(".zip")
+      open_file_cached(name, source) do |file|
+        read_zip_file(name, file) do |io|
+          read_zoneinfo(name, io)
         end
       end
-    {% end %}
+    else
+      path = File.join(source, name)
+      open_file_cached(name, path) do |file|
+        read_zoneinfo(name, file)
+      end
+    end
   end
 
   private def self.open_file_cached(name : String, path : String)
@@ -61,18 +61,15 @@ class Time::Location
 
   # :nodoc:
   def self.find_zoneinfo_file(name : String, sources : Enumerable(String))
-    {% if flag?(:win32) %}
-      raise NotImplementedError.new("Time::Location.find_zoneinfo_file")
-    {% else %}
-      sources.each do |source|
-        if source.ends_with?(".zip")
-          return source if File.exists?(source)
-        else
-          path = File.expand_path(name, source)
-          return source if File.exists?(path)
-        end
+    sources.each do |source|
+      if source.ends_with?(".zip")
+        path = source
+      else
+        path = File.join(source, name)
       end
-    {% end %}
+
+      return source if File.exists?(path) && File.file?(path) && File.readable?(path)
+    end
   end
 
   # Parse "zoneinfo" time zone file.
@@ -85,7 +82,7 @@ class Time::Location
 
     # 1-byte version, then 15 bytes of padding
     version = io.read_byte
-    raise InvalidTZDataError.new unless {0_u8, '2'.ord, '3'.ord}.includes?(version)
+    raise InvalidTZDataError.new unless version.in?(0_u8, '2'.ord, '3'.ord)
     io.skip(15)
 
     # six big-endian 32-bit integers:
@@ -142,13 +139,15 @@ class Time::Location
       zone_idx = transition_indexes[transition_id]
       raise InvalidTZDataError.new unless zone_idx < zones.size
 
-      isstd = !{nil, 0_u8}.includes? isstddata[transition_id]?
-      isutc = !{nil, 0_u8}.includes? isstddata[transition_id]?
+      isstd = !isstddata[transition_id]?.in?(nil, 0_u8)
+      isutc = !isstddata[transition_id]?.in?(nil, 0_u8)
 
       ZoneTransition.new(time, zone_idx, isstd, isutc)
     end
 
     new(location_name, zones, transitions)
+  rescue exc : IO::Error
+    raise InvalidTZDataError.new(cause: exc)
   end
 
   private def self.read_int32(io : IO)
@@ -174,11 +173,11 @@ class Time::Location
 
   # This method loads an entry from an uncompressed zip file.
   # See http://www.onicos.com/staff/iz/formats/zip.html for ZIP format layout
-  private def self.read_zip_file(name : String, file : IO::FileDescriptor)
+  private def self.read_zip_file(name : String, file : File)
     file.seek -ZIP_TAIL_SIZE, IO::Seek::End
 
     if file.read_bytes(Int32, IO::ByteFormat::LittleEndian) != END_OF_CENTRAL_DIRECTORY_HEADER_SIGNATURE
-      raise InvalidTZDataError.new("corrupt zip file")
+      raise InvalidTZDataError.new("Corrupt ZIP file #{file.path}")
     end
 
     file.skip 6
@@ -207,25 +206,25 @@ class Time::Location
       end
 
       unless compression_method == COMPRESSION_METHOD_UNCOMPRESSED
-        raise InvalidTZDataError.new("Unsupported compression for #{name}")
+        raise InvalidTZDataError.new("Unsupported compression in ZIP file: #{file.path}")
       end
 
       file.pos = local_file_header_pos
 
       unless file.read_bytes(Int32, IO::ByteFormat::LittleEndian) == LOCAL_FILE_HEADER_SIGNATURE
-        raise InvalidTZDataError.new("Invalid Zip file")
+        raise InvalidTZDataError.new("Invalid ZIP file: #{file.path}")
       end
       file.skip 4
       unless file.read_bytes(Int16, IO::ByteFormat::LittleEndian) == COMPRESSION_METHOD_UNCOMPRESSED
-        raise InvalidTZDataError.new("Invalid Zip file")
+        raise InvalidTZDataError.new("Invalid ZIP file: #{file.path}")
       end
       file.skip 16
       unless file.read_bytes(Int16, IO::ByteFormat::LittleEndian) == filename_length
-        raise InvalidTZDataError.new("Invalid Zip file")
+        raise InvalidTZDataError.new("Invalid ZIP file: #{file.path}")
       end
       extra_field_length = file.read_bytes(Int16, IO::ByteFormat::LittleEndian)
       unless file.gets(filename_length) == name
-        raise InvalidTZDataError.new("Invalid Zip file")
+        raise InvalidTZDataError.new("Invalid ZIP file: #{file.path}")
       end
 
       file.skip extra_field_length
