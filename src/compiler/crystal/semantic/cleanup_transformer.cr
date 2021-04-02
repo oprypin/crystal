@@ -97,6 +97,8 @@ module Crystal
 
       annotations_by_file = Hash(String, Array({Int32, String})).new { |h, k| h[k] = Array({Int32, String}).new }
 
+      generator = Doc::Generator.new(Program.new, [] of String)
+
       methods_by_loc.each do |loc, methods|
         if (methods.map { |meth|
           {meth.meth.name, meth.meth.type}
@@ -105,13 +107,17 @@ module Crystal
           key, meth, cls = meth.key, meth.meth, meth.cls
           loc = meth.body.location.dup
           next if meth.return_type.try(&.location)
-          next if meth.visibility.private?
+          next unless meth.visibility.public?
           next unless loc
           next if meth.name.ends_with?('=')
           fn = loc.filename
           next unless fn.is_a?(String)
 
-          annotations_by_file[fn] << {loc.line_number - 1, meth.type.to_s}
+          annot = String.build do |io|
+            typ = generator.type(meth.type)
+            typ.type_to_html(meth.type, io, html: :none)
+          end
+          annotations_by_file[fn] << {loc.line_number - 1, annot}
           # result = String.build do |io|
           #   io << meth.name
           #   io << "("
@@ -136,7 +142,12 @@ module Crystal
       annotations_by_file.each do |filename, annots|
         lines = File.read_lines(filename)
         annots.each do |(line_number, annot)|
-          lines[line_number - 1] += " : " + annot
+          (line_number - 1).downto(1) do |i|
+            if !lines[i].split("#")[0].strip.empty?
+              lines[i] += " : " + annot
+              break
+            end
+          end
         end
         File.open(filename, "w") do |f|
           lines.each do |line|
