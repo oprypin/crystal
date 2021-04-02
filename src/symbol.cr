@@ -25,7 +25,7 @@ struct Symbol
   # or greater than *other*.
   #
   # See `String#<=>` for more information.
-  def <=>(other : Symbol)
+  def <=>(other : Symbol) : Int32
     to_s <=> other.to_s
   end
 
@@ -76,7 +76,7 @@ struct Symbol
   # :nodoc:
   # Determines if a string needs to be quoted to be used for an external
   # parameter name or a named argument's key.
-  def self.needs_quotes_for_named_argument?(string)
+  def self.needs_quotes_for_named_argument?(string) : Bool
     case string
     when "", "_"
       true

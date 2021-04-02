@@ -79,7 +79,7 @@ class CSV::Parser
     def initialize(@parser)
     end
 
-    def next
+    def next : Array(String) | Iterator::Stop
       @parser.next_row || stop
     end
   end

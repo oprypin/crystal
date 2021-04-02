@@ -249,7 +249,7 @@ class Dir
   end
 
   # Removes the directory at the given path.
-  def self.delete(path : Path | String)
+  def self.delete(path : Path | String) : Nil
     Crystal::System::Dir.delete(path.to_s)
   end
 
@@ -271,7 +271,7 @@ class Dir
     def initialize(@dir : Dir)
     end
 
-    def next
+    def next : Iterator::Stop | String
       @dir.read || stop
     end
   end
@@ -282,7 +282,7 @@ class Dir
     def initialize(@dir : Dir)
     end
 
-    def next
+    def next : Iterator::Stop | String
       excluded = {".", ".."}
       while entry = @dir.read
         return entry unless excluded.includes?(entry)

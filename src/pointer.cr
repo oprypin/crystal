@@ -43,7 +43,7 @@ struct Pointer(T)
       @pointer += 1
     end
 
-    def size
+    def size : Int64
       @pointer - @start
     end
 
@@ -63,7 +63,7 @@ struct Pointer(T)
   # b = Pointer(Int32).new(0)
   # b.null? # => true
   # ```
-  def null?
+  def null? : Bool
     address == 0
   end
 
@@ -100,7 +100,7 @@ struct Pointer(T)
 
   # Returns `-1`, `0` or `1` depending on whether this pointer's address is less, equal or greater than *other*'s address,
   # respectively.
-  def <=>(other : self)
+  def <=>(other : self) : Int32
     address <=> other.address
   end
 
@@ -282,7 +282,7 @@ struct Pointer(T)
   # ptr2.memcmp(ptr1, 4) # => 10
   # ptr1.memcmp(ptr1, 4) # => 0
   # ```
-  def memcmp(other : Pointer(T), count : Int)
+  def memcmp(other : Pointer(T), count : Int) : Int32
     LibC.memcmp(self.as(Void*), (other.as(Void*)), (count * sizeof(T)))
   end
 
@@ -480,7 +480,7 @@ struct Pointer(T)
   end
 
   # Returns a `Pointer::Appender` for this pointer.
-  def appender
+  def appender : Pointer::Appender
     Pointer::Appender.new(self)
   end
 
@@ -491,7 +491,7 @@ struct Pointer(T)
   # slice = ptr.to_slice(4)                # => Slice[10, 11, 12, 13]
   # slice.class                            # => Slice(Int32)
   # ```
-  def to_slice(size)
+  def to_slice(size) : Slice(T)
     Slice.new(self, size)
   end
 
