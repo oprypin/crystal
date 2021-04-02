@@ -71,13 +71,14 @@ module Crystal
       methods_by_loc = Hash(Location, Array(MethodInfo)).new { |h, k| h[k] = Array(MethodInfo).new }
 
       types.each do |type|
-        if type.is_a?(DefInstanceContainer) && !type.def_instances.empty?
+        if type.is_a?(DefInstanceContainer)
           type_s = type.to_s
           next if type_s.starts_with?("Crystal::")
           next if type_s.starts_with?("Spec::")
           next if type_s.ends_with?(":Class")
 
           type.def_instances.each do |key, meth|
+            next unless meth.is_a?(Crystal::Def) && meth.to_s.starts_with?("def ")
             next if key.arg_types.any? &.to_s.starts_with?("Crystal::")
             next if (nargs = key.named_args) && nargs.any? &.type.to_s.starts_with?("Crystal::")
 
@@ -89,13 +90,12 @@ module Crystal
             next if fn.includes?("/spec/")
             next unless fn.includes?("/crystal/src/")
             next if fn.includes?("/crystal/src/compiler/")
-
-            methods_by_loc[meth.location] << MethodInfo.new(key, meth, type)
+            methods_by_loc[loc] << MethodInfo.new(key, meth, type)
           end
         end
       end
 
-      annotations_by_file = Hash(String, Array({Int32, String})).new { |h, k| h[k] = Array({Int32, String}).new }
+      annotations_by_file = Hash(String, Array({Location, String})).new { |h, k| h[k] = Array({Location, String}).new }
 
       generator = Doc::Generator.new(Program.new, [] of String)
 
@@ -106,18 +106,21 @@ module Crystal
           meth = methods.first
           key, meth, cls = meth.key, meth.meth, meth.cls
           loc = meth.body.location.dup
-          next if meth.return_type.try(&.location)
+          next if meth.return_type
           next unless meth.visibility.public?
           next unless loc
+          p! meth.name
+          next if meth.name.in?("new", "initialize", "finalize", "dup", "clone")
           next if meth.name.ends_with?('=')
           fn = loc.filename
           next unless fn.is_a?(String)
+          next if (typ = meth.type).is_a?(UnionType) && typ.union_types.size >= 4
 
           annot = String.build do |io|
             typ = generator.type(meth.type)
             typ.type_to_html(meth.type, io, html: :none)
           end
-          annotations_by_file[fn] << {loc.line_number - 1, annot}
+          annotations_by_file[fn] << {loc, annot}
           # result = String.build do |io|
           #   io << meth.name
           #   io << "("
@@ -141,13 +144,14 @@ module Crystal
 
       annotations_by_file.each do |filename, annots|
         lines = File.read_lines(filename)
-        annots.each do |(line_number, annot)|
-          (line_number - 1).downto(1) do |i|
-            if !lines[i].split("#")[0].strip.empty?
-              lines[i] += " : " + annot
-              break
-            end
+        annots.each do |(loc, annot)|
+          line_number = loc.line_number - 1
+          column_number = loc.column_number - 1
+          while lines[line_number][...column_number].split("#")[0].strip.empty?
+            line_number -= 1
+            column_number = 99999
           end
+          lines[line_number] += " : " + annot
         end
         File.open(filename, "w") do |f|
           lines.each do |line|

@@ -631,7 +631,8 @@ class Crystal::Doc::Type
       io << %(">)
     end
 
-    if text
+    if ptr = (type.generic_type.name == "Pointer")
+    elsif text
       io << text
     else
       generic_type.full_name_without_type_vars(io)
@@ -639,7 +640,7 @@ class Crystal::Doc::Type
 
     io << "</a>" if must_be_included && html.links? && has_link_in_type_vars
 
-    io << '('
+    io << '(' if !ptr
     type.type_vars.values.join(io, ", ") do |type_var|
       case type_var
       when Var
@@ -648,7 +649,8 @@ class Crystal::Doc::Type
         type_to_html type_var, io, html: html
       end
     end
-    io << ')'
+    io << ')' if !ptr
+    io << '*' if ptr
 
     io << "</a>" if must_be_included && html.links? && !has_link_in_type_vars
   end
