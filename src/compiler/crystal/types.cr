@@ -2411,12 +2411,12 @@ module Crystal
     end
 
     def to_s_with_options(io : IO, skip_union_parens : Bool = false, generic_args : Bool = true, codegen : Bool = false) : Nil
-      io << "Tuple("
+      io << '{'
       @tuple_types.join(io, ", ") do |tuple_type|
         tuple_type = tuple_type.devirtualize unless codegen
         tuple_type.to_s_with_options(io, skip_union_parens: true, codegen: codegen)
       end
-      io << ')'
+      io << '}'
     end
 
     def type_desc

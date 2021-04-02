@@ -73,51 +73,74 @@ module Crystal
       types.each do |type|
         if type.is_a?(DefInstanceContainer) && !type.def_instances.empty?
           type_s = type.to_s
-          return if type_s.starts_with?("Crystal::")
-          return if type_s.starts_with?("Spec::")
-          return if type_s.ends_with?(":Class")
+          next if type_s.starts_with?("Crystal::")
+          next if type_s.starts_with?("Spec::")
+          next if type_s.ends_with?(":Class")
 
           type.def_instances.each do |key, meth|
             next if key.arg_types.any? &.to_s.starts_with?("Crystal::")
             next if (nargs = key.named_args) && nargs.any? &.type.to_s.starts_with?("Crystal::")
 
-            loc = meth.location.to_s
-            next if loc.empty?
-            next if loc.includes? "/spec/"
-            next if loc.starts_with? "expanded macro: "
+            loc = meth.location
+            next unless loc
+            fn = loc.filename
+            next unless fn.is_a?(String)
+            next if fn.includes?("expanded macro:")
+            next if fn.includes?("/spec/")
+            next unless fn.includes?("/crystal/src/")
+            next if fn.includes?("/crystal/src/compiler/")
 
-            methods_by_loc[meth.location] << p MethodInfo.new(key, meth, type)
+            methods_by_loc[meth.location] << MethodInfo.new(key, meth, type)
           end
         end
-        puts "END TYPE"
       end
 
-      puts "SIZE: #{methods_by_loc.size}"
-      puts "END 2"
+      annotations_by_file = Hash(String, Array({Int32, String})).new { |h, k| h[k] = Array({Int32, String}).new }
+
       methods_by_loc.each do |loc, methods|
-        if (p methods.map { |meth|
+        if (methods.map { |meth|
           {meth.meth.name, meth.meth.type}
         }).uniq!.size == 1
-          methods.each do |meth|
-            key, meth, cls = meth.key, meth.meth, meth.cls
-            result = String.build do |io|
-              io << meth.name
-              io << "("
-              key.arg_types.join(", ", io)
-              if nargs = key.named_args
-                io << ", "
-                nargs.join(", ", io) do |narg|
-                  io << narg.name << ": " << narg.type
-                end
-              end
-              if block_type = key.block_type
-                io << ", &" << block_type
-              end
-              io << ")"
-              io << " : " << meth.type
-              io << "                               " << loc
-            end
-            puts result
+          meth = methods.first
+          key, meth, cls = meth.key, meth.meth, meth.cls
+          loc = meth.body.location.dup
+          next if meth.return_type.try(&.location)
+          next if meth.visibility.private?
+          next unless loc
+          next if meth.name.ends_with?('=')
+          fn = loc.filename
+          next unless fn.is_a?(String)
+
+          annotations_by_file[fn] << {loc.line_number - 1, meth.type.to_s}
+          # result = String.build do |io|
+          #   io << meth.name
+          #   io << "("
+          #   key.arg_types.join(io, ", ")
+          #   if nargs = key.named_args
+          #     io << ", "
+          #     nargs.join(io, ", ") do |narg|
+          #       io << narg.name << ": " << narg.type
+          #     end
+          #   end
+          #   if block_type = key.block_type
+          #     io << ", &" << block_type
+          #   end
+          #   io << ")"
+          #   io << " : " << meth.type
+          #   io << "                               " << loc.filename << ":" << loc.line_number - 1
+          # end
+          # puts result
+        end
+      end
+
+      annotations_by_file.each do |filename, annots|
+        lines = File.read_lines(filename)
+        annots.each do |(line_number, annot)|
+          lines[line_number - 1] += " : " + annot
+        end
+        File.open(filename, "w") do |f|
+          lines.each do |line|
+            f.puts line
           end
         end
       end
