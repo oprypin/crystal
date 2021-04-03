@@ -100,7 +100,7 @@ struct Pointer(T)
 
   # Returns `-1`, `0` or `1` depending on whether this pointer's address is less, equal or greater than *other*'s address,
   # respectively.
-  def <=>(other : self)
+  def <=>(other : self) : Int32
     address <=> other.address
   end
 

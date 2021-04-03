@@ -25,7 +25,7 @@ struct Symbol
   # or greater than *other*.
   #
   # See `String#<=>` for more information.
-  def <=>(other : Symbol)
+  def <=>(other : Symbol) : Int32
     to_s <=> other.to_s
   end
 

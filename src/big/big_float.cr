@@ -93,19 +93,19 @@ struct BigFloat < Float
     LibGMP.mpf_set_default_prec(prec.to_u64)
   end
 
-  def <=>(other : BigFloat)
+  def <=>(other : BigFloat) : Int32
     LibGMP.mpf_cmp(self, other)
   end
 
-  def <=>(other : BigInt)
+  def <=>(other : BigInt) : Int32
     LibGMP.mpf_cmp_z(self, other)
   end
 
-  def <=>(other : Float32 | Float64)
+  def <=>(other : Float32 | Float64) : Int32
     LibGMP.mpf_cmp_d(self, other.to_f64)
   end
 
-  def <=>(other : Number)
+  def <=>(other : Number) : Int32
     if other.is_a?(Int8 | Int16 | Int32) || (LibGMP::Long == Int64 && other.is_a?(Int64))
       LibGMP.mpf_cmp_si(self, other)
     elsif other.is_a?(UInt8 | UInt16 | UInt32) || (LibGMP::ULong == UInt64 && other.is_a?(UInt64))

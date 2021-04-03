@@ -88,11 +88,11 @@ struct BigRational < Number
     BigInt.new { |mpz| LibGMP.mpq_get_den(mpz, self) }
   end
 
-  def <=>(other : BigRational)
+  def <=>(other : BigRational) : Int32
     LibGMP.mpq_cmp(mpq, other)
   end
 
-  def <=>(other : Float32 | Float64)
+  def <=>(other : Float32 | Float64) : Int32
     self <=> BigRational.new(other)
   end
 
@@ -100,7 +100,7 @@ struct BigRational < Number
     to_big_f <=> other.to_big_f
   end
 
-  def <=>(other : Int)
+  def <=>(other : Int) : Int32
     LibGMP.mpq_cmp(mpq, other.to_big_r)
   end
 
@@ -305,7 +305,7 @@ struct Int
     BigRational.new(self, 1)
   end
 
-  def <=>(other : BigRational)
+  def <=>(other : BigRational) : Int32
     -(other <=> self)
   end
 
@@ -339,7 +339,7 @@ struct Float
     BigRational.new(self)
   end
 
-  def <=>(other : BigRational)
+  def <=>(other : BigRational) : Int32
     -(other <=> self)
   end
 end

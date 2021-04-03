@@ -244,7 +244,7 @@ struct Enum
   # Color::Blue <=> Color::Red  # => 1
   # Color::Blue <=> Color::Blue # => 0
   # ```
-  def <=>(other : self)
+  def <=>(other : self) : Int32
     value <=> other.value
   end
 

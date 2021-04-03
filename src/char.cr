@@ -114,7 +114,7 @@ struct Char
   # 'z' <=> 'z' # => 0
   # 'c' <=> 'a' # => 2
   # ```
-  def <=>(other : Char)
+  def <=>(other : Char) : Int32
     self - other
   end
 
