@@ -237,7 +237,7 @@ struct BigDecimal < Number
     end
   end
 
-  def <=>(other : Int | Float | BigRational)
+  def <=>(other : Int | Float | BigRational) : Int32
     self <=> BigDecimal.new(other)
   end
 
@@ -571,7 +571,7 @@ struct Int
     BigDecimal.new(self)
   end
 
-  def <=>(other : BigDecimal)
+  def <=>(other : BigDecimal) : Int32
     to_big_d <=> other
   end
 
@@ -591,7 +591,7 @@ end
 struct Float
   include Comparable(BigDecimal)
 
-  def <=>(other : BigDecimal)
+  def <=>(other : BigDecimal) : Int32
     to_big_d <=> other
   end
 
@@ -611,7 +611,7 @@ end
 struct BigRational
   include Comparable(BigDecimal)
 
-  def <=>(other : BigDecimal)
+  def <=>(other : BigDecimal) : Int32
     to_big_d <=> other
   end
 

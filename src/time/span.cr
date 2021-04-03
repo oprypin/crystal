@@ -327,7 +327,7 @@ struct Time::Span
     total_nanoseconds.to_f64 / other.total_nanoseconds.to_f64
   end
 
-  def <=>(other : self)
+  def <=>(other : self) : Int32
     cmp = to_i <=> other.to_i
     cmp = nanoseconds <=> other.nanoseconds if cmp == 0
     cmp

@@ -553,7 +553,7 @@ struct Slice(T)
   # Bytes[2] <=> Bytes[4, 2, 3] # => -2
   # Bytes[1, 2] <=> Bytes[1, 2] # => 0
   # ```
-  def <=>(other : Slice(U)) forall U
+  def <=>(other : Slice(U)) : Int32 forall U
     min_size = Math.min(size, other.size)
     {% if T == UInt8 && U == UInt8 %}
       cmp = to_unsafe.memcmp(other.to_unsafe, min_size)

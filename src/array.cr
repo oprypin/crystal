@@ -227,7 +227,7 @@ class Array(T)
   # [2] <=> [4, 2, 3] # => -1
   # [1, 2] <=> [1, 2] # => 0
   # ```
-  def <=>(other : Array)
+  def <=>(other : Array) : Int32
     min_size = Math.min(size, other.size)
     0.upto(min_size - 1) do |i|
       n = @buffer[i] <=> other.to_unsafe[i]

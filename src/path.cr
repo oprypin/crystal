@@ -1079,7 +1079,7 @@ struct Path
   # Path.posix("foo") <=> Path.posix("FOO")     # => 1
   # Path.windows("foo") <=> Path.windows("FOO") # => 0
   # ```
-  def <=>(other : Path)
+  def <=>(other : Path) : Int32
     ord = @name.compare(other.@name, case_insensitive: windows? || other.windows?)
     return ord if ord != 0
 

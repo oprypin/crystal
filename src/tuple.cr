@@ -342,7 +342,7 @@ struct Tuple
   # {1, 2, 3, 4, 5, 6} <=> {1, 2}       # => 1
   # {1, 2} <=> {1, 2.0}                 # => 0
   # ```
-  def <=>(other : self)
+  def <=>(other : self) : Int32
     {% for i in 0...T.size %}
       cmp = self[{{i}}] <=> other[{{i}}]
       return cmp unless cmp == 0

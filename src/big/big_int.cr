@@ -99,11 +99,11 @@ struct BigInt < Int
     new(mpz)
   end
 
-  def <=>(other : BigInt)
+  def <=>(other : BigInt) : Int32
     LibGMP.cmp(mpz, other)
   end
 
-  def <=>(other : Int::Signed)
+  def <=>(other : Int::Signed) : Int32
     if LibC::Long::MIN <= other <= LibC::Long::MAX
       LibGMP.cmp_si(mpz, other)
     else
@@ -111,7 +111,7 @@ struct BigInt < Int
     end
   end
 
-  def <=>(other : Int::Unsigned)
+  def <=>(other : Int::Unsigned) : Int32
     if other <= LibC::ULong::MAX
       LibGMP.cmp_ui(mpz, other)
     else
@@ -119,7 +119,7 @@ struct BigInt < Int
     end
   end
 
-  def <=>(other : Float)
+  def <=>(other : Float) : Int32
     LibGMP.cmp_d(mpz, other)
   end
 
@@ -618,7 +618,7 @@ end
 struct Int
   include Comparable(BigInt)
 
-  def <=>(other : BigInt)
+  def <=>(other : BigInt) : Int32
     -(other <=> self)
   end
 
@@ -683,7 +683,7 @@ end
 struct Float
   include Comparable(BigInt)
 
-  def <=>(other : BigInt)
+  def <=>(other : BigInt) : Int32
     -(other <=> self)
   end
 
