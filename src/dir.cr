@@ -271,7 +271,7 @@ class Dir
     def initialize(@dir : Dir)
     end
 
-    def next
+    def next : String | Iterator::Stop
       @dir.read || stop
     end
   end
@@ -282,7 +282,7 @@ class Dir
     def initialize(@dir : Dir)
     end
 
-    def next
+    def next : String | Iterator::Stop
       excluded = {".", ".."}
       while entry = @dir.read
         return entry unless excluded.includes?(entry)

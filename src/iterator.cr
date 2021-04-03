@@ -95,12 +95,12 @@ module Iterator(T)
   end
 
   # Shortcut for `Iterator::Stop::INSTANCE`, to signal that there are no more elements in an iterator.
-  def stop
+  def stop : Iterator::Stop
     Iterator.stop
   end
 
   # :ditto:
-  def self.stop
+  def self.stop : Iterator::Stop
     Stop::INSTANCE
   end
 
