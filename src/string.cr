@@ -5028,7 +5028,7 @@ class String
       check_empty
     end
 
-    def next
+    def next : Char | Iterator::Stop
       return stop if @end
 
       value = @reader.current_char
@@ -5051,7 +5051,7 @@ class String
       @end = false
     end
 
-    def next
+    def next : String | Iterator::Stop
       return stop if @end
 
       byte_index = @string.byte_index('\n'.ord.to_u8, @offset)

@@ -1176,7 +1176,7 @@ abstract class IO
     def initialize(@io : I, @args : A, @nargs : N)
     end
 
-    def next
+    def next : String | Iterator::Stop
       @io.gets(*@args, **@nargs) || stop
     end
   end
@@ -1187,7 +1187,7 @@ abstract class IO
     def initialize(@io : I)
     end
 
-    def next
+    def next : Char | Iterator::Stop
       @io.read_char || stop
     end
   end
@@ -1198,7 +1198,7 @@ abstract class IO
     def initialize(@io : I)
     end
 
-    def next
+    def next : UInt8 | Iterator::Stop
       @io.read_byte || stop
     end
   end

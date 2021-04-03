@@ -882,7 +882,7 @@ module Indexable(T)
     def initialize(@array : A, @index = 0)
     end
 
-    def next
+    def next : Int32 | Iterator::Stop
       if @index >= @array.size
         stop
       else
@@ -914,7 +914,7 @@ module Indexable(T)
       @first = true
     end
 
-    def next
+    def next : Array(Int32) | Iterator::Stop
       return stop if @stop
 
       if @first
@@ -966,7 +966,7 @@ module Indexable(T)
       @first = true
     end
 
-    def next
+    def next : Array(Int32) | Iterator::Stop
       return stop if @stop
 
       if @first
@@ -1019,7 +1019,7 @@ module Indexable(T)
       @first = true
     end
 
-    def next
+    def next : Array(Int32) | Iterator::Stop
       return stop if @stop
 
       if @first
