@@ -105,40 +105,22 @@ module Crystal
         }).uniq!.size == 1
           meth = methods.first
           key, meth, cls = meth.key, meth.meth, meth.cls
-          loc = meth.body.location.dup
+          loc = meth.body.location
           next if meth.return_type
           next unless meth.visibility.public?
           next unless loc
-          p! meth.name
           next if meth.name.in?("new", "initialize", "finalize", "dup", "clone")
           next if meth.name.ends_with?('=')
           fn = loc.filename
           next unless fn.is_a?(String)
           next if (typ = meth.type).is_a?(UnionType) && typ.union_types.size >= 4
+          p! meth.name, loc
 
           annot = String.build do |io|
             typ = generator.type(meth.type)
             typ.type_to_html(meth.type, io, html: :none)
           end
           annotations_by_file[fn] << {loc, annot}
-          # result = String.build do |io|
-          #   io << meth.name
-          #   io << "("
-          #   key.arg_types.join(io, ", ")
-          #   if nargs = key.named_args
-          #     io << ", "
-          #     nargs.join(io, ", ") do |narg|
-          #       io << narg.name << ": " << narg.type
-          #     end
-          #   end
-          #   if block_type = key.block_type
-          #     io << ", &" << block_type
-          #   end
-          #   io << ")"
-          #   io << " : " << meth.type
-          #   io << "                               " << loc.filename << ":" << loc.line_number - 1
-          # end
-          # puts result
         end
       end
 
@@ -146,10 +128,11 @@ module Crystal
         lines = File.read_lines(filename)
         annots.each do |(loc, annot)|
           line_number = loc.line_number - 1
-          column_number = loc.column_number - 1
-          while lines[line_number][...column_number].split("#")[0].strip.empty?
+          if loc.column_number - 1 < lines[line_number].size
             line_number -= 1
-            column_number = 99999
+          end
+          while lines[line_number].split("#")[0].strip.empty?
+            line_number -= 1
           end
           lines[line_number] += " : " + annot
         end

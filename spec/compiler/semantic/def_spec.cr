@@ -508,4 +508,32 @@ describe "Semantic: def" do
     ex.column_number.should eq(3)
     ex.size.should eq(6)
   end
+
+  it "gives correct body location with splat parameters", focus: true do
+    input = parse "def foo(*x)\nx\nend"
+    result = semantic input
+    a_def = result.node.as(Def)
+
+    loc = a_def.location.not_nil!
+    loc.line_number.should eq(1)
+    loc.column_number.should eq(1)
+
+    loc = a_def.body.location.not_nil!
+    loc.line_number.should eq(2)
+    loc.column_number.should eq(1)
+  end
+
+  it "gives correct body location with splat call in body", focus: true do
+    input = parse "def foo(x, y)\nx[*y]\nend"
+    result = semantic input
+    a_def = result.node.as(Def)
+
+    loc = a_def.location.not_nil!
+    loc.line_number.should eq(1)
+    loc.column_number.should eq(1)
+
+    loc = a_def.body.location.not_nil!
+    loc.line_number.should eq(2)
+    loc.column_number.should eq(1)
+  end
 end
