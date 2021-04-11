@@ -101,8 +101,8 @@ module Crystal
 
       methods_by_loc.each do |loc, methods|
         if (methods.map { |meth|
-          {meth.meth.name, meth.meth.type}
-        }).uniq!.size == 1
+             {meth.meth.name, meth.meth.type}
+           }).uniq!.size == 1
           meth = methods.first
           key, meth, cls = meth.key, meth.meth, meth.cls
           loc = meth.body.location
@@ -120,6 +120,7 @@ module Crystal
             typ = generator.type(meth.type)
             typ.type_to_html(meth.type, io, html: :none)
           end
+          next if annot.includes?("/crystal/")
           annotations_by_file[fn] << {loc, annot}
         end
       end
