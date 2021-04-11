@@ -63,7 +63,7 @@ struct Time::Format
   end
 
   struct Parser
-    def short_day_name_with_comma?
+    def short_day_name_with_comma? : Bool?
       return unless current_char.ascii_letter?
 
       short_day_name
@@ -72,7 +72,7 @@ struct Time::Format
       cfws
     end
 
-    def seconds_with_colon?
+    def seconds_with_colon? : Int32?
       if current_char == ':'
         next_char
         cfws?
@@ -81,7 +81,7 @@ struct Time::Format
     end
 
     # comment or folding whitespace
-    def cfws?
+    def cfws? : Bool
       in_comment = false
       seen_whitespace = false
       loop do

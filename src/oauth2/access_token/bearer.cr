@@ -9,11 +9,11 @@ class OAuth2::AccessToken::Bearer < OAuth2::AccessToken
     "Bearer"
   end
 
-  def authenticate(request : HTTP::Request, tls)
+  def authenticate(request : HTTP::Request, tls) : String
     request.headers["Authorization"] = "Bearer #{access_token}"
   end
 
-  def to_json(json : JSON::Builder)
+  def to_json(json : JSON::Builder) : IO?
     json.object do
       json.field "token_type", "bearer"
       json.field "access_token", access_token

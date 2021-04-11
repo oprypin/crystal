@@ -220,7 +220,7 @@ class OptionParser
   # before, and the flags registered after the call.
   #
   # This way, you can group the different options in an easier to read way.
-  def separator(message = "")
+  def separator(message = "") : Array(String)
     @flags << message.to_s
   end
 
@@ -253,13 +253,13 @@ class OptionParser
   #
   # You typically use this to implement advanced option parsing behaviour such
   # as treating all options after a filename differently (along with `#stop`).
-  def before_each(&@before_each : String ->)
+  def before_each(&@before_each : String ->) : String -> Nil
   end
 
   # Stops the current parse and returns immediately, leaving the remaining flags
   # unparsed. This is treated identically to `--` being inserted *behind* the
   # current parsed flag.
-  def stop
+  def stop : Bool
     @stop = true
   end
 

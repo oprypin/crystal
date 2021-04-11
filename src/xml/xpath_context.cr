@@ -4,7 +4,7 @@ class XML::XPathContext
     @ctx.value.node = node.to_unsafe
   end
 
-  def evaluate(search_path : String)
+  def evaluate(search_path : String) : Bool | Float64 | String | XML::NodeSet
     xpath = LibXML.xmlXPathEvalExpression(search_path, self)
     unless xpath
       {% if flag?(:arm) || flag?(:aarch64) %}

@@ -23,7 +23,7 @@ module HTTP::Handler
 
   abstract def call(context : HTTP::Server::Context)
 
-  def call_next(context : HTTP::Server::Context)
+  def call_next(context : HTTP::Server::Context) : Array(Log::Entry) | Bool | Channel({Log::Entry, Log::Backend}) | HTTP::Server::Context | IO | Int32 | Int64 | IO -> Nil | Nil
     if next_handler = @next
       next_handler.call(context)
     else

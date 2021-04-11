@@ -20,7 +20,7 @@ class OAuth2::AccessToken::Mac < OAuth2::AccessToken
     "Mac"
   end
 
-  def authenticate(request : HTTP::Request, tls)
+  def authenticate(request : HTTP::Request, tls) : String
     ts = Time.utc.to_unix
     nonce = "#{ts - @issued_at}:#{Random::Secure.hex}"
     method = request.method
@@ -45,7 +45,7 @@ class OAuth2::AccessToken::Mac < OAuth2::AccessToken
     Base64.strict_encode OpenSSL::HMAC.digest(digest, mac_key, normalized_request_string)
   end
 
-  def to_json(json : JSON::Builder)
+  def to_json(json : JSON::Builder) : IO
     json.object do
       json.field "token_type", "mac"
       json.field "access_token", access_token
