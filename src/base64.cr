@@ -58,7 +58,7 @@ module Base64
   # ```
   # Base64.encode("Now is the time for all good coders\nto learn Crystal", STDOUT)
   # ```
-  def encode(data, io : IO)
+  def encode(data, io : IO) : Int32
     count = 0
     encode_with_new_lines(data.to_slice) do |byte|
       io.write_byte byte
@@ -115,7 +115,7 @@ module Base64
   # ```
   # Base64.strict_encode("Now is the time for all good coders\nto learn Crystal", STDOUT)
   # ```
-  def strict_encode(data, io : IO)
+  def strict_encode(data, io : IO) : Int32
     strict_encode_to_io_internal(data, io, CHARS_STD, pad: true)
   end
 
@@ -168,7 +168,7 @@ module Base64
 
   # Writes the base64-decoded version of *data* to *io*.
   # This will decode either the normal or urlsafe alphabets.
-  def decode(data, io : IO)
+  def decode(data, io : IO) : Int32
     count = 0
     from_base64(data.to_slice) do |byte|
       io.write_byte byte
