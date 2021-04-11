@@ -134,7 +134,8 @@ module Crystal
           while lines[line_number].split("#")[0].strip.empty?
             line_number -= 1
           end
-          lines[line_number] += " : " + annot
+          col = lines[line_number].rindex(" forall ") || -1
+          lines[line_number] = lines[line_number].insert(col, " : " + annot)
         end
         File.open(filename, "w") do |f|
           lines.each do |line|
