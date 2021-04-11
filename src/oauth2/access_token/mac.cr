@@ -20,7 +20,7 @@ class OAuth2::AccessToken::Mac < OAuth2::AccessToken
     "Mac"
   end
 
-  def authenticate(request : HTTP::Request, tls) : String
+  def authenticate(request : HTTP::Request, tls) : Nil
     ts = Time.utc.to_unix
     nonce = "#{ts - @issued_at}:#{Random::Secure.hex}"
     method = request.method
