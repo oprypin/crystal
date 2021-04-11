@@ -113,8 +113,7 @@ module Crystal
           next if meth.name.ends_with?('=')
           fn = loc.filename
           next unless fn.is_a?(String)
-          next if (typ = meth.type).is_a?(UnionType) && typ.union_types.size >= 4
-          p! meth.name, loc
+          # next if (typ = meth.type).is_a?(UnionType) && typ.union_types.size >= 4
 
           annot = String.build do |io|
             typ = generator.type(meth.type)
