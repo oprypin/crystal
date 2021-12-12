@@ -37,6 +37,7 @@ jobs:
   smoke-test:
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest
+    if: false
 
     strategy:
       max-parallel: 2
