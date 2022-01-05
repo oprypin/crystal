@@ -1,3 +1,7 @@
+require "crsfml"
+require "imgui"
+require "imgui-sfml"
+
 class Crystal::Repl
   property prelude : String = "prelude"
   getter program : Program
@@ -13,13 +17,72 @@ class Crystal::Repl
 
     @interpreter = Interpreter.new(@context)
 
-    @buffer = ""
+    @buffer = ImGui::TextBuffer.new
   end
 
   def run
     load_prelude
 
-    while true
+    Colorize.enabled = false
+
+    window = SF::RenderWindow.new(SF::VideoMode.new(1280, 720), "crystal i")
+    window.framerate_limit = 30
+
+    ImGui::SFML.init(window)
+    io = ImGui.get_io
+    io.ini_filename = nil
+
+    delta_clock = SF::Clock.new
+    output = Array({ImGui::ImVec4, String}).new
+    scroll_to_bottom = false
+
+    while window.open?
+      while (event = window.poll_event)
+        ImGui::SFML.process_event(window, event)
+
+        if event.is_a? SF::Event::Closed
+          window.close
+        end
+      end
+
+      ImGui::SFML.update(window, delta_clock.restart)
+
+      viewport = ImGui.get_main_viewport
+
+      ImGui.set_next_window_pos(ImGui::ImVec2.new(viewport.work_size.x / 2, 0), ImGui::ImGuiCond::Once)
+      ImGui.set_next_window_size(ImGui::ImVec2.new(viewport.work_size.x / 2, viewport.work_size.y), ImGui::ImGuiCond::Once)
+
+      ImGui.begin("State")
+
+      @interpreter.draw_state
+
+      ImGui.end
+
+      ImGui.set_next_window_pos(ImGui::ImVec2.new(0, 0), ImGui::ImGuiCond::Once)
+      ImGui.set_next_window_size(ImGui::ImVec2.new(viewport.work_size.x / 2, viewport.work_size.y), ImGui::ImGuiCond::Once)
+
+      ImGui.begin("Console")
+
+      footer_height_to_reserve = ImGui.get_style.item_spacing.y + ImGui.get_frame_height_with_spacing
+      ImGui.begin_child("ScrollingRegion", ImGui::ImVec2.new(0, -footer_height_to_reserve), false, ImGui::ImGuiWindowFlags::HorizontalScrollbar)
+
+      ImGui.push_text_wrap_pos(0.0)
+      output.each do |(color, str)|
+        ImGui.push_style_color(ImGui::ImGuiCol::Text, color)
+        ImGui.text_unformatted(str)
+        ImGui.pop_style_color
+      end
+      ImGui.pop_text_wrap_pos
+
+      if scroll_to_bottom
+        ImGui.set_scroll_here_y(1)
+        scroll_to_bottom = false
+      end
+
+      ImGui.end_child
+
+      ImGui.separator
+
       prompt = String.build do |io|
         io.print "icr:#{@line_number}:#{@nest}"
         io.print(@incomplete ? '*' : '>')
@@ -27,24 +90,38 @@ class Crystal::Repl
         io.print "  " * @nest if @nest > 0
       end
 
-      print prompt
-      line = gets
-      unless line
-        # Explicitly call exit on ctrl+D so at_exit handlers run
-        interpret_exit
-        break
+      ImGui.text_unformatted(prompt)
+      ImGui.same_line
+      flags = ImGui::ImGuiInputTextFlags::EnterReturnsTrue | ImGui::ImGuiInputTextFlags::CallbackResize | ImGui::ImGuiInputTextFlags::CtrlEnterForNewLine
+      got_command = ImGui.input_text("##input", @buffer, flags)
+
+      ImGui.set_item_default_focus
+
+      if got_command
+        scroll_to_bottom = true
+
+        run_command(prompt, output)
+        ImGui.set_keyboard_focus_here(-1)
       end
 
-      new_buffer =
-        if @buffer.empty?
-          line
-        else
-          "#{@buffer}\n#{line}"
-        end
+      ImGui.end
+
+      window.clear
+      ImGui::SFML.render(window)
+      window.display
+    end
+
+    interpret_exit
+    ImGui::SFML.shutdown
+  end
+
+  private def run_command(prompt, output)
+    begin
+      new_buffer = @buffer.to_s
 
       if new_buffer.blank?
         @line_number += 1
-        next
+        return
       end
 
       parser = Parser.new(
@@ -59,53 +136,54 @@ class Crystal::Repl
         # TODO: improve this
         if ex.message.in?("unexpected token: EOF", "expecting identifier 'end', not 'EOF'")
           @nest = parser.type_nest + parser.def_nest + parser.fun_nest
-          @buffer = new_buffer
+          @buffer.puts
           @line_number += 1
           @incomplete = @nest == 0
         elsif ex.message == "expecting token ']', not 'EOF'"
           @nest = parser.type_nest + parser.def_nest + parser.fun_nest
-          @buffer = new_buffer
+          @buffer.puts
           @line_number += 1
           @incomplete = true
         else
-          puts "Error: #{ex.message}"
+          output << {ImGui.rgb(1.0, 0.4, 0.4), "Error: #{ex.message}"}
           @nest = 0
-          @buffer = ""
+          @buffer.clear
           @incomplete = false
         end
-        next
+        output << {ImGui.rgb(1, 1, 1), "#{prompt}#{new_buffer}"} unless @incomplete
+        return
       else
         @nest = 0
-        @buffer = ""
+        @buffer.clear
         @line_number += 1
       end
+
+      output << {ImGui.rgb(1, 1, 1), "#{prompt}#{new_buffer}"}
 
       begin
         value = interpret(node)
 
-        print "=> "
-        puts value
+        output << {ImGui.rgb(0.8, 1.0, 1.0), "=> #{value}"}
       rescue ex : EscapingException
         @nest = 0
-        @buffer = ""
+        @buffer.clear
         @line_number += 1
 
-        print "Unhandled exception: "
-        print ex
+        output << {ImGui.rgb(1.0, 0.4, 0.4), "Unhandled exception: #{ex}"}
       rescue ex : Crystal::CodeError
         @nest = 0
-        @buffer = ""
+        @buffer.clear
         @line_number += 1
 
         ex.color = true
         ex.error_trace = true
-        puts ex
+        output << {ImGui.rgb(1.0, 0.4, 0.4), ex.to_s}
       rescue ex : Exception
         @nest = 0
-        @buffer = ""
+        @buffer.clear
         @line_number += 1
 
-        ex.inspect_with_backtrace(STDOUT)
+        output << {ImGui.rgb(1.0, 0.4, 0.4), ex.inspect_with_backtrace}
       end
     end
   end

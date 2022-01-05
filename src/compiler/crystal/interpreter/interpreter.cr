@@ -1,6 +1,7 @@
 require "./repl"
 require "../ffi"
 require "colorize"
+require "imgui"
 
 # The ones that understands Crystal bytecode.
 class Crystal::Repl::Interpreter
@@ -1119,6 +1120,109 @@ class Crystal::Repl::Interpreter
     # We directly resume the next fiber.
     # TODO: is this okay? We totally ignore the scheduler here!
     new_fiber.resume
+  end
+
+  @values_to_show = Hash(ImGui::ImGuiID, Int32).new { 1 }
+
+  private def draw_value(pointer : UInt8*, type : Type)
+    case type
+    when NilType
+      ImGui.text("nil")
+    when BoolType
+      ImGui.checkbox("#{pointer.as(Bool*).value}###val", pointer.as(Bool*))
+    when CharType
+      str = pointer.as(Char*).value.to_s
+      buf = str.to_unsafe.to_slice(str.bytesize + 1)
+      if ImGui.input_text("##val", buf)
+        pointer.as(Char*).value = String.new(buf)[0]
+      end
+    when IntegerType, FloatType
+      {% begin %}
+      case type.kind
+      {% for typ in %i[i8 u8 i16 u16 i32 u32 i64 u64 f32 f64] %}
+        when {{typ}}
+          ImGui.input_scalar({{typ.id.stringify}}, pointer.as(typeof(0{{typ.id}})*), 1{{typ.id}})
+      {% end %}
+      else
+        ImGui.text("BUG: missing handling of Repl::Value#to_s(io) for #{type} (#{type.class.name})")
+      end
+      {% end %}
+      # when type.program.string
+      #   pointer.as(UInt8**).value.unsafe_as(String).inspect(io)
+    when PointerInstanceType
+      type_size = inner_sizeof_type(type.element_type)
+      ImGui.text_unformatted("0x" + pointer.as(UInt64*).value.to_s(16))
+      ImGui.same_line
+      ImGui.input_scalar("*", pointer.as(UInt64*), type_size.to_u64)
+      if ImGui.tree_node_ex("->", ImGui::ImGuiTreeNodeFlags::DefaultOpen)
+        ptr_val = pointer.as(UInt8**).value
+        id = ImGui.get_id("")
+
+        ImGui.same_line
+        ImGui.input_scalar("values to show", pointerof(@values_to_show[id]), 1)
+        @values_to_show[id] = 0 if @values_to_show[id] < 0
+        (0...@values_to_show[id]).each do |i|
+          if ImGui.tree_node_ex("[#{i}]", ImGui::ImGuiTreeNodeFlags::DefaultOpen)
+            ImGui.same_line
+            ImGui.text_unformatted("=")
+            draw_value(ptr_val + type_size * i, type.element_type)
+            ImGui.tree_pop
+          end
+        end
+        ImGui.tree_pop
+      end
+    when TupleInstanceType
+      type.tuple_types.each_with_index do |subtype, i|
+        if ImGui.tree_node_ex("[#{i}] : #{subtype}", ImGui::ImGuiTreeNodeFlags::DefaultOpen)
+          ImGui.same_line
+          ImGui.text_unformatted("=")
+          draw_value(pointer + context.offset_of(type, i), subtype)
+          ImGui.tree_pop
+        end
+      end
+    when MetaclassType, GenericClassInstanceMetaclassType
+      type_id = pointer.as(Int32*).value
+      type = context.type_from_id(type_id)
+      ImGui.text_unformatted(type.to_s)
+    when MixedUnionType
+      type_id = pointer.as(Int32*).value
+      type = context.type_from_id(type_id)
+      draw_value(pointer + sizeof(Pointer(UInt8)), type)
+    when InstanceVarContainer, ReferenceUnionType, NilableReferenceUnionType, NilableType
+      ot = type
+      is_class = !type.struct?
+      label = type.to_s
+      if is_class
+        pointer = pointer.as(UInt8**).value
+        type_id = pointer.as(Int32*).value
+        type = context.type_from_id(type_id)
+        label = "<#{type}> @ 0x#{pointer.address.to_s(16)}"
+      end
+      ImGui.text_unformatted(label)
+      all_instance_vars = type.all_instance_vars
+      all_instance_vars.each_with_index do |(name, ivar), index|
+        if ImGui.tree_node_ex("#{name} : #{ivar.type}")
+          ImGui.same_line
+          ImGui.text_unformatted("=")
+          offset = (is_class ? context.instance_offset_of(type, index) : context.offset_of(type, index))
+          draw_value(pointer + offset, ivar.type)
+          ImGui.tree_pop
+        end
+      end
+    else
+      ImGui.text("BUG: missing handling of Repl::Value#to_s(io) for #{type} (#{type.class.name})")
+    end
+  end
+
+  def draw_state
+    local_vars.@name_to_index.each do |key, index|
+      next if key.name.starts_with?("__temp")
+      type = local_vars.@types[key]
+      if ImGui.tree_node_ex("#{key.name} : #{type}", ImGui::ImGuiTreeNodeFlags::DefaultOpen | ImGui::ImGuiTreeNodeFlags::Framed)
+        draw_value(stack + index, type)
+        ImGui.tree_pop
+      end
+    end
   end
 
   private def pry(ip, instructions, stack_bottom, stack)
