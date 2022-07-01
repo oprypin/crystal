@@ -77,14 +77,14 @@ describe File do
       tempfile.try &.delete
     end
 
-    pending_win32 "accepts dir argument" do
+    it "accepts dir argument" do
       file = File.tempfile(dir: datapath)
       File.dirname(file.path).should eq(datapath)
     ensure
       file.try &.delete
     end
 
-    pending_win32 "fails in nonwriteable folder" do
+    it "fails in nonwriteable folder" do
       expect_raises(File::NotFoundError, "Error creating temporary file: '#{datapath("non-existing-folder")}/") do
         File.tempfile dir: datapath("non-existing-folder")
       end

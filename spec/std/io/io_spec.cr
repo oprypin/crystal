@@ -99,7 +99,7 @@ end
 
 describe IO do
   describe "partial read" do
-    pending_win32 "doesn't block on first read.  blocks on 2nd read" do
+    it "doesn't block on first read.  blocks on 2nd read" do
       IO.pipe do |read, write|
         write.puts "hello"
         slice = Bytes.new 1024
@@ -912,7 +912,7 @@ describe IO do
     end
   {% end %}
 
-  pending_win32 describe: "#close" do
+  describe "#close" do
     it "aborts 'read' in a different thread" do
       ch = Channel(Symbol).new(1)
 

@@ -77,7 +77,7 @@ describe Process do
     end
   end
 
-  pending_win32 "raises if command is not executable" do
+  it "raises if command is not executable" do
     with_tempfile("crystal-spec-run") do |path|
       File.touch path
       expect_raises(File::AccessDeniedError, "Error executing process: '#{path.inspect_unquoted}'") do
@@ -132,7 +132,7 @@ describe Process do
     value.should eq("hello#{newline}")
   end
 
-  pending_win32 "sends input in IO" do
+  it "sends input in IO" do
     value = Process.run(*stdin_to_stdout_command, input: IO::Memory.new("hello")) do |proc|
       proc.input?.should be_nil
       proc.output.gets_to_end
@@ -166,7 +166,7 @@ describe Process do
     $?.exit_code.should eq(0)
   end
 
-  pending_win32 "chroot raises when unprivileged" do
+  it "chroot raises when unprivileged" do
     status, output, _ = compile_and_run_source <<-'CODE'
       begin
         Process.chroot("/usr")
@@ -193,25 +193,25 @@ describe Process do
     value.should eq "#{parent}#{newline}"
   end
 
-  pending_win32 "disallows passing arguments to nowhere" do
+  it "disallows passing arguments to nowhere" do
     expect_raises ArgumentError, /args.+@/ do
       Process.run("foo bar", {"baz"}, shell: true)
     end
   end
 
-  pending_win32 "looks up programs in the $PATH with a shell" do
+  it "looks up programs in the $PATH with a shell" do
     proc = Process.run(*exit_code_command(0), shell: true, output: Process::Redirect::Close)
     proc.exit_code.should eq(0)
   end
 
-  pending_win32 "allows passing huge argument lists to a shell" do
+  it "allows passing huge argument lists to a shell" do
     proc = Process.new(%(echo "${@}"), {"a", "b"}, shell: true, output: Process::Redirect::Pipe)
     output = proc.output.gets_to_end
     proc.wait
     output.should eq "a b\n"
   end
 
-  pending_win32 "does not run shell code in the argument list" do
+  it "does not run shell code in the argument list" do
     proc = Process.new("echo", {"`echo hi`"}, shell: true, output: Process::Redirect::Pipe)
     output = proc.output.gets_to_end
     proc.wait
@@ -315,12 +315,12 @@ describe Process do
   end
 
   describe "signal" do
-    pending_win32 "kills a process" do
+    it "kills a process" do
       process = Process.new(*standing_command)
       process.signal(Signal::KILL).should be_nil
     end
 
-    pending_win32 "kills many process" do
+    it "kills many process" do
       process1 = Process.new(*standing_command)
       process2 = Process.new(*standing_command)
       process1.signal(Signal::KILL).should be_nil
@@ -328,14 +328,14 @@ describe Process do
     end
   end
 
-  pending_win32 "gets the pgid of a process id" do
+  it "gets the pgid of a process id" do
     process = Process.new(*standing_command)
     Process.pgid(process.pid).should be_a(Int64)
     process.signal(Signal::KILL)
     Process.pgid.should eq(Process.pgid(Process.pid))
   end
 
-  pending_win32 "can link processes together" do
+  it "can link processes together" do
     buffer = IO::Memory.new
     Process.run(*stdin_to_stdout_command) do |cat|
       Process.run(*stdin_to_stdout_command, input: cat.output, output: buffer) do
@@ -367,7 +367,7 @@ describe Process do
     end
   {% end %}
 
-  pending_win32 "checks for existence" do
+  it "checks for existence" do
     # We can't reliably check whether it ever returns false, since we can't predict
     # how PIDs are used by the system, a new process might be spawned in between
     # reaping the one we would spawn and checking for it, using the now available
@@ -389,7 +389,7 @@ describe Process do
     process.terminated?.should be_true
   end
 
-  pending_win32 "terminates the process" do
+  it "terminates the process" do
     process = Process.new(*standing_command)
     process.exists?.should be_true
     process.terminated?.should be_false

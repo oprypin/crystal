@@ -1947,7 +1947,7 @@ describe "String" do
     ("1\u{0}%i\u{0}3" % 2).should eq("1\u00002\u00003")
   end
 
-  pending_win32 "does % with floats" do
+  it "does % with floats" do
     ("%f" % 123).should eq("123.000000")
 
     ("%g" % 123).should eq("123")
@@ -2396,7 +2396,7 @@ describe "String" do
     sprintf("Hello %d world", [123]).should eq("Hello 123 world")
   end
 
-  pending_win32 "formats floats (#1562)" do
+  it "formats floats (#1562)" do
     sprintf("%12.2f %12.2f %6.2f %.2f" % {2.0, 3.0, 4.0, 5.0}).should eq("        2.00         3.00   4.00 5.00")
 
     sprintf("%f", 1e15).should eq("1000000000000000.000000")

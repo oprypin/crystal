@@ -107,7 +107,7 @@ describe "#print Float64" do
     test_pair 5.5626846462680035e-309, "5.562684646268003e-309"
   end
 
-  pending_win32 "failure case" do
+  it "failure case" do
     # grisu cannot do this number, so it should fall back to libc
     test_pair 3.5844466002796428e+298, "3.5844466002796428e+298"
   end

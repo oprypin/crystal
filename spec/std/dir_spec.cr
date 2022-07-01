@@ -68,7 +68,7 @@ describe "Dir" do
     end
 
     # TODO: do we even want this?
-    pending_win32 "tests empty? on a directory path to a file" do
+    it "tests empty? on a directory path to a file" do
       expect_raises(File::Error, "Error opening directory: '#{datapath("dir", "f1.txt", "/").inspect_unquoted}'") do
         Dir.empty?(datapath("dir", "f1.txt", "/"))
       end
@@ -342,7 +342,7 @@ describe "Dir" do
       ].sort
     end
 
-    pending_win32 "matches symlinks" do
+    it "matches symlinks" do
       link = datapath("f1_link.txt")
       non_link = datapath("non_link.txt")
 
@@ -361,7 +361,7 @@ describe "Dir" do
       end
     end
 
-    pending_win32 "matches symlink dir" do
+    it "matches symlink dir" do
       with_tempfile "symlink_dir" do |path|
         Dir.mkdir_p(Path[path, "glob"])
         target = Path[path, "target"]

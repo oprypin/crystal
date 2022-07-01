@@ -108,7 +108,7 @@ describe TCPSocket, tags: "network" do
     end
   end
 
-  pending_win32 "settings" do
+  it "settings" do
     port = unused_local_port
 
     TCPServer.open("::", port) do |server|

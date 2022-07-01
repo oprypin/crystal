@@ -134,15 +134,15 @@ describe "File" do
 
   # TODO: implement this for win32
   describe "executable?" do
-    pending_win32 "gives false" do
+    it "gives false" do
       File.executable?(datapath("test_file.txt")).should be_false
     end
 
-    pending_win32 "gives false when the file doesn't exist" do
+    it "gives false when the file doesn't exist" do
       File.executable?(datapath("non_existing_file.txt")).should be_false
     end
 
-    pending_win32 "gives false when a component of the path is a file" do
+    it "gives false when a component of the path is a file" do
       File.executable?(datapath("dir", "test_file.txt", "")).should be_false
     end
   end
@@ -252,7 +252,7 @@ describe "File" do
 
   describe "symlink?" do
     # TODO: this fails depending on how Git checks out the repository
-    pending_win32 "gives true" do
+    it "gives true" do
       File.symlink?(datapath("symlink.txt")).should be_true
     end
 
@@ -271,7 +271,7 @@ describe "File" do
   end
 
   describe ".readlink" do
-    pending_win32 "reads link" do
+    it "reads link" do
       File.readlink(datapath("symlink.txt")).should eq "test_file.txt"
     end
   end
@@ -411,7 +411,7 @@ describe "File" do
     end
 
     # See TODO in win32 Crystal::System::File.chmod
-    pending_win32 "follows symlinks" do
+    it "follows symlinks" do
       with_tempfile("chmod-destination.txt", "chmod-source.txt") do |source_path, target_path|
         File.write(source_path, "")
 
@@ -443,13 +443,13 @@ describe "File" do
     end
 
     # TODO: support stating nul on windows
-    pending_win32 "gets for a character device" do
+    it "gets for a character device" do
       info = File.info(File::NULL)
       info.type.should eq(File::Type::CharacterDevice)
     end
 
     # TODO: this fails depending on how Git checks out the repository
-    pending_win32 "gets for a symlink" do
+    it "gets for a symlink" do
       info = File.info(datapath("symlink.txt"), follow_symlinks: false)
       info.type.should eq(File::Type::Symlink)
     end
@@ -615,7 +615,7 @@ describe "File" do
     end
 
     # TODO: see Crystal::System::File.real_path TODO
-    pending_win32 "expands paths of symlinks" do
+    it "expands paths of symlinks" do
       file_path = File.expand_path(datapath("test_file.txt"))
       with_tempfile("symlink.txt") do |symlink_path|
         File.symlink(file_path, symlink_path)
@@ -875,7 +875,7 @@ describe "File" do
     end
   end
 
-  pending_win32 "raises when reading a file with no permission" do
+  it "raises when reading a file with no permission" do
     with_tempfile("file.txt") do |path|
       File.touch(path)
       File.chmod(path, 0)
@@ -923,7 +923,7 @@ describe "File" do
   end
 
   describe "fsync" do
-    pending_win32 "syncs OS file buffer to disk" do
+    it "syncs OS file buffer to disk" do
       with_tempfile("fsync.txt") do |path|
         File.open(path, "a") do |f|
           f.puts("333")
@@ -936,7 +936,7 @@ describe "File" do
 
   # TODO: implement flock on windows
   describe "flock" do
-    pending_win32 "exclusively locks a file" do
+    it "exclusively locks a file" do
       File.open(datapath("test_file.txt")) do |file1|
         File.open(datapath("test_file.txt")) do |file2|
           file1.flock_exclusive do
@@ -949,7 +949,7 @@ describe "File" do
       end
     end
 
-    pending_win32 "shared locks a file" do
+    it "shared locks a file" do
       File.open(datapath("test_file.txt")) do |file1|
         File.open(datapath("test_file.txt")) do |file2|
           file1.flock_shared do
@@ -1040,7 +1040,7 @@ describe "File" do
       File.writable?("foo\0bar")
     end
 
-    pending_win32 "errors on executable?" do
+    it "errors on executable?" do
       expect_raises(ArgumentError, "String contains null byte") do
         File.executable?("foo\0bar")
       end
@@ -1287,7 +1287,7 @@ describe "File" do
     end
 
     # TODO: there is no file which is reliably nonwriteable on windows
-    pending_win32 "raises if file cannot be accessed" do
+    it "raises if file cannot be accessed" do
       expect_raises(File::Error, "Error setting time on file: '/bin/ls'") do
         File.touch("/bin/ls")
       end
@@ -1320,7 +1320,7 @@ describe "File" do
       end
     end
 
-    pending_win32 "copies permissions" do
+    it "copies permissions" do
       with_tempfile("cp-permissions-src.txt", "cp-permissions-out.txt") do |src_path, out_path|
         File.write(src_path, "foo")
         File.chmod(src_path, 0o700)
@@ -1332,7 +1332,7 @@ describe "File" do
       end
     end
 
-    pending_win32 "overwrites existing destination and permissions" do
+    it "overwrites existing destination and permissions" do
       with_tempfile("cp-permissions-src.txt", "cp-permissions-out.txt") do |src_path, out_path|
         File.write(src_path, "foo")
         File.chmod(src_path, 0o700)
