@@ -45,7 +45,7 @@ module Regex::PCRE2
   end
 
   protected def self.compile(source, options, &)
-    if res = LibPCRE2.compile(source, source.bytesize, options, out errorcode, out erroroffset, nil)
+    if res = LibPCRE2.compile(source, source.bytesize, options, out errorcode, out erroroffset, compile_context)
       res
     else
       message = get_error_message(errorcode)
@@ -153,8 +153,6 @@ module Regex::PCRE2
       return error_message
     end
 
-    LibPCRE2.code_free code
-
     nil
   end
 
@@ -225,9 +223,20 @@ module Regex::PCRE2
   end
 
   class_getter match_context : LibPCRE2::MatchContext* do
-    match_context = LibPCRE2.match_context_create(nil)
+    match_context = LibPCRE2.match_context_create(general_context)
     LibPCRE2.jit_stack_assign(match_context, ->(_data) { Regex::PCRE2.jit_stack }, nil)
     match_context
+  end
+
+  class_getter compile_context : LibPCRE2::CompileContext* do
+    LibPCRE2.compile_context_create(general_context)
+  end
+
+  # Context for all memory allocations done by PCRE2.
+  #
+  # Use our GC for allocation, so deallocation and finalizers are no longer necessary.
+  class_getter general_context : LibPCRE2::GeneralContext* do
+    LibPCRE2.general_context_create(->(size, data) { GC.malloc(size) }, ->(ptr, data) {}, nil)
   end
 
   # Returns a JIT stack that's shared in the current thread.
@@ -238,7 +247,7 @@ module Regex::PCRE2
 
   def self.jit_stack
     @@jit_stack.get do
-      LibPCRE2.jit_stack_create(32_768, 1_048_576, nil) || raise "Error allocating JIT stack"
+      LibPCRE2.jit_stack_create(32_768, 1_048_576, general_context) || raise "Error allocating JIT stack"
     end
   end
 
@@ -250,15 +259,8 @@ module Regex::PCRE2
 
   private def match_data
     @match_data.get do
-      LibPCRE2.match_data_create_from_pattern(@re, nil)
+      LibPCRE2.match_data_create_from_pattern(@re, Regex::PCRE2.general_context)
     end
-  end
-
-  def finalize
-    @match_data.consume_each do |match_data|
-      LibPCRE2.match_data_free(match_data)
-    end
-    LibPCRE2.code_free @re
   end
 
   private def match_data(str, byte_index, options)
