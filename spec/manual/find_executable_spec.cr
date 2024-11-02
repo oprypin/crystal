@@ -19,16 +19,12 @@ describe "Process.run" do
     Dir.mkdir_p(test_dir)
 
     exe_names, non_exe_names = FIND_EXECUTABLE_TEST_FILES
-    exe_names.each do |name|
-      src_fn = test_dir / "self_printer.cr"
-      exe_fn = test_dir / "self_printer.exe"
-      File.write(src_fn, "print #{name.inspect}")
-      Process.run(ENV["CRYSTAL_SPEC_COMPILER_BIN"]? || "bin/crystal", ["build", "-o", exe_fn.to_s, src_fn.to_s])
+    (exe_names + non_exe_names).each do |name|
       Dir.mkdir_p((base_dir / name).parent)
-      File.rename(exe_fn, base_dir / name)
+      File.write(base_dir / name, "#!bad_executable/#{name.inspect}")
     end
-    non_exe_names.each do |name|
-      File.write(base_dir / name, "")
+    exe_names.each do |name|
+      File.chmod(base_dir / name, 0o755)
     end
 
     with_env "PATH": {ENV["PATH"], path_dir}.join(Process::PATH_DELIMITER) do
@@ -42,10 +38,10 @@ describe "Process.run" do
 
   find_executable_test_cases(base_dir).each do |(command, exp)|
     if exp
-      it "runs '#{command}' as '#{exp}'" do
-        output = Process.run command, &.output.gets_to_end
-        $?.success?.should be_true
-        output.should eq exp
+      it "runs '#{command}' and fails" do
+        expect_raises File::NotFoundError do
+          Process.run(command)
+        end
       end
     else
       it "fails to run '#{command}'" do
